@@ -15,7 +15,7 @@ const STORAGE_KEY = '@longlivy/theme_preference';
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-function resolveMode(preference: ThemePreference, system: ColorSchemeName): ThemeMode {
+function resolveMode(preference: ThemePreference, system: ColorSchemeName | null | undefined): ThemeMode {
   if (preference === 'system') {
     return system === 'dark' ? 'dark' : 'light';
   }
@@ -24,7 +24,9 @@ function resolveMode(preference: ThemePreference, system: ColorSchemeName): Them
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [preference, setPreferenceState] = useState<ThemePreference>('system');
-  const [systemScheme, setSystemScheme] = useState<ColorSchemeName>(Appearance.getColorScheme());
+  // `Appearance.getColorScheme()` is typed as `ColorSchemeName | null | undefined` — the
+  // OS can genuinely report "no preference" (e.g. before the first appearance event).
+  const [systemScheme, setSystemScheme] = useState<ColorSchemeName | null | undefined>(Appearance.getColorScheme());
 
   useEffect(() => {
     const sub = Appearance.addChangeListener(({ colorScheme }) => setSystemScheme(colorScheme));

@@ -26,7 +26,7 @@ export const AiPhotoEntryScreen: React.FC = () => {
     const result =
       source === 'camera'
         ? await ImagePicker.launchCameraAsync({ quality: 0.6, allowsEditing: true })
-        : await ImagePicker.launchImageLibraryAsync({ quality: 0.6, allowsEditing: true, mediaTypes: ImagePicker.MediaTypeOptions.Images });
+        : await ImagePicker.launchImageLibraryAsync({ quality: 0.6, allowsEditing: true, mediaTypes: ['images'] });
 
     if (!result.canceled && result.assets[0]) {
       setPhotoUri(result.assets[0].uri);

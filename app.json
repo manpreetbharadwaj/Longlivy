@@ -6,14 +6,6 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
-    "splash": {
-      "backgroundColor": "#0B4F4A",
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.longlivy.app",
@@ -61,7 +53,15 @@
           "locationWhenInUsePermission": "Longlivy uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B4F4A",
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain"
+        }
+      ]
     ]
   }
 }

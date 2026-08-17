@@ -3,9 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "module": "ESNext",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "forceConsistentCasingInFileNames": true
   },

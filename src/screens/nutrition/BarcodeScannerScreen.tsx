@@ -75,7 +75,7 @@ export const BarcodeScannerScreen: React.FC = () => {
             </View>
           ) : (
             <CameraView
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
               facing="back"
               barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'qr'] }}
               onBarcodeScanned={scanned ? undefined : handleScanned}

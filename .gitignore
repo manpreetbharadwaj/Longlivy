@@ -11,3 +11,4 @@ web-build/
 *.mobileprovision
 .env
 .env.local
+.claude/

@@ -1,7 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import * as FileSystem from 'expo-file-system';
+// expo-file-system's default export moved to a new File/Directory/Paths API in
+// recent SDKs; `/legacy` keeps the documentDirectory/writeAsStringAsync shape
+// this screen already uses, with no behavior change.
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { AppScreen } from '@/components/common/AppScreen';
 import { AppHeader } from '@/components/common/AppHeader';
@@ -59,6 +62,7 @@ export const DataManagementScreen: React.FC = () => {
     setExporting(true);
     try {
       const json = JSON.stringify(exportableSnapshot(), null, 2);
+      if (!FileSystem.documentDirectory) throw new Error('Document directory is unavailable on this device.');
       const uri = `${FileSystem.documentDirectory}longlivy-data-export.json`;
       await FileSystem.writeAsStringAsync(uri, json, { encoding: FileSystem.EncodingType.UTF8 });
       if (await Sharing.isAvailableAsync()) {

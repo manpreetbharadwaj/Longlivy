@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainTabParamList } from './types';
 import { useTheme } from '@/hooks/useTheme';
 import { AppText } from '@/components/common/AppText';
@@ -30,6 +31,11 @@ const LABELS: Record<keyof MainTabParamList, string> = {
 
 export const MainTabNavigator: React.FC = () => {
   const { theme } = useTheme();
+  // Edge-to-edge is mandatory from SDK 55 onward, so the tab bar can no
+  // longer assume the OS leaves room for it above the Android gesture bar /
+  // iOS home indicator — that inset has to be added to our own fixed height
+  // explicitly instead of relying on a hardcoded paddingBottom.
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -40,8 +46,8 @@ export const MainTabNavigator: React.FC = () => {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
-          height: theme.componentSizes.tabBarHeight,
-          paddingBottom: 8,
+          height: theme.componentSizes.tabBarHeight + insets.bottom,
+          paddingBottom: 8 + insets.bottom,
           paddingTop: 6,
         },
         tabBarLabel: ({ color }) => (
