@@ -1,0 +1,143 @@
+import React, { useCallback, useState } from 'react';
+import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { AppScreen } from '@/components/common/AppScreen';
+import { AppHeader } from '@/components/common/AppHeader';
+import { AppCard } from '@/components/common/AppCard';
+import { AppText } from '@/components/common/AppText';
+import { AppButton } from '@/components/common/AppButton';
+import { useTheme } from '@/hooks/useTheme';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { store as reduxStore } from '@/store/store';
+import { LocalStore } from '@/services/storage/LocalStore';
+import { bootstrapSession } from '@/features/auth/authSlice';
+import { loadFastingData } from '@/features/fasting/fastingSlice';
+import { loadTodayMeals, loadFavoriteFoods } from '@/features/nutrition/nutritionSlice';
+import { loadActivityData } from '@/features/activity/activitySlice';
+import { loadMeditationData } from '@/features/meditation/meditationSlice';
+import { loadWeightHistory } from '@/features/weight/weightSlice';
+
+/** Domains that make up "your data" for export/deletion — deliberately excludes UI-only state (theme, nav). */
+function exportableSnapshot() {
+  const state = reduxStore.getState();
+  return {
+    exportedAt: new Date().toISOString(),
+    profile: state.profile,
+    fasting: state.fasting,
+    nutrition: state.nutrition,
+    activity: state.activity,
+    calorie: state.calorie,
+    weight: state.weight,
+    meditation: state.meditation,
+    goals: state.goals,
+    notification: state.notification,
+    healthIntegration: state.healthIntegration,
+  };
+}
+
+export const DataManagementScreen: React.FC = () => {
+  const { theme } = useTheme();
+  const navigation = useNavigation();
+  const dispatch = useAppDispatch();
+  const fasting = useAppSelector((s) => s.fasting.history.length);
+  const meals = useAppSelector((s) => s.nutrition.todayMeals.length);
+  const activities = useAppSelector((s) => s.activity.history.length);
+  const meditations = useAppSelector((s) => s.meditation.history.length);
+  const [exporting, setExporting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const rows = [
+    { label: 'Fasting sessions stored', value: fasting },
+    { label: "Today's meals stored", value: meals },
+    { label: 'Activities stored', value: activities },
+    { label: 'Meditation sessions stored', value: meditations },
+  ];
+
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    try {
+      const json = JSON.stringify(exportableSnapshot(), null, 2);
+      const uri = `${FileSystem.documentDirectory}longlivy-data-export.json`;
+      await FileSystem.writeAsStringAsync(uri, json, { encoding: FileSystem.EncodingType.UTF8 });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, { mimeType: 'application/json', dialogTitle: 'Export Longlivy data' });
+      } else {
+        Alert.alert('Export ready', `Your data was written to:\n${uri}`);
+      }
+    } catch (e) {
+      Alert.alert('Export failed', e instanceof Error ? e.message : 'Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  }, []);
+
+  const performDeletion = useCallback(async () => {
+    setDeleting(true);
+    try {
+      await LocalStore.clearAll();
+      // Re-bootstraps session + onboarding status from the now-empty stores,
+      // so this device is treated as brand new (back through onboarding),
+      // not left showing a stale "onboarding already done" flag.
+      await dispatch(bootstrapSession());
+      // Best-effort refresh so any screen still mounted reflects the reset state immediately.
+      await Promise.all([
+        dispatch(loadFastingData()),
+        dispatch(loadTodayMeals()),
+        dispatch(loadFavoriteFoods()),
+        dispatch(loadActivityData()),
+        dispatch(loadMeditationData()),
+        dispatch(loadWeightHistory()),
+      ]);
+    } finally {
+      setDeleting(false);
+    }
+  }, [dispatch]);
+
+  const handleDelete = useCallback(() => {
+    Alert.alert(
+      'Delete all my data?',
+      'This permanently clears everything stored on this device — fasting, nutrition, activity, meditation and weight history — and signs you out. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete everything', style: 'destructive', onPress: performDeletion },
+      ]
+    );
+  }, [performDeletion]);
+
+  return (
+    <>
+      <AppHeader title="Data management" onBack={() => navigation.goBack()} />
+      <AppScreen>
+        <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
+          All data currently lives on this device via local mock repositories. Each item below carries a
+          source tag so its origin stays traceable once real sync is added.
+        </AppText>
+        <AppCard style={{ marginBottom: theme.spacing.lg }}>
+          {rows.map((r) => (
+            <AppText key={r.label} variant="bodyMedium" style={{ marginBottom: theme.spacing.xs }}>
+              {r.label}: <AppText variant="headingSmall">{r.value}</AppText>
+            </AppText>
+          ))}
+        </AppCard>
+
+        <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
+          Export your data
+        </AppText>
+        <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.sm }}>
+          Download a JSON copy of everything Longlivy has stored for you.
+        </AppText>
+        <AppButton label="Export my data" onPress={handleExport} loading={exporting} variant="outline" style={{ marginBottom: theme.spacing.lg }} />
+
+        <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
+          Delete your data
+        </AppText>
+        <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.sm }}>
+          Permanently erase all locally stored data and sign out of this device.
+        </AppText>
+        <AppButton label="Delete all my data" onPress={handleDelete} loading={deleting} variant="danger" />
+      </AppScreen>
+    </>
+  );
+};

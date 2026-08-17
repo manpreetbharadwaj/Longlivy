@@ -1,0 +1,65 @@
+import React, { useCallback, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NutritionStackParamList } from '@/navigation/types';
+import { AppScreen } from '@/components/common/AppScreen';
+import { AppHeader } from '@/components/common/AppHeader';
+import { AppText } from '@/components/common/AppText';
+import { AppInput } from '@/components/common/AppInput';
+import { AppButton } from '@/components/common/AppButton';
+import { useTheme } from '@/hooks/useTheme';
+import { aiNutritionRecognitionService } from '@/features/nutrition/services/AiNutritionRecognitionService';
+
+interface AiTextVoiceEntryScreenProps {
+  mode: 'voice' | 'text';
+}
+
+/**
+ * Shared shell for the voice and text nutrition entry paths — both ultimately
+ * parse a free-text description the same way. "Voice" input uses the same
+ * multiline field with dictation via the keyboard's built-in microphone
+ * (iOS/Android both support this natively), since a real speech-to-text
+ * backend is outside what this client-only prototype can call.
+ */
+export const AiTextVoiceEntryScreen: React.FC<AiTextVoiceEntryScreenProps> = ({ mode }) => {
+  const { theme } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<NutritionStackParamList>>();
+  const [text, setText] = useState('');
+  const [parsing, setParsing] = useState(false);
+
+  const handleParse = useCallback(() => {
+    if (!text.trim()) return;
+    setParsing(true);
+    const items = aiNutritionRecognitionService.recognizeFromText(text);
+    setParsing(false);
+    navigation.navigate('AiMealReview', { source: mode, items });
+  }, [text, mode, navigation]);
+
+  return (
+    <>
+      <AppHeader title={mode === 'voice' ? 'Voice nutrition' : 'Text nutrition'} onBack={() => navigation.goBack()} />
+      <AppScreen>
+        <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
+          {mode === 'voice'
+            ? 'Tap the field below, then use your keyboard’s microphone button to dictate a meal — e.g. "two eggs, two slices of wholemeal bread and 200 grams of Skyr."'
+            : 'Describe a meal in your own words — e.g. "300 grams of chicken with 150 grams of rice and vegetables."'}
+        </AppText>
+        <AppInput
+          value={text}
+          onChangeText={setText}
+          placeholder={mode === 'voice' ? 'Tap here, then dictate…' : 'Type a meal description…'}
+          multiline
+          textAlignVertical="top"
+          style={{ height: 120, paddingTop: theme.spacing.sm, marginBottom: theme.spacing.md }}
+        />
+        <AppButton label="Recognize meal" onPress={handleParse} loading={parsing} disabled={!text.trim()} />
+        <AppText variant="caption" color={theme.colors.textTertiary} align="center" style={{ marginTop: theme.spacing.md }}>
+          The structured result will always be editable before saving — nothing is stored automatically.
+        </AppText>
+      </AppScreen>
+    </>
+  );
+};
+
+export const AiVoiceEntryScreen: React.FC = () => <AiTextVoiceEntryScreen mode="voice" />;
+export const AiTextEntryScreen: React.FC = () => <AiTextVoiceEntryScreen mode="text" />;

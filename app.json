@@ -1,0 +1,67 @@
+{
+  "expo": {
+    "name": "Longlivy",
+    "slug": "longlivy",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#0B4F4A",
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.longlivy.app",
+      "icon": "./assets/icon.png",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Longlivy uses the camera to scan food barcodes and photograph meals for AI-assisted logging.",
+        "NSPhotoLibraryUsageDescription": "Longlivy can use photos from your library to log a meal with AI-assisted recognition.",
+        "NSMicrophoneUsageDescription": "Longlivy uses the microphone so you can dictate a meal description using your keyboard's voice input.",
+        "NSLocationWhenInUseUsageDescription": "Longlivy uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
+      }
+    },
+    "android": {
+      "package": "com.longlivy.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
+        "backgroundColor": "#0B4F4A"
+      },
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Longlivy uses the camera to scan food barcodes and photograph meals for AI-assisted logging."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Longlivy can use photos from your library to log a meal with AI-assisted recognition."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Longlivy uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
+        }
+      ],
+      "expo-secure-store"
+    ]
+  }
+}
