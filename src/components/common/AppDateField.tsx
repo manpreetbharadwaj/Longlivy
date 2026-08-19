@@ -13,6 +13,8 @@ interface AppDateFieldProps {
   onChange: (date: Date) => void;
   maximumDate?: Date;
   minimumDate?: Date;
+  /** 'hero' styles the trigger for a dark gradient background (see OnboardingStepLayout's hero variant) — the picker itself is unchanged. */
+  variant?: 'default' | 'hero';
 }
 
 function formatValue(value: Date, mode: 'date' | 'time'): string {
@@ -27,10 +29,11 @@ function formatValue(value: Date, mode: 'date' | 'time'): string {
  * platform's native picker UX (a spinner sheet on iOS, the system dialog on
  * Android) instead of asking the user to type "YYYY-MM-DD" correctly.
  */
-export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mode, value, onChange, maximumDate, minimumDate }) => {
+export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mode, value, onChange, maximumDate, minimumDate, variant = 'default' }) => {
   const { theme } = useTheme();
   const [iosModalVisible, setIosModalVisible] = useState(false);
   const [draftValue, setDraftValue] = useState(value);
+  const hero = variant === 'hero';
 
   const openPicker = useCallback(() => {
     if (Platform.OS === 'android') {
@@ -56,7 +59,7 @@ export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mo
 
   return (
     <View>
-      <AppText variant="label" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.xxs }}>
+      <AppText variant="label" color={hero ? 'rgba(255,255,255,0.65)' : theme.colors.textSecondary} style={{ marginBottom: theme.spacing.xxs }}>
         {label}
       </AppText>
       <Pressable
@@ -66,17 +69,19 @@ export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mo
         style={{
           height: theme.componentSizes.inputHeight,
           borderRadius: theme.radius.md,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-          backgroundColor: theme.colors.surfaceElevated,
+          borderWidth: hero ? 1.5 : 1,
+          borderColor: hero ? 'rgba(255,255,255,0.16)' : theme.colors.border,
+          backgroundColor: hero ? 'rgba(255,255,255,0.08)' : theme.colors.surfaceElevated,
           paddingHorizontal: theme.spacing.sm,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
       >
-        <AppText variant="bodyLarge">{formatValue(value, mode)}</AppText>
-        <AppIcon name={mode === 'date' ? 'calendar-outline' : 'time-outline'} size={18} color={theme.colors.textTertiary} />
+        <AppText variant="bodyLarge" color={hero ? '#FFFFFF' : undefined}>
+          {formatValue(value, mode)}
+        </AppText>
+        <AppIcon name={mode === 'date' ? 'calendar-outline' : 'time-outline'} size={18} color={hero ? 'rgba(255,255,255,0.55)' : theme.colors.textTertiary} />
       </Pressable>
 
       {Platform.OS !== 'android' ? (

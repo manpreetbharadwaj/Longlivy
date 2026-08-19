@@ -1,20 +1,55 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay } from 'react-native-reanimated';
 import { OnboardingStackParamList } from '@/navigation/types';
-import { AppCard } from '@/components/common/AppCard';
-import { AppText } from '@/components/common/AppText';
+import { HeroOptionCard } from '@/components/common/HeroOptionCard';
 import { useTheme } from '@/hooks/useTheme';
 import { useOnboardingDraft, OnboardingDraft } from '@/features/onboarding/OnboardingContext';
+import { motion } from '@/theme/motion';
 import { OnboardingStepLayout } from './OnboardingStepLayout';
 
-const LEVELS: { key: NonNullable<OnboardingDraft['activityLevel']>; label: string; desc: string }[] = [
+type Level = NonNullable<OnboardingDraft['activityLevel']>;
+
+const LEVELS: { key: Level; label: string; desc: string }[] = [
   { key: 'sedentary', label: 'Sedentary', desc: 'Little to no exercise, desk job.' },
   { key: 'light', label: 'Lightly active', desc: 'Light exercise 1–3 days a week.' },
   { key: 'moderate', label: 'Moderately active', desc: 'Moderate exercise 3–5 days a week.' },
   { key: 'active', label: 'Active', desc: 'Hard exercise 6–7 days a week.' },
   { key: 'very_active', label: 'Very active', desc: 'Physical job or twice-daily training.' },
 ];
+
+const BAR_MIN = 14;
+const BAR_STEP = 13;
+const ACTIVITY_COLOR = '#5C9BD9';
+
+const EnergyBar: React.FC<{ index: number; active: boolean }> = ({ index, active }) => {
+  const height = useSharedValue(BAR_MIN);
+  const opacity = useSharedValue(0.28);
+
+  useEffect(() => {
+    const targetHeight = BAR_MIN + index * BAR_STEP;
+    height.value = withDelay(index * 40, withTiming(active ? targetHeight : BAR_MIN, { duration: motion.duration.base, easing: motion.easing.standard }));
+    opacity.value = withDelay(index * 40, withTiming(active ? 1 : 0.28, { duration: motion.duration.base }));
+  }, [active, index, height, opacity]);
+
+  const style = useAnimatedStyle(() => ({ height: height.value, opacity: opacity.value }));
+
+  return <Animated.View style={[{ width: 15, marginHorizontal: 5, borderRadius: 8, backgroundColor: ACTIVITY_COLOR }, style]} />;
+};
+
+/** A 5-bar "energy meter" that fills progressively taller as a higher activity level is selected — the level communicated visually, not just by label. */
+const ActivityHeroVisual: React.FC<{ level: Level | null }> = ({ level }) => {
+  const selectedIndex = level ? LEVELS.findIndex((l) => l.key === level) : -1;
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', height: BAR_MIN + 4 * BAR_STEP + 8, marginBottom: 8 }}>
+      {LEVELS.map((l, i) => (
+        <EnergyBar key={l.key} index={i} active={i <= selectedIndex} />
+      ))}
+    </View>
+  );
+};
 
 export const ActivityLevelStepScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
@@ -23,6 +58,7 @@ export const ActivityLevelStepScreen: React.FC = () => {
 
   return (
     <OnboardingStepLayout
+      variant="hero"
       step={5}
       totalSteps={11}
       title="How active are you?"
@@ -31,21 +67,17 @@ export const ActivityLevelStepScreen: React.FC = () => {
       onBack={() => navigation.goBack()}
       nextDisabled={!draft.activityLevel}
     >
+      <ActivityHeroVisual level={draft.activityLevel} />
       {LEVELS.map((l) => (
-        <AppCard
+        <HeroOptionCard
           key={l.key}
+          title={l.label}
+          description={l.desc}
+          selected={draft.activityLevel === l.key}
+          accentColor={ACTIVITY_COLOR}
           onPress={() => update({ activityLevel: l.key })}
-          style={{
-            marginBottom: theme.spacing.sm,
-            borderColor: draft.activityLevel === l.key ? theme.colors.primary : theme.colors.border,
-            borderWidth: draft.activityLevel === l.key ? 2 : 1,
-          }}
-        >
-          <AppText variant="headingSmall">{l.label}</AppText>
-          <AppText variant="bodySmall" color={theme.colors.textSecondary}>
-            {l.desc}
-          </AppText>
-        </AppCard>
+          style={{ marginBottom: theme.spacing.sm }}
+        />
       ))}
     </OnboardingStepLayout>
   );
