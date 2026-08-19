@@ -1,17 +1,19 @@
 import React, { useState, useCallback } from 'react';
-import { View } from 'react-native';
+import { View, Pressable } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
 import { AppText } from '@/components/common/AppText';
-import { AppInput } from '@/components/common/AppInput';
-import { AppButton } from '@/components/common/AppButton';
+import { HeroTextField } from '@/components/common/HeroTextField';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginThunk } from '@/features/auth/authSlice';
 import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
 import { DEMO_USER } from '@/mock/demoUser';
+import { AuthHeroLayout } from './AuthHeroLayout';
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -28,45 +30,56 @@ export const LoginScreen: React.FC = () => {
   }, [dispatch, email, password]);
 
   return (
-    <AppScreen>
-      <View style={{ marginTop: theme.spacing.xxl, marginBottom: theme.spacing.xl }}>
-        <AppText variant="displayMedium">Welcome back</AppText>
-        <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginTop: theme.spacing.xxs }}>
+    <AuthHeroLayout>
+      <View style={{ alignItems: 'center', marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl }}>
+        <View style={{ width: 56, height: 56, borderRadius: 18, overflow: 'hidden', marginBottom: theme.spacing.md }}>
+          <LinearGradient colors={['#1FA391', '#0B4F4A']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <AppText variant="headingLarge" color="#FFFFFF" weight="800">
+              L
+            </AppText>
+          </LinearGradient>
+        </View>
+        <AppText variant="displayMedium" color="#FFFFFF" align="center">
+          Welcome back
+        </AppText>
+        <AppText variant="bodyMedium" color="rgba(255,255,255,0.65)" align="center" style={{ marginTop: theme.spacing.xxs }}>
           Log in to continue your Longlivy routine.
         </AppText>
       </View>
 
-      <AppInput label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" style={{ marginBottom: theme.spacing.sm }} />
-      <AppInput label="Password" value={password} onChangeText={setPassword} secureTextEntry style={{ marginBottom: theme.spacing.xxs }} />
+      <FadeSlideIn>
+        <HeroTextField label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" style={{ marginBottom: theme.spacing.sm }} />
+        <HeroTextField label="Password" value={password} onChangeText={setPassword} isPassword style={{ marginBottom: theme.spacing.xxs }} />
 
-      {error ? (
-        <AppText variant="bodySmall" color={theme.colors.danger} style={{ marginBottom: theme.spacing.sm }}>
-          {error}
+        {error ? (
+          <AppText variant="bodySmall" color="#E06A5D" style={{ marginTop: theme.spacing.xs }}>
+            {error}
+          </AppText>
+        ) : null}
+
+        <Pressable onPress={() => navigation.navigate('ForgotPassword')} hitSlop={8} style={{ alignSelf: 'flex-end', marginTop: theme.spacing.xs, marginBottom: theme.spacing.md }}>
+          <AppText variant="label" color="rgba(255,255,255,0.7)">
+            Forgot password?
+          </AppText>
+        </Pressable>
+
+        <AppGradientButton label="Log in" onPress={handleLogin} loading={status === 'loading'} />
+
+        <View style={{ marginTop: theme.spacing.md, flexDirection: 'row', justifyContent: 'center' }}>
+          <AppText variant="bodyMedium" color="rgba(255,255,255,0.65)">
+            New to Longlivy?{' '}
+          </AppText>
+          <Pressable onPress={() => navigation.navigate('Register')} hitSlop={8}>
+            <AppText variant="bodyMedium" color="#5FBFAE">
+              Create an account
+            </AppText>
+          </Pressable>
+        </View>
+
+        <AppText variant="caption" color="rgba(255,255,255,0.4)" align="center" style={{ marginTop: theme.spacing.lg }}>
+          Demo credentials are pre-filled. Authentication is mocked locally for this prototype.
         </AppText>
-      ) : null}
-
-      <AppButton
-        label="Forgot password?"
-        onPress={() => navigation.navigate('ForgotPassword')}
-        variant="ghost"
-        fullWidth={false}
-        style={{ alignSelf: 'flex-end', marginBottom: theme.spacing.md, height: 32 }}
-      />
-
-      <AppButton label="Log in" onPress={handleLogin} loading={status === 'loading'} />
-
-      <View style={{ marginTop: theme.spacing.sm, flexDirection: 'row', justifyContent: 'center' }}>
-        <AppText variant="bodyMedium" color={theme.colors.textSecondary}>
-          New to Longlivy?{' '}
-        </AppText>
-        <AppText variant="bodyMedium" color={theme.colors.primary} onPress={() => navigation.navigate('Register')}>
-          Create an account
-        </AppText>
-      </View>
-
-      <AppText variant="caption" color={theme.colors.textTertiary} align="center" style={{ marginTop: theme.spacing.lg }}>
-        Demo credentials are pre-filled. Authentication is mocked locally for this prototype.
-      </AppText>
-    </AppScreen>
+      </FadeSlideIn>
+    </AuthHeroLayout>
   );
 };

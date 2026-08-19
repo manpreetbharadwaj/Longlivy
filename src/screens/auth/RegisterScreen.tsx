@@ -1,17 +1,18 @@
 import React, { useState, useCallback } from 'react';
-import { View } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
 import { AppText } from '@/components/common/AppText';
-import { AppInput } from '@/components/common/AppInput';
-import { AppButton } from '@/components/common/AppButton';
+import { HeroTextField } from '@/components/common/HeroTextField';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { registerThunk } from '@/features/auth/authSlice';
 import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
 import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
+import { AuthHeroLayout } from './AuthHeroLayout';
 
 export const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -45,27 +46,36 @@ export const RegisterScreen: React.FC = () => {
   }, [dispatch, firstName, lastName, email, password, draft]);
 
   return (
-    <AppScreen>
-      <View style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.lg }}>
-        <AppText variant="displayMedium">Create your account</AppText>
-      </View>
-      <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
-        <View style={{ flex: 1 }}>
-          <AppInput label="First name" value={firstName} onChangeText={setFirstName} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <AppInput label="Last name" value={lastName} onChangeText={setLastName} />
-        </View>
-      </View>
-      <AppInput label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" style={{ marginBottom: theme.spacing.sm }} />
-      <AppInput label="Password" value={password} onChangeText={setPassword} secureTextEntry style={{ marginBottom: theme.spacing.sm }} />
-      {error ? (
-        <AppText variant="bodySmall" color={theme.colors.danger} style={{ marginBottom: theme.spacing.sm }}>
-          {error}
+    <AuthHeroLayout onBack={() => navigation.goBack()}>
+      <View style={{ marginBottom: theme.spacing.lg }}>
+        <AppText variant="displayMedium" color="#FFFFFF">
+          Create your account
         </AppText>
-      ) : null}
-      <AppButton label="Create account" onPress={handleRegister} disabled={!valid} loading={status === 'loading'} />
-      <AppButton label="Already have an account? Log in" onPress={() => navigation.goBack()} variant="ghost" style={{ marginTop: theme.spacing.xs }} />
-    </AppScreen>
+      </View>
+
+      <FadeSlideIn>
+        <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
+          <View style={{ flex: 1 }}>
+            <HeroTextField label="First name" value={firstName} onChangeText={setFirstName} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <HeroTextField label="Last name" value={lastName} onChangeText={setLastName} />
+          </View>
+        </View>
+        <HeroTextField label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" style={{ marginBottom: theme.spacing.sm }} />
+        <HeroTextField label="Password" value={password} onChangeText={setPassword} isPassword style={{ marginBottom: theme.spacing.sm }} />
+        {error ? (
+          <AppText variant="bodySmall" color="#E06A5D" style={{ marginBottom: theme.spacing.sm }}>
+            {error}
+          </AppText>
+        ) : null}
+        <AppGradientButton label="Create account" onPress={handleRegister} disabled={!valid} loading={status === 'loading'} />
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={{ alignSelf: 'center', marginTop: theme.spacing.md }}>
+          <AppText variant="bodyMedium" color="rgba(255,255,255,0.7)">
+            Already have an account? <AppText variant="bodyMedium" color="#5FBFAE">Log in</AppText>
+          </AppText>
+        </Pressable>
+      </FadeSlideIn>
+    </AuthHeroLayout>
   );
 };
