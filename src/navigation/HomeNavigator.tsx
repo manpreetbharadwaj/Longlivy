@@ -2,7 +2,6 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeStackParamList } from './types';
 import { HomeDashboardScreen } from '@/screens/home/HomeDashboardScreen';
-import { StatisticsScreen } from '@/screens/home/StatisticsScreen';
 import { HistoryScreen } from '@/screens/home/HistoryScreen';
 import { GoalsScreen } from '@/screens/home/GoalsScreen';
 import { NotificationsScreen } from '@/screens/home/NotificationsScreen';
@@ -22,7 +21,6 @@ const HomeDashboard = withErrorBoundary(HomeDashboardScreen, 'Dashboard');
 export const HomeNavigator: React.FC = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="HomeDashboard" component={HomeDashboard} />
-    <Stack.Screen name="Statistics" component={StatisticsScreen} />
     <Stack.Screen name="History" component={HistoryScreen} />
     <Stack.Screen name="Goals" component={GoalsScreen} />
     <Stack.Screen name="Notifications" component={NotificationsScreen} />

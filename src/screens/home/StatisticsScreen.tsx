@@ -39,7 +39,7 @@ export const StatisticsScreen: React.FC = () => {
 
   return (
     <>
-      <AppHeader title="Statistics" onBack={() => navigation.goBack()} />
+      <AppHeader title="Statistics" onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
       <AppScreen>
         <AppSegmentedControl segments={PERIODS} selectedKey={period} onChange={(k) => dispatch(setStatisticsPeriod(k as StatisticsPeriod))} />
 

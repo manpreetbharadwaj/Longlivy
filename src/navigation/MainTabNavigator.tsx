@@ -10,6 +10,7 @@ import { FastingNavigator } from './FastingNavigator';
 import { NutritionNavigator } from './NutritionNavigator';
 import { ActivityNavigator } from './ActivityNavigator';
 import { MeditationNavigator } from './MeditationNavigator';
+import { StatisticsNavigator } from './StatisticsNavigator';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -19,6 +20,7 @@ const ICONS: Record<keyof MainTabParamList, { active: AppIconName; inactive: App
   NutritionTab: { active: 'restaurant', inactive: 'restaurant-outline' },
   ActivityTab: { active: 'walk', inactive: 'walk-outline' },
   MeditationTab: { active: 'leaf', inactive: 'leaf-outline' },
+  StatisticsTab: { active: 'stats-chart', inactive: 'stats-chart-outline' },
 };
 
 const LABELS: Record<keyof MainTabParamList, string> = {
@@ -27,6 +29,7 @@ const LABELS: Record<keyof MainTabParamList, string> = {
   NutritionTab: 'Nutrition',
   ActivityTab: 'Activity',
   MeditationTab: 'Meditation',
+  StatisticsTab: 'Statistics',
 };
 
 export const MainTabNavigator: React.FC = () => {
@@ -66,6 +69,7 @@ export const MainTabNavigator: React.FC = () => {
       <Tab.Screen name="NutritionTab" component={NutritionNavigator} />
       <Tab.Screen name="ActivityTab" component={ActivityNavigator} />
       <Tab.Screen name="MeditationTab" component={MeditationNavigator} />
+      <Tab.Screen name="StatisticsTab" component={StatisticsNavigator} />
     </Tab.Navigator>
   );
 };

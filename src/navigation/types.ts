@@ -23,7 +23,6 @@ export type AuthStackParamList = {
 
 export type HomeStackParamList = {
   HomeDashboard: undefined;
-  Statistics: undefined;
   History: undefined;
   Goals: undefined;
   Notifications: undefined;
@@ -95,12 +94,17 @@ export type MeditationStackParamList = {
   MeditationReminders: undefined;
 };
 
+export type StatisticsStackParamList = {
+  StatisticsHome: undefined;
+};
+
 export type MainTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList>;
   FastingTab: NavigatorScreenParams<FastingStackParamList>;
   NutritionTab: NavigatorScreenParams<NutritionStackParamList>;
   ActivityTab: NavigatorScreenParams<ActivityStackParamList>;
   MeditationTab: NavigatorScreenParams<MeditationStackParamList>;
+  StatisticsTab: NavigatorScreenParams<StatisticsStackParamList>;
 };
 
 export type RootStackParamList = {

@@ -12,3 +12,7 @@ web-build/
 .env
 .env.local
 .claude/
+
+# Generated native projects (managed Expo workflow — regenerate via `npx expo prebuild`)
+/android
+/ios

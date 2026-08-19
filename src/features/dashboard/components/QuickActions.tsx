@@ -26,7 +26,7 @@ const ACTIONS: QuickAction[] = [
   { key: 'start_activity', icon: 'walk-outline', label: 'Start Activity', onPress: (nav) => nav.navigate('ActivityTab', { screen: 'SelectActivity' }) },
   { key: 'enter_weight', icon: 'scale-outline', label: 'Enter Weight', onPress: (nav) => nav.navigate('HomeTab', { screen: 'EnterWeight' }) },
   { key: 'start_meditation', icon: 'leaf-outline', label: 'Meditate', onPress: (nav) => nav.navigate('MeditationTab', { screen: 'MeditationHome' }) },
-  { key: 'statistics', icon: 'stats-chart-outline', label: 'Statistics', onPress: (nav) => nav.navigate('HomeTab', { screen: 'Statistics' }) },
+  { key: 'statistics', icon: 'stats-chart-outline', label: 'Statistics', onPress: (nav) => nav.navigate('StatisticsTab', { screen: 'StatisticsHome' }) },
 ];
 
 export const QuickActions: React.FC = React.memo(() => {
