@@ -54,7 +54,11 @@ export const MainTabNavigator: React.FC = () => {
           paddingTop: 6,
         },
         tabBarLabel: ({ color }) => (
-          <AppText variant="caption" color={color}>
+          // Six tabs now (Statistics added) leaves ~60px per label on a
+          // standard-width phone — "Meditation" wraps to 2 lines at the
+          // default caption size, so this shrinks slightly and clips
+          // instead of wrapping, matching how the other labels render.
+          <AppText variant="caption" color={color} numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 10, lineHeight: 12 }}>
             {LABELS[route.name as keyof MainTabParamList]}
           </AppText>
         ),
