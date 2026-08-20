@@ -76,10 +76,10 @@ export const PersonalInfoScreen: React.FC = () => {
       <ProfileHeroVisual />
       <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
         <View style={{ flex: 1 }}>
-          <HeroTextField label="First name" value={draft.firstName} onChangeText={(v) => update({ firstName: v })} placeholder="Alex" />
+          <HeroTextField label="First name" value={draft.firstName} onChangeText={(v) => update({ firstName: v })} placeholder="e.g. John" />
         </View>
         <View style={{ flex: 1 }}>
-          <HeroTextField label="Last name" value={draft.lastName} onChangeText={(v) => update({ lastName: v })} placeholder="Rivera" />
+          <HeroTextField label="Last name" value={draft.lastName} onChangeText={(v) => update({ lastName: v })} placeholder="e.g. Doe" />
         </View>
       </View>
       <View style={{ marginTop: theme.spacing.sm }}>
@@ -104,10 +104,10 @@ export const PersonalInfoScreen: React.FC = () => {
       </View>
       <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.sm }}>
         <View style={{ flex: 1 }}>
-          <HeroTextField label="Height (cm)" value={draft.heightCm} onChangeText={(v) => update({ heightCm: v })} keyboardType="numeric" placeholder="176" />
+          <HeroTextField label="Height (cm)" value={draft.heightCm} onChangeText={(v) => update({ heightCm: v })} keyboardType="numeric" placeholder="e.g. 175" />
         </View>
         <View style={{ flex: 1 }}>
-          <HeroTextField label="Weight (kg)" value={draft.weightKg} onChangeText={(v) => update({ weightKg: v })} keyboardType="numeric" placeholder="78" />
+          <HeroTextField label="Weight (kg)" value={draft.weightKg} onChangeText={(v) => update({ weightKg: v })} keyboardType="numeric" placeholder="e.g. 70" />
         </View>
       </View>
     </OnboardingStepLayout>

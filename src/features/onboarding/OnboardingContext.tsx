@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useMemo, useState, useCallback } from 'react';
-import { DEMO_USER } from '@/mock/demoUser';
 
 export interface OnboardingDraft {
   goal: 'weight_loss' | 'maintenance' | 'general_wellness' | 'muscle_gain' | null;
@@ -17,20 +16,21 @@ export interface OnboardingDraft {
 }
 
 /**
- * Seeded from the already-known demo profile rather than left blank — if
- * this information already exists, onboarding shouldn't ask for it again
- * from scratch. Every field stays fully editable; this only changes the
- * starting point.
+ * Every identity/personal field starts genuinely empty — onboarding must
+ * not pre-fill a real (or demo) person's name, birthdate, gender or body
+ * measurements into the form; the user should have to type or pick each
+ * one themselves. `meditationInterest`/`notificationsEnabled` are plain
+ * preference toggles (not personal data) and keep sensible opt-in defaults.
  */
 const DEFAULT_DRAFT: OnboardingDraft = {
-  goal: DEMO_USER.goal,
-  firstName: DEMO_USER.firstName,
-  lastName: DEMO_USER.lastName,
-  dateOfBirth: DEMO_USER.dateOfBirth,
-  gender: DEMO_USER.gender,
-  heightCm: String(DEMO_USER.heightCm),
-  weightKg: String(DEMO_USER.weightKg),
-  activityLevel: DEMO_USER.activityLevel,
+  goal: null,
+  firstName: '',
+  lastName: '',
+  dateOfBirth: '',
+  gender: null,
+  heightCm: '',
+  weightKg: '',
+  activityLevel: null,
   nutritionFocus: null,
   fastingMethod: null,
   meditationInterest: true,

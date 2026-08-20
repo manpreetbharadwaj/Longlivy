@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -12,8 +12,12 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginThunk } from '@/features/auth/authSlice';
 import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
-import { DEMO_USER } from '@/mock/demoUser';
 import { AuthHeroLayout } from './AuthHeroLayout';
+
+// Deliberately permissive (not RFC 5322) — this only needs to catch "clearly
+// not an email" typos before we bother the mock backend, not fully validate
+// the address.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -22,11 +26,38 @@ export const LoginScreen: React.FC = () => {
   const status = useAppSelector(selectAuthStatus);
   const error = useAppSelector(selectAuthError);
 
-  const [email, setEmail] = useState(DEMO_USER.email);
-  const [password, setPassword] = useState('demo1234');
+  // Starts genuinely empty — the user always types their own credentials,
+  // never a pre-filled demo account.
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const changeEmail = useCallback((v: string) => {
+    setEmail(v);
+    if (emailError) setEmailError(null);
+  }, [emailError]);
+
+  const changePassword = useCallback((v: string) => {
+    setPassword(v);
+    if (passwordError) setPasswordError(null);
+  }, [passwordError]);
 
   const handleLogin = useCallback(() => {
-    dispatch(loginThunk({ email, password }));
+    const trimmedEmail = email.trim();
+    let hasError = false;
+
+    if (!trimmedEmail || !EMAIL_PATTERN.test(trimmedEmail)) {
+      setEmailError('Please enter a valid email address.');
+      hasError = true;
+    }
+    if (!password) {
+      setPasswordError('Please enter your password.');
+      hasError = true;
+    }
+    if (hasError) return;
+
+    dispatch(loginThunk({ email: trimmedEmail, password }));
   }, [dispatch, email, password]);
 
   return (
@@ -48,8 +79,35 @@ export const LoginScreen: React.FC = () => {
       </View>
 
       <FadeSlideIn>
-        <HeroTextField label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" style={{ marginBottom: theme.spacing.sm }} />
-        <HeroTextField label="Password" value={password} onChangeText={setPassword} isPassword style={{ marginBottom: theme.spacing.xxs }} />
+        <HeroTextField
+          label="Email"
+          placeholder="Enter your email"
+          value={email}
+          onChangeText={changeEmail}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          style={{ marginBottom: emailError ? theme.spacing.xxs : theme.spacing.sm }}
+        />
+        {emailError ? (
+          <AppText variant="bodySmall" color="#E06A5D" style={{ marginBottom: theme.spacing.sm }}>
+            {emailError}
+          </AppText>
+        ) : null}
+
+        <HeroTextField
+          label="Password"
+          placeholder="Enter your password"
+          value={password}
+          onChangeText={changePassword}
+          isPassword
+          style={{ marginBottom: passwordError ? theme.spacing.xxs : theme.spacing.xxs }}
+        />
+        {passwordError ? (
+          <AppText variant="bodySmall" color="#E06A5D" style={{ marginTop: theme.spacing.xxs }}>
+            {passwordError}
+          </AppText>
+        ) : null}
 
         {error ? (
           <AppText variant="bodySmall" color="#E06A5D" style={{ marginTop: theme.spacing.xs }}>
@@ -77,7 +135,7 @@ export const LoginScreen: React.FC = () => {
         </View>
 
         <AppText variant="caption" color="rgba(255,255,255,0.4)" align="center" style={{ marginTop: theme.spacing.lg }}>
-          Demo credentials are pre-filled. Authentication is mocked locally for this prototype.
+          Authentication is mocked locally for this prototype.
         </AppText>
       </FadeSlideIn>
     </AuthHeroLayout>

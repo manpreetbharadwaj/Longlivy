@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { View, StatusBar } from 'react-native';
+import { View, StatusBar, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withDelay, withSequence, withTiming } from 'react-native-reanimated';
@@ -88,9 +88,15 @@ export const CompleteSetupScreen: React.FC = () => {
 
     dispatch(
       updateProfile({
-        firstName: draft.firstName || 'Alex',
-        lastName: draft.lastName || 'Rivera',
-        dateOfBirth: draft.dateOfBirth || '1992-04-18',
+        // firstName is required before Continue enables on the personal-info
+        // step, so this fallback should be unreachable — kept only as a
+        // defensive default, and deliberately generic rather than any real
+        // person's name. lastName/dateOfBirth aren't required there, so a
+        // user really can reach this with either blank; both fall back to
+        // neutral, non-identifying values rather than a fabricated identity.
+        firstName: draft.firstName || 'Member',
+        lastName: draft.lastName || '',
+        dateOfBirth: draft.dateOfBirth || '1995-01-01',
         gender,
         heightCm,
         weightKg,
@@ -110,7 +116,11 @@ export const CompleteSetupScreen: React.FC = () => {
       <LinearGradient colors={heroGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
       <GlowOrb size={380} color="#4FB77E" opacity={0.28} style={{ top: -120, left: -100 }} />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
-        <View style={{ flex: 1, justifyContent: 'center', padding: theme.spacing.md }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: theme.spacing.md }}
+          showsVerticalScrollIndicator={false}
+        >
           <CompleteHeroVisual />
           <FadeSlideIn>
             <AppText variant="displayMedium" align="center" color="#FFFFFF" style={{ marginBottom: theme.spacing.md }}>
@@ -141,7 +151,7 @@ export const CompleteSetupScreen: React.FC = () => {
               Your calorie and macro goals were calculated from this — you can adjust everything anytime.
             </AppText>
           </FadeSlideIn>
-        </View>
+        </ScrollView>
 
         <FadeSlideIn delay={motion.staggerStepMs * 6} style={{ padding: theme.spacing.md }}>
           <AppGradientButton label="Enter Longlivy" onPress={finish} colors={['#4FB77E', '#0B4F4A']} />

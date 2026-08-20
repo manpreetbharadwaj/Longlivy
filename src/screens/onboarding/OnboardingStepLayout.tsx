@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StatusBar, Pressable } from 'react-native';
+import { View, StatusBar, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppScreen } from '@/components/common/AppScreen';
@@ -65,35 +65,52 @@ export const OnboardingStepLayout: React.FC<OnboardingStepLayoutProps> = ({
       <View style={{ flex: 1, backgroundColor: heroGradient[0] }}>
         <StatusBar barStyle="light-content" />
         <LinearGradient colors={heroGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-        <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
-          <View style={{ flex: 1, padding: theme.spacing.md }}>
-            {progressBar('#FFFFFF', 'rgba(255,255,255,0.18)')}
-            <AppText variant="displayMedium" color="#FFFFFF">
-              {title}
-            </AppText>
-            {subtitle ? (
-              <AppText variant="bodyLarge" color="rgba(255,255,255,0.72)" style={{ marginTop: theme.spacing.xxs, marginBottom: theme.spacing.md }}>
-                {subtitle}
+        <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right', 'bottom']}>
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0}>
+            <View style={{ flex: 1, padding: theme.spacing.md }}>
+              {progressBar('#FFFFFF', 'rgba(255,255,255,0.18)')}
+              <AppText variant="displayMedium" color="#FFFFFF">
+                {title}
               </AppText>
-            ) : (
-              <View style={{ marginBottom: theme.spacing.md }} />
-            )}
-            <View style={{ flex: 1 }}>{children}</View>
-            <View style={{ marginTop: theme.spacing.lg, paddingBottom: theme.spacing.md }}>
-              <AppGradientButton label={nextLabel} onPress={onNext} disabled={nextDisabled} />
-              {onBack ? (
-                // Plain (not AppButton) so "Back" stays legible against the dark
-                // hero gradient regardless of the app's light/dark theme mode —
-                // AppButton's ghost variant uses theme.colors.primary, which is
-                // a dark teal in light mode and would be nearly invisible here.
-                <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back" style={{ height: theme.componentSizes.buttonHeight, alignItems: 'center', justifyContent: 'center', marginTop: theme.spacing.xs }}>
-                  <AppText variant="headingSmall" color="rgba(255,255,255,0.7)">
-                    Back
-                  </AppText>
-                </Pressable>
-              ) : null}
+              {subtitle ? (
+                <AppText variant="bodyLarge" color="rgba(255,255,255,0.72)" style={{ marginTop: theme.spacing.xxs, marginBottom: theme.spacing.md }}>
+                  {subtitle}
+                </AppText>
+              ) : (
+                <View style={{ marginBottom: theme.spacing.md }} />
+              )}
+              {/*
+                Content scrolls in its own region between the (fixed) header and
+                the (fixed) footer buttons — on screens where content fits,
+                flexGrow:1 makes this behave exactly like the old flex:1 View
+                (unchanged look on large screens); when content is taller than
+                the available space, it scrolls instead of being clipped behind
+                the Continue button, which stays pinned and always reachable.
+              */}
+              <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ flexGrow: 1 }}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {children}
+              </ScrollView>
+              <View style={{ marginTop: theme.spacing.lg, paddingBottom: theme.spacing.sm }}>
+                <AppGradientButton label={nextLabel} onPress={onNext} disabled={nextDisabled} />
+                {onBack ? (
+                  // Plain (not AppButton) so "Back" stays legible against the dark
+                  // hero gradient regardless of the app's light/dark theme mode —
+                  // AppButton's ghost variant uses theme.colors.primary, which is
+                  // a dark teal in light mode and would be nearly invisible here.
+                  <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back" style={{ height: theme.componentSizes.buttonHeight, alignItems: 'center', justifyContent: 'center', marginTop: theme.spacing.xs }}>
+                    <AppText variant="headingSmall" color="rgba(255,255,255,0.7)">
+                      Back
+                    </AppText>
+                  </Pressable>
+                ) : null}
+              </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </View>
     );
