@@ -1,16 +1,15 @@
 import React, { useEffect } from 'react';
 import { FlatList, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppCard } from '@/components/common/AppCard';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
-import { AppEmptyState } from '@/components/common/AppEmptyState';
+import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectNotifications } from '@/features/notifications/selectors';
 import { markAllNotificationsRead, markNotificationRead } from '@/features/notifications/notificationSlice';
 import { AppNotification } from '@/features/notifications/models';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const NotificationsScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -23,27 +22,49 @@ export const NotificationsScreen: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
-      <AppHeader title="Notifications" onBack={() => navigation.goBack()} />
+    <TabHeroLayout title="Notifications" onBack={() => navigation.goBack()} scroll={false}>
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: theme.spacing.md, flexGrow: 1 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }: { item: AppNotification }) => (
-          <AppCard onPress={() => dispatch(markNotificationRead(item.id))} style={{ marginBottom: theme.spacing.sm }}>
+          <HeroCard onPress={() => dispatch(markNotificationRead(item.id))} style={{ marginBottom: theme.spacing.sm }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <AppText variant="headingSmall">{item.title}</AppText>
-              <AppText variant="caption" color={theme.colors.textTertiary}>
+              <AppText variant="headingSmall" color="#FFFFFF">
+                {item.title}
+              </AppText>
+              <AppText variant="caption" color="rgba(255,255,255,0.5)">
                 {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </AppText>
             </View>
-            <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginTop: 2 }}>
+            <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginTop: 2 }}>
               {item.body}
             </AppText>
-          </AppCard>
+          </HeroCard>
         )}
-        ListEmptyComponent={<AppEmptyState icon="notifications-outline" title="No notifications" />}
+        ListEmptyComponent={
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: theme.spacing.xxl }}>
+            <View
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 36,
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              <AppIcon name="notifications-outline" size={30} color="rgba(255,255,255,0.5)" />
+            </View>
+            <AppText variant="headingSmall" color="#FFFFFF" align="center">
+              No notifications
+            </AppText>
+          </View>
+        }
       />
-    </SafeAreaView>
+    </TabHeroLayout>
   );
 };
