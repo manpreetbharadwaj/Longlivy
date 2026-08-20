@@ -104,7 +104,7 @@ export const ActiveFastScreen: React.FC = () => {
       ) : null}
 
       <View style={{ alignItems: 'center', marginBottom: theme.spacing.lg }}>
-        <AppProgressRing progress={progress.progress} size={240} strokeWidth={18} color={ringColor} trackColor="rgba(255,255,255,0.12)">
+        <AppProgressRing progress={progress.progress} size={240} strokeWidth={18} color={ringColor} trackColor="rgba(255,255,255,0.12)" glow>
           <AppText variant="metricLarge" color="#FFFFFF">
             {Math.round(Math.min(progress.progress, 1) * 100)}%
           </AppText>

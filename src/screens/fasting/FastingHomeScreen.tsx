@@ -38,7 +38,7 @@ export const FastingHomeScreen: React.FC = () => {
         <>
           {activeFast && progress ? (
             <HeroCard onPress={() => navigation.navigate('ActiveFast')} style={{ alignItems: 'center', marginBottom: theme.spacing.md }}>
-              <AppProgressRing progress={progress.progress} size={180} strokeWidth={14} color="#5FBFAE" trackColor="rgba(255,255,255,0.12)">
+              <AppProgressRing progress={progress.progress} size={180} strokeWidth={14} color="#5FBFAE" trackColor="rgba(255,255,255,0.12)" glow>
                 <AppText variant="metricLarge" color="#FFFFFF">
                   {Math.round(Math.min(progress.progress, 1) * 100)}%
                 </AppText>

@@ -52,7 +52,7 @@ export const NutritionDashboardScreen: React.FC = () => {
   return (
     <TabHeroLayout title="Nutrition">
       <HeroCard style={{ alignItems: 'center', marginBottom: theme.spacing.md, overflow: 'hidden' }}>
-        <AppProgressRing progress={ringProgress} size={160} strokeWidth={14} color={progress.calories.exceeded ? '#E0A24E' : '#E7A868'} trackColor="rgba(255,255,255,0.12)">
+        <AppProgressRing progress={ringProgress} size={160} strokeWidth={14} color={progress.calories.exceeded ? '#E0A24E' : '#E7A868'} trackColor="rgba(255,255,255,0.12)" glow>
           <AnimatedNumberText value={Math.round(totals.calories)} variant="metricMedium" color="#FFFFFF" />
           <AppText variant="caption" color="rgba(255,255,255,0.6)">
             of {progress.calories.target} kcal

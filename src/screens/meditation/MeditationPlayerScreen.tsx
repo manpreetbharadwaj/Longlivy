@@ -107,7 +107,7 @@ export const MeditationPlayerScreen: React.FC = () => {
         <AppText variant="headingMedium" color="#FFFFFF" style={{ marginBottom: theme.spacing.lg }}>
           {title}
         </AppText>
-        <AppProgressRing progress={progress} size={240} strokeWidth={16} color="#B98CE0" trackColor="rgba(255,255,255,0.12)">
+        <AppProgressRing progress={progress} size={240} strokeWidth={16} color="#B98CE0" trackColor="rgba(255,255,255,0.12)" glow>
           <AppText variant="metricLarge" color="#FFFFFF">
             {formatDurationHMS(displaySeconds * 1000).replace(/^00:/, '')}
           </AppText>
