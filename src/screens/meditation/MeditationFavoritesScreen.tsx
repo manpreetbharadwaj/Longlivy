@@ -1,16 +1,15 @@
 import React from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MeditationStackParamList } from '@/navigation/types';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppCard } from '@/components/common/AppCard';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
-import { AppEmptyState } from '@/components/common/AppEmptyState';
+import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
 import { selectFavoriteMeditations } from '@/features/meditation/selectors';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const MeditationFavoritesScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -18,25 +17,47 @@ export const MeditationFavoritesScreen: React.FC = () => {
   const favorites = useAppSelector(selectFavoriteMeditations);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
-      <AppHeader title="Favorites" onBack={() => navigation.goBack()} />
+    <TabHeroLayout title="Favorites" onBack={() => navigation.goBack()} scroll={false}>
       <FlatList
         data={favorites}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: theme.spacing.md, flexGrow: 1 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <AppCard
+          <HeroCard
             onPress={() => navigation.navigate('MeditationPlayer', { meditationId: item.id, type: item.type, durationSeconds: item.durationSeconds })}
             style={{ marginBottom: theme.spacing.sm }}
           >
-            <AppText variant="headingSmall">{item.title}</AppText>
-            <AppText variant="bodySmall" color={theme.colors.textSecondary}>
+            <AppText variant="headingSmall" color="#FFFFFF">
+              {item.title}
+            </AppText>
+            <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
               {Math.round(item.durationSeconds / 60)} min · {item.category}
             </AppText>
-          </AppCard>
+          </HeroCard>
         )}
-        ListEmptyComponent={<AppEmptyState icon="star-outline" title="No favorites yet" />}
+        ListEmptyComponent={
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: theme.spacing.xxl }}>
+            <View
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 36,
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              <AppIcon name="star-outline" size={30} color="rgba(255,255,255,0.5)" />
+            </View>
+            <AppText variant="headingSmall" color="#FFFFFF" align="center">
+              No favorites yet
+            </AppText>
+          </View>
+        }
       />
-    </SafeAreaView>
+    </TabHeroLayout>
   );
 };

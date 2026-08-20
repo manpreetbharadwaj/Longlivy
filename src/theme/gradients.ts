@@ -53,6 +53,16 @@ export const fastingHeroGradient = ['#020D14', '#062430', '#0B3A44'] as const;
  */
 export const activityHeroGradient = ['#04070F', '#0B2140', '#123A5C'] as const;
 
+/**
+ * A distinct dark atmosphere for meditation's "live session" screens
+ * (player, breathing exercise) — deep violet deepening toward the existing
+ * `pillarGradients.meditation` purple. Where fasting reads as a cooler
+ * "lab" mood and activity as kinetic navy-blue, meditation is meant to
+ * read as calm and slow — paired with GlowOrb's `pulse` option (a slow
+ * breathing opacity cycle) rather than the sharper glows used elsewhere.
+ */
+export const meditationHeroGradient = ['#0B0716', '#211348', '#3B2168'] as const;
+
 /** Energy-source colors for the fasting energy-mix visualization — shared between the visualization and its legend. */
 export const energySourceColors = {
   lastMeal: '#E7A868',

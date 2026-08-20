@@ -3,16 +3,15 @@ import { FlatList, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MeditationStackParamList } from '@/navigation/types';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppCard } from '@/components/common/AppCard';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
+import { HeroChip } from '@/components/common/HeroChip';
 import { AppText } from '@/components/common/AppText';
-import { AppChip } from '@/components/common/AppChip';
-import { AppEmptyState } from '@/components/common/AppEmptyState';
+import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
 import { selectMeditationContent } from '@/features/meditation/selectors';
 import { MEDITATION_CATEGORIES, Meditation } from '@/features/meditation/models';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const MeditationCategoriesScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -24,27 +23,28 @@ export const MeditationCategoriesScreen: React.FC = () => {
 
   const renderItem = useCallback(
     ({ item }: { item: Meditation }) => (
-      <AppCard onPress={() => navigation.navigate('MeditationDetails', { meditationId: item.id })} style={{ marginBottom: theme.spacing.sm }}>
-        <AppText variant="headingSmall">{item.title}</AppText>
-        <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginTop: 2 }}>
+      <HeroCard onPress={() => navigation.navigate('MeditationDetails', { meditationId: item.id })} style={{ marginBottom: theme.spacing.sm }}>
+        <AppText variant="headingSmall" color="#FFFFFF">
+          {item.title}
+        </AppText>
+        <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginTop: 2 }}>
           {item.category} · {Math.round(item.durationSeconds / 60)} min
         </AppText>
-      </AppCard>
+      </HeroCard>
     ),
     [navigation, theme]
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
-      <AppHeader title="Guided meditations" onBack={() => navigation.goBack()} />
-      <View style={{ paddingHorizontal: theme.spacing.md, marginBottom: theme.spacing.sm }}>
+    <TabHeroLayout title="Guided meditations" onBack={() => navigation.goBack()} scroll={false}>
+      <View style={{ marginBottom: theme.spacing.sm }}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
           data={['All', ...MEDITATION_CATEGORIES]}
           keyExtractor={(item) => item}
           renderItem={({ item }) => (
-            <AppChip label={item} selected={item === 'All' ? category === null : category === item} onPress={() => setCategory(item === 'All' ? null : item)} />
+            <HeroChip label={item} selected={item === 'All' ? category === null : category === item} onPress={() => setCategory(item === 'All' ? null : item)} />
           )}
         />
       </View>
@@ -52,9 +52,30 @@ export const MeditationCategoriesScreen: React.FC = () => {
         data={filtered}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: theme.spacing.md, paddingTop: 0, flexGrow: 1 }}
-        ListEmptyComponent={<AppEmptyState title="No meditations in this category" />}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: theme.spacing.xxl }}>
+            <View
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 36,
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              <AppIcon name="file-tray-outline" size={30} color="rgba(255,255,255,0.5)" />
+            </View>
+            <AppText variant="headingSmall" color="#FFFFFF" align="center">
+              No meditations in this category
+            </AppText>
+          </View>
+        }
       />
-    </SafeAreaView>
+    </TabHeroLayout>
   );
 };

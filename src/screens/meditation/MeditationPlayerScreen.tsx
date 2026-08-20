@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MeditationStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
 import { AppText } from '@/components/common/AppText';
-import { AppButton } from '@/components/common/AppButton';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppProgressRing } from '@/components/common/AppProgressRing';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -13,6 +12,7 @@ import { selectMeditationContent } from '@/features/meditation/selectors';
 import { startMeditationSessionThunk, recordSessionEventThunk, completeMeditationSessionThunk } from '@/features/meditation/meditationSlice';
 import { calculateActiveSecondsFromEvents } from '@/features/meditation/services/MeditationSessionCalculator';
 import { formatDurationHMS } from '@/features/fasting/services/FastingCalculator';
+import { MeditationHeroLayout } from './MeditationHeroLayout';
 
 export const MeditationPlayerScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -102,23 +102,59 @@ export const MeditationPlayerScreen: React.FC = () => {
   const progress = plannedSeconds > 0 ? displaySeconds / plannedSeconds : 0;
 
   return (
-    <AppScreen scroll={false}>
+    <MeditationHeroLayout scroll={false}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <AppText variant="headingMedium" style={{ marginBottom: theme.spacing.lg }}>
+        <AppText variant="headingMedium" color="#FFFFFF" style={{ marginBottom: theme.spacing.lg }}>
           {title}
         </AppText>
-        <AppProgressRing progress={progress} size={240} strokeWidth={16} color={theme.colors.meditation}>
-          <AppText variant="metricLarge">{formatDurationHMS(displaySeconds * 1000).replace(/^00:/, '')}</AppText>
-          <AppText variant="bodySmall" color={theme.colors.textSecondary}>
+        <AppProgressRing progress={progress} size={240} strokeWidth={16} color="#B98CE0" trackColor="rgba(255,255,255,0.12)">
+          <AppText variant="metricLarge" color="#FFFFFF">
+            {formatDurationHMS(displaySeconds * 1000).replace(/^00:/, '')}
+          </AppText>
+          <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
             of {Math.round(plannedSeconds / 60)} min
           </AppText>
         </AppProgressRing>
       </View>
 
-      <View style={{ flexDirection: 'row', marginTop: theme.spacing.lg }}>
-        <AppButton label={isRunning ? 'Pause' : 'Resume'} onPress={togglePause} variant="outline" style={{ flex: 1, marginRight: theme.spacing.xs }} />
-        <AppButton label="Finish" onPress={() => finish(displaySeconds >= plannedSeconds ? 'completed' : 'ended_prematurely')} style={{ flex: 1 }} />
+      <View style={{ flexDirection: 'row', marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
+        <View style={{ flex: 1 }}>
+          <OutlineButton label={isRunning ? 'Pause' : 'Resume'} onPress={togglePause} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <AppGradientButton
+            label="Finish"
+            onPress={() => finish(displaySeconds >= plannedSeconds ? 'completed' : 'ended_prematurely')}
+            colors={['#B98CE0', '#4A3A7A']}
+          />
+        </View>
       </View>
-    </AppScreen>
+    </MeditationHeroLayout>
   );
 };
+
+/** Secondary action on the meditation hero screens — translucent border, no fill, dims on press. Matches ActiveFastScreen's OutlineButton. */
+const OutlineButton: React.FC<{ label: string; onPress: () => void }> = React.memo(({ label, onPress }) => {
+  const { theme } = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => ({
+        height: theme.componentSizes.buttonHeight,
+        borderRadius: theme.radius.md,
+        borderWidth: 1.5,
+        borderColor: 'rgba(255,255,255,0.3)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      <AppText variant="headingSmall" color="#FFFFFF">
+        {label}
+      </AppText>
+    </Pressable>
+  );
+});
+OutlineButton.displayName = 'OutlineButton';

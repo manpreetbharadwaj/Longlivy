@@ -2,16 +2,15 @@ import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { MeditationStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
 import { AppText } from '@/components/common/AppText';
-import { AppButton } from '@/components/common/AppButton';
-import { AppEmptyState } from '@/components/common/AppEmptyState';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectBreathingSchemes } from '@/features/meditation/selectors';
 import { BreathingAnimation } from '@/features/meditation/components/BreathingAnimation';
 import { startMeditationSessionThunk, completeMeditationSessionThunk } from '@/features/meditation/meditationSlice';
+import { MeditationHeroLayout } from './MeditationHeroLayout';
 
 export const BreathingExerciseScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -49,31 +48,42 @@ export const BreathingExerciseScreen: React.FC = () => {
 
   if (!scheme) {
     return (
-      <>
-        <AppHeader title="Breathing exercise" onBack={() => navigation.goBack()} />
-        <AppScreen>
-          <AppEmptyState title="Breathing scheme unavailable" />
-        </AppScreen>
-      </>
+      <MeditationHeroLayout title="Breathing exercise" onBack={() => navigation.goBack()} scroll={false}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: theme.spacing.lg }}>
+          <View
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 36,
+              backgroundColor: 'rgba(255,255,255,0.08)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: theme.spacing.md,
+            }}
+          >
+            <AppIcon name="pulse-outline" size={30} color="rgba(255,255,255,0.5)" />
+          </View>
+          <AppText variant="headingSmall" color="#FFFFFF" align="center">
+            Breathing scheme unavailable
+          </AppText>
+        </View>
+      </MeditationHeroLayout>
     );
   }
 
   return (
-    <>
-      <AppHeader title={scheme.name} onBack={() => navigation.goBack()} />
-      <AppScreen scroll={false}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <BreathingAnimation scheme={scheme} running={running} />
-          <AppText variant="bodyMedium" color={theme.colors.textSecondary} align="center" style={{ marginTop: theme.spacing.lg, maxWidth: 280 }}>
-            {scheme.description}
-          </AppText>
-        </View>
-        {running ? (
-          <AppButton label="Finish" onPress={finish} />
-        ) : (
-          <AppButton label="Start breathing exercise" onPress={start} />
-        )}
-      </AppScreen>
-    </>
+    <MeditationHeroLayout title={scheme.name} onBack={() => navigation.goBack()} scroll={false}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <BreathingAnimation scheme={scheme} running={running} />
+        <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.lg, maxWidth: 280 }}>
+          {scheme.description}
+        </AppText>
+      </View>
+      {running ? (
+        <AppGradientButton label="Finish" onPress={finish} colors={['#B98CE0', '#4A3A7A']} />
+      ) : (
+        <AppGradientButton label="Start breathing exercise" onPress={start} colors={['#B98CE0', '#4A3A7A']} />
+      )}
+    </MeditationHeroLayout>
   );
 };
