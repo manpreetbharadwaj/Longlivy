@@ -1,11 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppInput } from '@/components/common/AppInput';
-import { AppButton } from '@/components/common/AppButton';
-import { AppChip } from '@/components/common/AppChip';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroTextField } from '@/components/common/HeroTextField';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { HeroChip } from '@/components/common/HeroChip';
 import { AppText } from '@/components/common/AppText';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch } from '@/store/hooks';
@@ -52,21 +51,24 @@ export const ManualActivityScreen: React.FC = () => {
   }, [type, minutes, calories, dispatch, navigation]);
 
   return (
-    <>
-      <AppHeader title="Log manual activity" onBack={() => navigation.goBack()} />
-      <AppScreen>
-        <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
-          Activity type
-        </AppText>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: theme.spacing.md }}>
-          {(Object.keys(ACTIVITY_TYPE_LABELS) as ActivityType[]).map((t) => (
-            <AppChip key={t} label={ACTIVITY_TYPE_LABELS[t]} selected={type === t} onPress={() => setType(t)} />
-          ))}
-        </View>
-        <AppInput label="Duration (minutes)" value={minutes} onChangeText={setMinutes} keyboardType="numeric" style={{ marginBottom: theme.spacing.sm }} />
-        <AppInput label="Calories (optional — leave blank to estimate)" value={calories} onChangeText={setCalories} keyboardType="numeric" style={{ marginBottom: theme.spacing.md }} />
-        <AppButton label="Save activity" onPress={save} loading={saving} />
-      </AppScreen>
-    </>
+    <TabHeroLayout title="Log manual activity" onBack={() => navigation.goBack()}>
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
+        Activity type
+      </AppText>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: theme.spacing.xs, marginBottom: theme.spacing.md }}>
+        {(Object.keys(ACTIVITY_TYPE_LABELS) as ActivityType[]).map((t) => (
+          <HeroChip key={t} label={ACTIVITY_TYPE_LABELS[t]} selected={type === t} onPress={() => setType(t)} />
+        ))}
+      </View>
+      <HeroTextField label="Duration (minutes)" value={minutes} onChangeText={setMinutes} keyboardType="numeric" style={{ marginBottom: theme.spacing.sm }} />
+      <HeroTextField
+        label="Calories (optional — leave blank to estimate)"
+        value={calories}
+        onChangeText={setCalories}
+        keyboardType="numeric"
+        style={{ marginBottom: theme.spacing.md }}
+      />
+      <AppGradientButton label="Save activity" onPress={save} loading={saving} colors={['#6AA3DE', '#1F4E7A']} />
+    </TabHeroLayout>
   );
 };

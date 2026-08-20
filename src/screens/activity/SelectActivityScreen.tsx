@@ -3,9 +3,8 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppCard } from '@/components/common/AppCard';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppIconTile } from '@/components/common/AppIconTile';
 import { AppIconName } from '@/components/common/AppIcon';
@@ -38,20 +37,19 @@ export const SelectActivityScreen: React.FC = () => {
   );
 
   return (
-    <>
-      <AppHeader title="Choose activity" onBack={() => navigation.goBack()} />
-      <AppScreen>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -theme.spacing.xxs }}>
-          {(Object.keys(ACTIVITY_TYPE_LABELS) as ActivityType[]).map((type) => (
-            <View key={type} style={{ width: '50%', paddingHorizontal: theme.spacing.xxs, marginBottom: theme.spacing.sm }}>
-              <AppCard onPress={() => start(type)} style={{ alignItems: 'center' }}>
-                <AppIconTile name={ICONS[type]} color={theme.colors.activity} size={52} iconSize={26} style={{ marginBottom: theme.spacing.xs }} />
-                <AppText variant="headingSmall">{ACTIVITY_TYPE_LABELS[type]}</AppText>
-              </AppCard>
-            </View>
-          ))}
-        </View>
-      </AppScreen>
-    </>
+    <TabHeroLayout title="Choose activity" onBack={() => navigation.goBack()}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -theme.spacing.xxs }}>
+        {(Object.keys(ACTIVITY_TYPE_LABELS) as ActivityType[]).map((type) => (
+          <View key={type} style={{ width: '50%', paddingHorizontal: theme.spacing.xxs, marginBottom: theme.spacing.sm }}>
+            <HeroCard onPress={() => start(type)} style={{ alignItems: 'center' }}>
+              <AppIconTile name={ICONS[type]} color="#6AA3DE" size={52} iconSize={26} style={{ marginBottom: theme.spacing.xs }} />
+              <AppText variant="headingSmall" color="#FFFFFF">
+                {ACTIVITY_TYPE_LABELS[type]}
+              </AppText>
+            </HeroCard>
+          </View>
+        ))}
+      </View>
+    </TabHeroLayout>
   );
 };

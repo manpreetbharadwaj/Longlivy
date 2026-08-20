@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
 import { AppText } from '@/components/common/AppText';
-import { AppButton } from '@/components/common/AppButton';
-import { AppCard } from '@/components/common/AppCard';
-import { AppLoader } from '@/components/common/AppLoader';
-import { AppIconTile } from '@/components/common/AppIconTile';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { HeroCard } from '@/components/common/HeroCard';
+import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { activityRepository } from '@/features/activity/repository/MockActivityRepository';
 import { Activity, ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
+import { ActivityHeroLayout } from './ActivityHeroLayout';
 
 export const ActivitySummaryScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -25,31 +24,51 @@ export const ActivitySummaryScreen: React.FC = () => {
     });
   }, [route.params.activityId]);
 
-  if (!activity) return <AppLoader fullscreen />;
+  if (!activity) {
+    return (
+      <ActivityHeroLayout scroll={false}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      </ActivityHeroLayout>
+    );
+  }
 
   return (
-    <AppScreen>
+    <ActivityHeroLayout>
       <View style={{ alignItems: 'center', marginVertical: theme.spacing.lg }}>
-        <AppIconTile name="checkmark-circle" shape="circle" color={theme.colors.success} size={72} iconSize={36} style={{ marginBottom: theme.spacing.sm }} />
-        <AppText variant="displayMedium" align="center">
+        <View
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: 36,
+            backgroundColor: 'rgba(79,183,126,0.18)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: theme.spacing.sm,
+          }}
+        >
+          <AppIcon name="checkmark-circle" size={36} color="#4FB77E" />
+        </View>
+        <AppText variant="displayMedium" color="#FFFFFF" align="center">
           {ACTIVITY_TYPE_LABELS[activity.type]} complete
         </AppText>
       </View>
-      <AppCard>
+      <HeroCard>
         <Row label="Duration" value={`${Math.round(activity.activeDuration / 60000)} min`} />
         <Row label="Distance" value={activity.distanceMeters != null ? `${(activity.distanceMeters / 1000).toFixed(2)} km` : 'Unavailable (no GPS)'} />
         {activity.pace ? <Row label="Pace" value={`${activity.pace.toFixed(1)} min/km`} /> : null}
         {activity.elevationGainMeters ? <Row label="Elevation gain" value={`${activity.elevationGainMeters} m`} /> : null}
         <Row label="Calories" value={`${activity.calories ?? '—'} kcal (${activity.calorieSource ?? 'unknown'})`} />
         <Row label="Source" value={activity.source} last />
-      </AppCard>
+      </HeroCard>
       {activity.gpsUnavailableReason ? (
-        <AppText variant="caption" color={theme.colors.textTertiary} align="center" style={{ marginTop: theme.spacing.sm }}>
+        <AppText variant="caption" color="rgba(255,255,255,0.5)" align="center" style={{ marginTop: theme.spacing.sm }}>
           {activity.gpsUnavailableReason}
         </AppText>
       ) : null}
-      <AppButton label="Done" onPress={() => navigation.popToTop()} style={{ marginTop: theme.spacing.lg }} />
-    </AppScreen>
+      <AppGradientButton label="Done" onPress={() => navigation.popToTop()} colors={['#6AA3DE', '#1F4E7A']} style={{ marginTop: theme.spacing.lg }} />
+    </ActivityHeroLayout>
   );
 };
 
@@ -62,13 +81,13 @@ const Row: React.FC<{ label: string; value: string; last?: boolean }> = ({ label
         justifyContent: 'space-between',
         paddingVertical: theme.spacing.xs,
         borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: theme.colors.divider,
+        borderBottomColor: 'rgba(255,255,255,0.12)',
       }}
     >
-      <AppText variant="bodyMedium" color={theme.colors.textSecondary}>
+      <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
         {label}
       </AppText>
-      <AppText variant="bodyMedium" style={{ textTransform: 'capitalize' }}>
+      <AppText variant="bodyMedium" color="#FFFFFF" style={{ textTransform: 'capitalize' }}>
         {value}
       </AppText>
     </View>

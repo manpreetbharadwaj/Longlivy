@@ -43,6 +43,16 @@ export type PillarKey = keyof typeof pillarGradients;
  */
 export const fastingHeroGradient = ['#020D14', '#062430', '#0B3A44'] as const;
 
+/**
+ * A distinct dark atmosphere for the activity "live tracking" screens
+ * (active workout, post-workout summary) — its own mood again, separate
+ * from both `heroGradient` and `fastingHeroGradient`: deep navy deepening
+ * into the existing `pillarGradients.activity` blue, for the kinetic,
+ * in-motion feel a workout session should have next to fasting's calmer
+ * "lab" read.
+ */
+export const activityHeroGradient = ['#04070F', '#0B2140', '#123A5C'] as const;
+
 /** Energy-source colors for the fasting energy-mix visualization — shared between the visualization and its legend. */
 export const energySourceColors = {
   lastMeal: '#E7A868',
