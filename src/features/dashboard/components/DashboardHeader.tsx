@@ -1,12 +1,14 @@
 import React from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { HomeStackParamList } from '@/navigation/types';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
+import { motion } from '@/theme/motion';
 import { selectUserProfile } from '@/features/profile/selectors';
 import { selectUnreadNotificationCount } from '@/features/notifications/selectors';
 
@@ -34,12 +36,7 @@ export const DashboardHeader: React.FC = React.memo(() => {
         </AppText>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Pressable
-          onPress={() => navigation.navigate('Notifications')}
-          accessibilityRole="button"
-          accessibilityLabel="Notifications"
-          style={{ marginRight: theme.spacing.sm }}
-        >
+        <PressScale onPress={() => navigation.navigate('Notifications')} accessibilityLabel="Notifications" style={{ marginRight: theme.spacing.sm }}>
           <View>
             <AppIcon name="notifications-outline" size={22} color="#FFFFFF" />
             {unread > 0 ? (
@@ -63,8 +60,8 @@ export const DashboardHeader: React.FC = React.memo(() => {
               </View>
             ) : null}
           </View>
-        </Pressable>
-        <Pressable onPress={() => navigation.navigate('Profile')} accessibilityRole="button" accessibilityLabel="Profile">
+        </PressScale>
+        <PressScale onPress={() => navigation.navigate('Profile')} accessibilityLabel="Profile">
           <View
             style={{
               width: 40,
@@ -81,10 +78,35 @@ export const DashboardHeader: React.FC = React.memo(() => {
               {profile.firstName.charAt(0)}
             </AppText>
           </View>
-        </Pressable>
+        </PressScale>
       </View>
     </View>
   );
 });
 
 DashboardHeader.displayName = 'DashboardHeader';
+
+/** Small press-scale wrapper shared by the header's two icon buttons — same feel as QuickActions' tiles, kept local since it's a one-off pairing here. */
+const PressScale: React.FC<{ onPress: () => void; accessibilityLabel: string; style?: StyleProp<ViewStyle>; children: React.ReactNode }> = React.memo(
+  ({ onPress, accessibilityLabel, style, children }) => {
+    const scale = useSharedValue(1);
+    const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+    return (
+      <Pressable
+        onPress={onPress}
+        onPressIn={() => {
+          scale.value = withTiming(0.9, { duration: motion.duration.fast });
+        }}
+        onPressOut={() => {
+          scale.value = withTiming(1, { duration: motion.duration.fast });
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        style={style}
+      >
+        <Animated.View style={animatedStyle}>{children}</Animated.View>
+      </Pressable>
+    );
+  }
+);
+PressScale.displayName = 'PressScale';

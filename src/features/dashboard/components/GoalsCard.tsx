@@ -6,8 +6,12 @@ import { HomeStackParamList } from '@/navigation/types';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppProgressBar } from '@/components/common/AppProgressBar';
+import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
+import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
+import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
+import { motion } from '@/theme/motion';
 import { selectActiveGoals } from '@/features/goals/selectors';
 import { selectDailyNutritionTotals } from '@/features/nutrition/selectors';
 import { selectTodayActivityCalories } from '@/features/activity/selectors';
@@ -43,28 +47,40 @@ export const GoalsCard: React.FC = React.memo(() => {
   const dailyGoals = goals.filter((g) => g.period === 'day').slice(0, 3);
 
   return (
-    <HeroCard onPress={() => navigation.navigate('Goals')} style={{ marginBottom: theme.spacing.sm }}>
+    <HeroCard onPress={() => navigation.navigate('Goals')} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
       <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.sm }}>
         Today's goals
       </AppText>
-      {dailyGoals.map((goal) => {
+      {dailyGoals.map((goal, index) => {
         const progress = calculateGoalProgress(currentValueFor(goal.type), goal.target);
-        return (
-          <View key={goal.id} style={{ marginBottom: theme.spacing.xs }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
-              <AppText variant="bodySmall" style={{ textTransform: 'capitalize' }} color="rgba(255,255,255,0.6)">
-                {goal.type.replace('_', ' ')}
-              </AppText>
-              <AppText variant="bodySmall" color="#FFFFFF">
-                {Math.round(progress.current)} / {goal.target} {goal.unit}
-              </AppText>
-            </View>
-            <AppProgressBar progress={progress.percentage / 100} color={progress.exceeded ? '#4FB77E' : '#5FBFAE'} trackColor="rgba(255,255,255,0.12)" height={6} />
-          </View>
-        );
+        return <GoalRow key={goal.id} index={index} type={goal.type} current={progress.current} target={goal.target} unit={goal.unit} percentage={progress.percentage} exceeded={progress.exceeded} />;
       })}
     </HeroCard>
   );
 });
 
 GoalsCard.displayName = 'GoalsCard';
+
+const GoalRow: React.FC<{ index: number; type: string; current: number; target: number; unit: string; percentage: number; exceeded: boolean }> = React.memo(
+  ({ index, type, current, target, unit, percentage, exceeded }) => {
+    const { theme } = useTheme();
+    const animatedFraction = useAnimatedProgress(percentage / 100);
+    return (
+      <FadeSlideIn delay={index * motion.staggerStepMs} fromY={6}>
+        <View style={{ marginBottom: theme.spacing.xs }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+            <AppText variant="bodySmall" style={{ textTransform: 'capitalize' }} color="rgba(255,255,255,0.6)">
+              {type.replace('_', ' ')}
+            </AppText>
+            <AppText variant="bodySmall" color="#FFFFFF">
+              <AnimatedNumberText value={Math.round(current)} variant="bodySmall" color="#FFFFFF" />
+              {` / ${target} ${unit}`}
+            </AppText>
+          </View>
+          <AppProgressBar progress={animatedFraction} color={exceeded ? '#4FB77E' : '#5FBFAE'} trackColor="rgba(255,255,255,0.12)" height={6} />
+        </View>
+      </FadeSlideIn>
+    );
+  }
+);
+GoalRow.displayName = 'GoalRow';

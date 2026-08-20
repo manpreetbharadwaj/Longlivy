@@ -1,10 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CompositeNavigationProp } from '@react-navigation/native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay, withRepeat, withSequence } from 'react-native-reanimated';
 import { MainTabParamList, HomeStackParamList } from '@/navigation/types';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon, AppIconName } from '@/components/common/AppIcon';
@@ -32,46 +32,88 @@ const ACTIONS: QuickAction[] = [
 ];
 
 /**
- * A quick-action tile that scales down slightly on press and springs back —
- * the kind of small confirming touch feedback the design brief asked for
- * throughout onboarding, applied here too. Pressable (not raw touch events)
- * so this still cancels correctly if the press turns into a scroll gesture
- * on the dashboard's ScrollView.
+ * A quick-action tile that fades/scales in on mount (staggered per tile),
+ * scales down slightly on press, and — for the two tiles most tied to a
+ * "mode" elsewhere in the app (Fasting, Meditate) — carries a very subtle
+ * continuous idle motion on just the icon: a slow clock-like tick for
+ * fasting, a slow breathing pulse for meditation. The other six stay still
+ * at idle so the grid doesn't read as busy. Pressable (not raw touch
+ * events) so press feedback still cancels correctly if the press turns
+ * into a scroll gesture on the dashboard's ScrollView.
  */
-const QuickActionTile: React.FC<{ action: QuickAction; nav: Nav }> = React.memo(({ action, nav }) => {
+const QuickActionTile: React.FC<{ action: QuickAction; nav: Nav; index: number }> = React.memo(({ action, nav, index }) => {
   const { theme } = useTheme();
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const pressScale = useSharedValue(1);
+  const entrance = useSharedValue(0);
+  const idle = useSharedValue(0);
+  const hasIdleMotion = action.key === 'start_fast' || action.key === 'start_meditation';
+
+  useEffect(() => {
+    entrance.value = withDelay(index * motion.staggerStepMs, withTiming(1, { duration: motion.duration.slow, easing: motion.easing.decelerate }));
+  }, [entrance, index]);
+
+  useEffect(() => {
+    if (!hasIdleMotion) return;
+    idle.value = withDelay(
+      600 + index * motion.staggerStepMs,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: motion.duration.ambient, easing: motion.easing.standard }),
+          withTiming(0, { duration: motion.duration.ambient, easing: motion.easing.standard })
+        ),
+        -1,
+        true
+      )
+    );
+  }, [hasIdleMotion, idle, index]);
+
+  const containerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: entrance.value,
+    transform: [{ scale: 0.9 + entrance.value * 0.1 }, { scale: pressScale.value }],
+  }));
+
+  const iconAnimatedStyle = useAnimatedStyle(() => {
+    if (action.key === 'start_meditation') {
+      return { transform: [{ scale: 1 + idle.value * 0.08 }] };
+    }
+    if (action.key === 'start_fast') {
+      return { transform: [{ rotate: `${(idle.value - 0.5) * 14}deg` }] };
+    }
+    return {};
+  });
 
   return (
     <Pressable
       onPress={() => action.onPress(nav)}
       onPressIn={() => {
-        scale.value = withTiming(0.92, { duration: motion.duration.fast });
+        pressScale.value = withTiming(0.92, { duration: motion.duration.fast });
       }}
       onPressOut={() => {
-        scale.value = withTiming(1, { duration: motion.duration.fast });
+        pressScale.value = withTiming(1, { duration: motion.duration.fast });
       }}
       accessibilityRole="button"
       accessibilityLabel={action.label}
       style={{ width: '25%', alignItems: 'center', marginBottom: theme.spacing.md }}
     >
-      <Animated.View style={[{ alignItems: 'center' }, animatedStyle]}>
-        <View
-          style={{
-            width: 52,
-            height: 52,
-            borderRadius: theme.radius.lg,
-            backgroundColor: 'rgba(255,255,255,0.1)',
-            borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.14)',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 6,
-          }}
+      <Animated.View style={[{ alignItems: 'center' }, containerAnimatedStyle]}>
+        <Animated.View
+          style={[
+            {
+              width: 52,
+              height: 52,
+              borderRadius: theme.radius.lg,
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.14)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 6,
+            },
+            iconAnimatedStyle,
+          ]}
         >
           <AppIcon name={action.icon} size={22} color="#5FBFAE" />
-        </View>
+        </Animated.View>
         <AppText variant="caption" color="rgba(255,255,255,0.8)" align="center">
           {action.label}
         </AppText>
@@ -85,7 +127,10 @@ export const QuickActions: React.FC = React.memo(() => {
   const { theme } = useTheme();
   const navigation = useNavigation<Nav>();
 
-  const renderAction = useCallback((action: QuickAction) => <QuickActionTile key={action.key} action={action} nav={navigation} />, [navigation]);
+  const renderAction = useCallback(
+    (action: QuickAction, index: number) => <QuickActionTile key={action.key} action={action} nav={navigation} index={index} />,
+    [navigation]
+  );
 
   return (
     <View style={{ marginBottom: theme.spacing.sm }}>

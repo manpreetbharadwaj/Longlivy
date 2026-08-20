@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import Animated, { useSharedValue, useAnimatedStyle, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { MainTabParamList } from '@/navigation/types';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppBadge } from '@/components/common/AppBadge';
 import { AppIconTile } from '@/components/common/AppIconTile';
+import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
+import { motion } from '@/theme/motion';
 import { selectActiveActivity, selectTodayActivityCalories } from '@/features/activity/selectors';
 import { ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
 
@@ -18,17 +21,41 @@ export const ActivityCard: React.FC = React.memo(() => {
   const active = useAppSelector(selectActiveActivity);
   const todayCalories = useAppSelector(selectTodayActivityCalories);
 
+  // A gentle, continuous bob — vertical translate rather than a full
+  // rotation — to suggest the icon is "in motion" without literally
+  // animating limbs (the asset is a single Ionicons glyph, not a rigged
+  // illustration). Cadence is brisker than meditation's breathing pulse so
+  // the two icons read as distinctly "energetic" vs "calm".
+  const bob = useSharedValue(0);
+  useEffect(() => {
+    bob.value = withDelay(
+      500,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 420, easing: motion.easing.standard }),
+          withTiming(0, { duration: 420, easing: motion.easing.standard })
+        ),
+        -1,
+        true
+      )
+    );
+  }, [bob]);
+  const bobStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -bob.value * 3 }] }));
+
   return (
-    <HeroCard onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome' })} style={{ marginBottom: theme.spacing.sm }}>
+    <HeroCard onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome' })} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <AppIconTile name="walk" color="#6AA3DE" size={40} iconSize={20} style={{ marginRight: theme.spacing.sm }} />
+          <Animated.View style={bobStyle}>
+            <AppIconTile name="walk" color="#6AA3DE" size={40} iconSize={20} style={{ marginRight: theme.spacing.sm }} />
+          </Animated.View>
           <View>
             <AppText variant="headingSmall" color="#FFFFFF">
               Activity
             </AppText>
             <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
-              {todayCalories} kcal burned today
+              <AnimatedNumberText value={todayCalories} variant="bodySmall" color="rgba(255,255,255,0.6)" />
+              {' kcal burned today'}
             </AppText>
           </View>
         </View>

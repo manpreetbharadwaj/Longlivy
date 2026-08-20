@@ -14,6 +14,7 @@ import { selectActiveFast } from '@/features/fasting/selectors';
 import { useFastingTimer } from '@/features/fasting/hooks/useFastingTimer';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
+import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 
 export const FastingCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -26,7 +27,7 @@ export const FastingCard: React.FC = React.memo(() => {
   const animatedProgress = useAnimatedProgress(progress?.progress ?? 0);
 
   return (
-    <HeroCard onPress={() => navigation.navigate('FastingTab', { screen: 'FastingHome' })} style={{ marginBottom: theme.spacing.sm }}>
+    <HeroCard onPress={() => navigation.navigate('FastingTab', { screen: 'FastingHome' })} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <AppProgressRing progress={animatedProgress} size={72} strokeWidth={8} color="#5FBFAE" trackColor="rgba(255,255,255,0.12)">
           <AppIcon name="timer-outline" size={22} color="#5FBFAE" />
@@ -36,7 +37,13 @@ export const FastingCard: React.FC = React.memo(() => {
             <AppText variant="headingSmall" color="#FFFFFF">
               Fasting
             </AppText>
-            {activeFast ? <View style={{ marginLeft: theme.spacing.xxs }}><AppBadge label="Active" tone="success" /></View> : null}
+            {activeFast ? (
+              <FadeSlideIn delay={250} fromY={4}>
+                <View style={{ marginLeft: theme.spacing.xxs }}>
+                  <AppBadge label="Active" tone="success" />
+                </View>
+              </FadeSlideIn>
+            ) : null}
           </View>
           {activeFast && progress ? (
             <>
