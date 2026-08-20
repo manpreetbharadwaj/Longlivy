@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppBadge } from '@/components/common/AppBadge';
+import { AppIcon } from '@/components/common/AppIcon';
 import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { CardShimmer } from '@/components/common/CardShimmer';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
@@ -19,9 +20,24 @@ export const CalorieBalanceCard: React.FC = React.memo(() => {
   return (
     <HeroCard style={{ marginBottom: theme.spacing.sm, overflow: 'hidden' }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.sm }}>
-        <AppText variant="headingSmall" color="#FFFFFF">
-          Energy balance
-        </AppText>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: theme.radius.sm,
+              backgroundColor: 'rgba(224,162,78,0.18)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: theme.spacing.xs,
+            }}
+          >
+            <AppIcon name="flame" size={15} color="#E0A24E" />
+          </View>
+          <AppText variant="headingSmall" color="#FFFFFF">
+            Energy balance
+          </AppText>
+        </View>
         <AppBadge label={exceeded ? 'Goal exceeded' : 'On track'} tone={exceeded ? 'warning' : 'success'} />
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

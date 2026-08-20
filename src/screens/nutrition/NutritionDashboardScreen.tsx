@@ -65,9 +65,9 @@ export const NutritionDashboardScreen: React.FC = () => {
       </HeroCard>
 
       <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
-        <MacroTile index={0} label="Protein" progress={progress.protein} color="#E7A868" />
-        <MacroTile index={1} label="Carbs" progress={progress.carbohydrates} color="#6AA3DE" />
-        <MacroTile index={2} label="Fat" progress={progress.fat} color="#B98CE0" />
+        <MacroTile index={0} label="Protein" icon="egg-outline" progress={progress.protein} color="#E7A868" />
+        <MacroTile index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} color="#6AA3DE" />
+        <MacroTile index={2} label="Fat" icon="water-outline" progress={progress.fat} color="#B98CE0" />
       </View>
 
       {MEAL_TYPES.map((mt, index) => {
@@ -160,8 +160,8 @@ export const NutritionDashboardScreen: React.FC = () => {
   );
 };
 
-const MacroTile: React.FC<{ index: number; label: string; progress: { current: number; target: number; percentage: number; exceeded: boolean }; color: string }> = React.memo(
-  ({ index, label, progress, color }) => {
+const MacroTile: React.FC<{ index: number; label: string; icon: AppIconName; progress: { current: number; target: number; percentage: number; exceeded: boolean }; color: string }> = React.memo(
+  ({ index, label, icon, progress, color }) => {
     const { theme } = useTheme();
     // Mirrors the Home dashboard's NutritionCard macro rows — same
     // useAnimatedProgress -> AppProgressBar chain, same per-macro colors, so
@@ -173,9 +173,24 @@ const MacroTile: React.FC<{ index: number; label: string; progress: { current: n
     return (
       <FadeSlideIn delay={index * motion.staggerStepMs} fromY={8} style={{ flex: 1, marginRight: theme.spacing.xs }}>
         <HeroCard>
-          <AppText variant="caption" color="rgba(255,255,255,0.6)">
-            {label}
-          </AppText>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }}>
+            <View
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: theme.radius.sm,
+                backgroundColor: `${color}26`,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 5,
+              }}
+            >
+              <AppIcon name={icon} size={12} color={color} />
+            </View>
+            <AppText variant="caption" color="rgba(255,255,255,0.6)">
+              {label}
+            </AppText>
+          </View>
           <AppText variant="headingSmall" color={progress.exceeded ? '#E0A24E' : '#FFFFFF'}>
             <AnimatedNumberText value={Math.round(progress.current)} variant="headingSmall" color={progress.exceeded ? '#E0A24E' : '#FFFFFF'} />
             g

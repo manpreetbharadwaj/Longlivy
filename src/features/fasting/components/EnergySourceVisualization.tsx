@@ -15,6 +15,7 @@ interface SourceBarProps {
 }
 
 const SourceBar: React.FC<SourceBarProps> = ({ weight, color, isFirst, isLast }) => {
+  const { theme } = useTheme();
   const flexValue = useSharedValue(weight);
 
   useEffect(() => {
@@ -28,10 +29,12 @@ const SourceBar: React.FC<SourceBarProps> = ({ weight, color, isFirst, isLast })
       style={[
         {
           backgroundColor: color,
-          borderTopLeftRadius: isFirst ? 8 : 0,
-          borderBottomLeftRadius: isFirst ? 8 : 0,
-          borderTopRightRadius: isLast ? 8 : 0,
-          borderBottomRightRadius: isLast ? 8 : 0,
+          // Same small flat radius as AppProgressBar — only at the bar's
+          // true outer ends, square where segments meet each other.
+          borderTopLeftRadius: isFirst ? theme.radius.flat : 0,
+          borderBottomLeftRadius: isFirst ? theme.radius.flat : 0,
+          borderTopRightRadius: isLast ? theme.radius.flat : 0,
+          borderBottomRightRadius: isLast ? theme.radius.flat : 0,
         },
         style,
       ]}
@@ -71,7 +74,7 @@ export const EnergySourceVisualization: React.FC<EnergySourceVisualizationProps>
         A simplified illustration, not a live measurement — real metabolic shifts are gradual and vary between people.
       </AppText>
 
-      <View style={{ flexDirection: 'row', height: 20, borderRadius: 8, overflow: 'hidden' }}>
+      <View style={{ flexDirection: 'row', height: 20, borderRadius: theme.radius.flat, overflow: 'hidden' }}>
         <SourceBar weight={mix.lastMeal} color={energySourceColors.lastMeal} isFirst isLast={false} />
         <SourceBar weight={mix.glycogen} color={energySourceColors.glycogen} isFirst={false} isLast={false} />
         <SourceBar weight={mix.fat} color={energySourceColors.fat} isFirst={false} isLast={false} />

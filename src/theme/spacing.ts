@@ -15,6 +15,8 @@ export const radius = {
   lg: 16,
   xl: 24,
   pill: 999,
+  /** A deliberately small, fixed corner radius for progress-bar tracks/fills — independent of bar height, so bars read as clean and rectangular rather than pill-shaped regardless of how tall a given bar is. */
+  flat: 3,
 };
 
 export const componentSizes = {

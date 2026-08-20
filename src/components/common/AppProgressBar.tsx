@@ -9,6 +9,15 @@ interface AppProgressBarProps {
   height?: number;
 }
 
+/**
+ * A straight, minimal progress bar — a small fixed corner radius
+ * (theme.radius.flat) rather than the old `height / 2` pill treatment, so
+ * it reads as a clean rectangular indicator regardless of how tall a given
+ * bar is, matching the app's current reference design language rather than
+ * a rounded/pill bar. Every call site (macro/goal/energy bars throughout
+ * the app) goes through this one component, so the shape stays consistent
+ * everywhere without needing to touch each usage individually.
+ */
 export const AppProgressBar: React.FC<AppProgressBarProps> = React.memo(
   ({ progress, color, trackColor, height = 8 }) => {
     const { theme } = useTheme();
@@ -17,7 +26,7 @@ export const AppProgressBar: React.FC<AppProgressBarProps> = React.memo(
       <View
         style={{
           height,
-          borderRadius: height / 2,
+          borderRadius: theme.radius.flat,
           backgroundColor: trackColor ?? theme.colors.primaryMuted,
           overflow: 'hidden',
         }}
@@ -27,7 +36,7 @@ export const AppProgressBar: React.FC<AppProgressBarProps> = React.memo(
             width: `${clamped * 100}%`,
             height: '100%',
             backgroundColor: color ?? theme.colors.primary,
-            borderRadius: height / 2,
+            borderRadius: theme.radius.flat,
           }}
         />
       </View>

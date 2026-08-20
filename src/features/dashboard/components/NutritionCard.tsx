@@ -5,6 +5,7 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { MainTabParamList } from '@/navigation/types';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
+import { AppIcon, AppIconName } from '@/components/common/AppIcon';
 import { AppProgressBar } from '@/components/common/AppProgressBar';
 import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
@@ -30,25 +31,30 @@ export const NutritionCard: React.FC = React.memo(() => {
           {` / ${progress.calories.target} kcal`}
         </AppText>
       </View>
-      <MacroRow index={0} label="Protein" progress={progress.protein} color="#E7A868" />
-      <MacroRow index={1} label="Carbs" progress={progress.carbohydrates} color="#6AA3DE" />
-      <MacroRow index={2} label="Fat" progress={progress.fat} color="#B98CE0" />
+      <MacroRow index={0} label="Protein" icon="egg-outline" progress={progress.protein} color="#E7A868" />
+      <MacroRow index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} color="#6AA3DE" />
+      <MacroRow index={2} label="Fat" icon="water-outline" progress={progress.fat} color="#B98CE0" />
     </HeroCard>
   );
 });
 
 NutritionCard.displayName = 'NutritionCard';
 
-const MacroRow: React.FC<{ index: number; label: string; progress: { current: number; target: number; percentage: number }; color: string }> = React.memo(
-  ({ index, label, progress, color }) => {
+const MacroRow: React.FC<{ index: number; label: string; icon: AppIconName; progress: { current: number; target: number; percentage: number }; color: string }> = React.memo(
+  ({ index, label, icon, progress, color }) => {
     const animatedFraction = useAnimatedProgress(progress.percentage / 100);
     return (
       <FadeSlideIn delay={index * motion.staggerStepMs} fromY={6}>
         <View style={{ marginBottom: 8 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
-            <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
-              {label}
-            </AppText>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ marginRight: 4 }}>
+                <AppIcon name={icon} size={13} color={color} />
+              </View>
+              <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
+                {label}
+              </AppText>
+            </View>
             <AppText variant="bodySmall" color="#FFFFFF">
               <AnimatedNumberText value={Math.round(progress.current)} variant="bodySmall" color="#FFFFFF" />
               {`g / ${progress.target}g`}
