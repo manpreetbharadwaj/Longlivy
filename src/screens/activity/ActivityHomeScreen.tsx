@@ -6,12 +6,18 @@ import { ActivityStackParamList } from '@/navigation/types';
 import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
-import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { motion } from '@/theme/motion';
 import { loadActivityData } from '@/features/activity/activitySlice';
 import { selectActiveActivity, selectActivityHistory, selectActivityStats } from '@/features/activity/selectors';
 import { ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
+import { StartActivityCTA } from '@/features/activity/components/StartActivityCTA';
+import { ActivitySummaryCard } from '@/features/activity/components/ActivitySummaryCard';
+import { LogManuallyButton } from '@/features/activity/components/LogManuallyButton';
+import { ActivityListItem } from '@/features/activity/components/ActivityListItem';
+import { ActivityEmptyState } from '@/features/activity/components/ActivityEmptyState';
 
 export const ActivityHomeScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -25,88 +31,71 @@ export const ActivityHomeScreen: React.FC = () => {
     dispatch(loadActivityData());
   }, [dispatch]);
 
+  const recent = history.slice(0, 5);
+
   return (
     <TabHeroLayout title="Activity">
-      {active ? (
-        <HeroCard onPress={() => navigation.navigate('ActiveActivity')} style={{ marginBottom: theme.spacing.md }}>
-          <AppText variant="headingSmall" color="#FFFFFF">
-            {ACTIVITY_TYPE_LABELS[active.type]} in progress
-          </AppText>
-          <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
-            Tap to resume tracking
-          </AppText>
-        </HeroCard>
-      ) : (
-        <AppGradientButton
-          label="Start activity"
-          onPress={() => navigation.navigate('SelectActivity')}
-          colors={['#6AA3DE', '#1F4E7A']}
-          style={{ marginBottom: theme.spacing.md }}
-        />
-      )}
-
-      <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md, gap: theme.spacing.xs }}>
-        <StatTile label="Activities" value={`${stats.totalActivities}`} />
-        <StatTile label="Distance" value={`${(stats.totalDistanceMeters / 1000).toFixed(1)} km`} />
-        <StatTile label="Calories" value={`${stats.totalCalories}`} />
-      </View>
-
-      <HeroCard onPress={() => navigation.navigate('ManualActivity')} style={{ marginBottom: theme.spacing.md, paddingVertical: theme.spacing.sm }}>
-        <AppText variant="headingSmall" color="#FFFFFF" align="center">
-          Log manual activity
-        </AppText>
-      </HeroCard>
-
-      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.sm }}>
-        Recent activities
-      </AppText>
-      {history.length === 0 ? (
-        <View style={{ alignItems: 'center', paddingVertical: theme.spacing.lg }}>
-          <AppText variant="headingSmall" color="#FFFFFF" align="center">
-            No activities yet
-          </AppText>
-          <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.xxs }}>
-            Start your first workout to see it here.
-          </AppText>
-        </View>
-      ) : (
-        history.slice(0, 5).map((a) => (
-          <HeroCard key={a.id} onPress={() => navigation.navigate('ActivityDetails', { activityId: a.id })} style={{ marginBottom: theme.spacing.sm }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <View>
+      {/* 1. Start Activity — the screen's primary action */}
+      <FadeSlideIn delay={0 * motion.staggerStepMs}>
+        {active ? (
+          <HeroCard onPress={() => navigation.navigate('ActiveActivity')} style={{ marginBottom: theme.spacing.md }} scaleOnPress>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#4FB77E', marginRight: theme.spacing.xs }} />
+              <View style={{ flex: 1 }}>
                 <AppText variant="headingSmall" color="#FFFFFF">
-                  {ACTIVITY_TYPE_LABELS[a.type]}
+                  {ACTIVITY_TYPE_LABELS[active.type]} in progress
                 </AppText>
-                <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
-                  {new Date(a.startTimestamp).toLocaleDateString()} · {Math.round(a.activeDuration / 60000)} min
+                <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
+                  Tap to resume tracking
                 </AppText>
               </View>
-              <AppText variant="bodyMedium" color="#FFFFFF">
-                {a.calories ?? '—'} kcal
-              </AppText>
             </View>
           </HeroCard>
+        ) : (
+          <View style={{ marginBottom: theme.spacing.md }}>
+            <StartActivityCTA onPress={() => navigation.navigate('SelectActivity')} />
+          </View>
+        )}
+      </FadeSlideIn>
+
+      {/* 2. Activity summary — one unified metrics card */}
+      <FadeSlideIn delay={1 * motion.staggerStepMs}>
+        <ActivitySummaryCard activities={stats.totalActivities} distanceKm={stats.totalDistanceMeters / 1000} calories={stats.totalCalories} />
+      </FadeSlideIn>
+
+      {/* 3. Log manually — secondary action */}
+      <FadeSlideIn delay={2 * motion.staggerStepMs}>
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <LogManuallyButton onPress={() => navigation.navigate('ManualActivity')} />
+        </View>
+      </FadeSlideIn>
+
+      {/* 4. Recent activity */}
+      <FadeSlideIn delay={3 * motion.staggerStepMs}>
+        <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.sm }}>
+          Recent activities
+        </AppText>
+      </FadeSlideIn>
+
+      {recent.length === 0 ? (
+        <FadeSlideIn delay={4 * motion.staggerStepMs}>
+          <ActivityEmptyState onStart={() => navigation.navigate('SelectActivity')} />
+        </FadeSlideIn>
+      ) : (
+        recent.map((a, index) => (
+          <FadeSlideIn key={a.id} delay={4 * motion.staggerStepMs + index * motion.staggerStepMs} fromY={10}>
+            <ActivityListItem activity={a} onPress={() => navigation.navigate('ActivityDetails', { activityId: a.id })} />
+          </FadeSlideIn>
         ))
       )}
-      <HeroCard onPress={() => navigation.navigate('ActivityHistory')} style={{ paddingVertical: theme.spacing.sm }}>
-        <AppText variant="headingSmall" color="rgba(255,255,255,0.7)" align="center">
-          View full history
-        </AppText>
-      </HeroCard>
+
+      <FadeSlideIn delay={4 * motion.staggerStepMs + recent.length * motion.staggerStepMs}>
+        <HeroCard onPress={() => navigation.navigate('ActivityHistory')} style={{ paddingVertical: theme.spacing.sm }} scaleOnPress>
+          <AppText variant="headingSmall" color="rgba(255,255,255,0.7)" align="center">
+            View full history
+          </AppText>
+        </HeroCard>
+      </FadeSlideIn>
     </TabHeroLayout>
   );
 };
-
-const StatTile: React.FC<{ label: string; value: string }> = React.memo(({ label, value }) => (
-  <View style={{ flex: 1 }}>
-    <HeroCard>
-      <AppText variant="headingSmall" color="#FFFFFF">
-        {value}
-      </AppText>
-      <AppText variant="caption" color="rgba(255,255,255,0.6)">
-        {label}
-      </AppText>
-    </HeroCard>
-  </View>
-));
-StatTile.displayName = 'StatTile';
