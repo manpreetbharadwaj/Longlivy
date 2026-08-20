@@ -7,6 +7,7 @@ import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppProgressRing } from '@/components/common/AppProgressRing';
+import { AppProgressBar } from '@/components/common/AppProgressBar';
 import { AppIcon, AppIconName } from '@/components/common/AppIcon';
 import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { CardShimmer } from '@/components/common/CardShimmer';
@@ -162,6 +163,13 @@ export const NutritionDashboardScreen: React.FC = () => {
 const MacroTile: React.FC<{ index: number; label: string; progress: { current: number; target: number; percentage: number; exceeded: boolean }; color: string }> = React.memo(
   ({ index, label, progress, color }) => {
     const { theme } = useTheme();
+    // Mirrors the Home dashboard's NutritionCard macro rows — same
+    // useAnimatedProgress -> AppProgressBar chain, same per-macro colors, so
+    // the two places the app shows macro progress stay visually consistent.
+    // AppProgressBar already clamps its own fill to 100% regardless of how
+    // far `percentage` (which the selector deliberately allows past 100 for
+    // the "exceeded" text/color elsewhere) goes past that.
+    const animatedFraction = useAnimatedProgress(progress.percentage / 100);
     return (
       <FadeSlideIn delay={index * motion.staggerStepMs} fromY={8} style={{ flex: 1, marginRight: theme.spacing.xs }}>
         <HeroCard>
@@ -172,9 +180,10 @@ const MacroTile: React.FC<{ index: number; label: string; progress: { current: n
             <AnimatedNumberText value={Math.round(progress.current)} variant="headingSmall" color={progress.exceeded ? '#E0A24E' : '#FFFFFF'} />
             g
           </AppText>
-          <AppText variant="caption" color="rgba(255,255,255,0.45)">
+          <AppText variant="caption" color="rgba(255,255,255,0.45)" style={{ marginBottom: theme.spacing.xs }}>
             / {progress.target}g
           </AppText>
+          <AppProgressBar progress={animatedFraction} color={color} trackColor="rgba(255,255,255,0.12)" height={5} />
         </HeroCard>
       </FadeSlideIn>
     );
