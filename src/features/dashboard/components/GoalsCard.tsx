@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/types';
-import { AppCard } from '@/components/common/AppCard';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppProgressBar } from '@/components/common/AppProgressBar';
 import { useTheme } from '@/hooks/useTheme';
@@ -43,8 +43,8 @@ export const GoalsCard: React.FC = React.memo(() => {
   const dailyGoals = goals.filter((g) => g.period === 'day').slice(0, 3);
 
   return (
-    <AppCard onPress={() => navigation.navigate('Goals')} style={{ marginBottom: theme.spacing.sm }}>
-      <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.sm }}>
+    <HeroCard onPress={() => navigation.navigate('Goals')} style={{ marginBottom: theme.spacing.sm }}>
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.sm }}>
         Today's goals
       </AppText>
       {dailyGoals.map((goal) => {
@@ -52,18 +52,18 @@ export const GoalsCard: React.FC = React.memo(() => {
         return (
           <View key={goal.id} style={{ marginBottom: theme.spacing.xs }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
-              <AppText variant="bodySmall" style={{ textTransform: 'capitalize' }} color={theme.colors.textSecondary}>
+              <AppText variant="bodySmall" style={{ textTransform: 'capitalize' }} color="rgba(255,255,255,0.6)">
                 {goal.type.replace('_', ' ')}
               </AppText>
-              <AppText variant="bodySmall">
+              <AppText variant="bodySmall" color="#FFFFFF">
                 {Math.round(progress.current)} / {goal.target} {goal.unit}
               </AppText>
             </View>
-            <AppProgressBar progress={progress.percentage / 100} color={progress.exceeded ? theme.colors.success : theme.colors.primary} height={6} />
+            <AppProgressBar progress={progress.percentage / 100} color={progress.exceeded ? '#4FB77E' : '#5FBFAE'} trackColor="rgba(255,255,255,0.12)" height={6} />
           </View>
         );
       })}
-    </AppCard>
+    </HeroCard>
   );
 });
 

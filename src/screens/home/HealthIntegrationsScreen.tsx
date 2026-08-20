@@ -1,11 +1,9 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppCard } from '@/components/common/AppCard';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
-import { AppButton } from '@/components/common/AppButton';
 import { AppBadge } from '@/components/common/AppBadge';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -27,37 +25,49 @@ export const HealthIntegrationsScreen: React.FC = () => {
   );
 
   return (
-    <>
-      <AppHeader title="Health integrations" onBack={() => navigation.goBack()} />
-      <AppScreen>
-        <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
-          Each platform is connected through its own adapter and normalized into Longlivy's internal data
-          model — no single provider is hard-wired into the app.
-        </AppText>
-        {connections.map((c) => (
-          <AppCard key={c.platform} style={{ marginBottom: theme.spacing.sm }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View>
-                <AppText variant="headingSmall">{c.displayName}</AppText>
-                {c.connected ? (
-                  <AppBadge label={`Synced · ${c.lastSyncedAt ? new Date(c.lastSyncedAt).toLocaleTimeString() : ''}`} tone="success" />
-                ) : (
-                  <AppText variant="caption" color={theme.colors.textTertiary}>
-                    Not connected
-                  </AppText>
-                )}
-              </View>
-              <AppButton
-                label={c.connected ? 'Disconnect' : 'Connect'}
-                onPress={() => toggle(c.platform, c.connected)}
-                variant={c.connected ? 'outline' : 'primary'}
-                fullWidth={false}
-                style={{ paddingHorizontal: theme.spacing.md }}
-              />
+    <TabHeroLayout title="Health integrations" onBack={() => navigation.goBack()}>
+      <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.md }}>
+        Each platform is connected through its own adapter and normalized into Longlivy's internal data
+        model — no single provider is hard-wired into the app.
+      </AppText>
+      {connections.map((c) => (
+        <HeroCard key={c.platform} style={{ marginBottom: theme.spacing.sm }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View>
+              <AppText variant="headingSmall" color="#FFFFFF">
+                {c.displayName}
+              </AppText>
+              {c.connected ? (
+                <AppBadge label={`Synced · ${c.lastSyncedAt ? new Date(c.lastSyncedAt).toLocaleTimeString() : ''}`} tone="success" />
+              ) : (
+                <AppText variant="caption" color="rgba(255,255,255,0.45)">
+                  Not connected
+                </AppText>
+              )}
             </View>
-          </AppCard>
-        ))}
-      </AppScreen>
-    </>
+            <ToggleButton connected={c.connected} onPress={() => toggle(c.platform, c.connected)} />
+          </View>
+        </HeroCard>
+      ))}
+    </TabHeroLayout>
+  );
+};
+
+const ToggleButton: React.FC<{ connected: boolean; onPress: () => void }> = ({ connected, onPress }) => {
+  const { theme } = useTheme();
+  return (
+    <HeroCard
+      onPress={onPress}
+      style={{
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: theme.spacing.xs,
+        backgroundColor: connected ? 'rgba(255,255,255,0.08)' : 'rgba(95,191,174,0.22)',
+        borderColor: connected ? 'rgba(255,255,255,0.14)' : 'rgba(95,191,174,0.5)',
+      }}
+    >
+      <AppText variant="label" color={connected ? '#FFFFFF' : '#5FBFAE'}>
+        {connected ? 'Disconnect' : 'Connect'}
+      </AppText>
+    </HeroCard>
   );
 };

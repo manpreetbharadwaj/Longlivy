@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { MainTabParamList } from '@/navigation/types';
-import { AppCard } from '@/components/common/AppCard';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppProgressBar } from '@/components/common/AppProgressBar';
 import { useTheme } from '@/hooks/useTheme';
@@ -16,38 +16,37 @@ export const NutritionCard: React.FC = React.memo(() => {
   const progress = useAppSelector(selectNutritionProgress);
 
   return (
-    <AppCard onPress={() => navigation.navigate('NutritionTab', { screen: 'NutritionDashboard' })} style={{ marginBottom: theme.spacing.sm }}>
+    <HeroCard onPress={() => navigation.navigate('NutritionTab', { screen: 'NutritionDashboard' })} style={{ marginBottom: theme.spacing.sm }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: theme.spacing.sm }}>
-        <AppText variant="headingSmall">Nutrition</AppText>
-        <AppText variant="bodySmall" color={theme.colors.textSecondary}>
+        <AppText variant="headingSmall" color="#FFFFFF">
+          Nutrition
+        </AppText>
+        <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
           {Math.round(progress.calories.current)} / {progress.calories.target} kcal
         </AppText>
       </View>
-      <MacroRow label="Protein" progress={progress.protein} color={theme.colors.nutrition} />
-      <MacroRow label="Carbs" progress={progress.carbohydrates} color={theme.colors.info} />
-      <MacroRow label="Fat" progress={progress.fat} color={theme.colors.secondary} />
-    </AppCard>
+      <MacroRow label="Protein" progress={progress.protein} color="#E7A868" />
+      <MacroRow label="Carbs" progress={progress.carbohydrates} color="#6AA3DE" />
+      <MacroRow label="Fat" progress={progress.fat} color="#B98CE0" />
+    </HeroCard>
   );
 });
 
 NutritionCard.displayName = 'NutritionCard';
 
 const MacroRow: React.FC<{ label: string; progress: { current: number; target: number; percentage: number }; color: string }> = React.memo(
-  ({ label, progress, color }) => {
-    const { theme } = useTheme();
-    return (
-      <View style={{ marginBottom: theme.spacing.xs }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
-          <AppText variant="bodySmall" color={theme.colors.textSecondary}>
-            {label}
-          </AppText>
-          <AppText variant="bodySmall">
-            {Math.round(progress.current)}g / {progress.target}g
-          </AppText>
-        </View>
-        <AppProgressBar progress={progress.percentage / 100} color={color} height={6} />
+  ({ label, progress, color }) => (
+    <View style={{ marginBottom: 8 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+        <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
+          {label}
+        </AppText>
+        <AppText variant="bodySmall" color="#FFFFFF">
+          {Math.round(progress.current)}g / {progress.target}g
+        </AppText>
       </View>
-    );
-  }
+      <AppProgressBar progress={progress.percentage / 100} color={color} trackColor="rgba(255,255,255,0.12)" height={6} />
+    </View>
+  )
 );
 MacroRow.displayName = 'MacroRow';

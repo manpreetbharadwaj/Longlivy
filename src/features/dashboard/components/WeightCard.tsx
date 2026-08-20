@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { AppCard } from '@/components/common/AppCard';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppIconTile } from '@/components/common/AppIconTile';
 import { AppBadge } from '@/components/common/AppBadge';
@@ -14,31 +14,35 @@ export const WeightCard: React.FC = React.memo(() => {
   const trend = useAppSelector(selectWeightTrend);
 
   return (
-    <AppCard style={{ marginBottom: theme.spacing.sm }}>
+    <HeroCard style={{ marginBottom: theme.spacing.sm }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <AppIconTile name="scale-outline" color={theme.colors.weight} size={40} iconSize={20} style={{ marginRight: theme.spacing.sm }} />
+          <AppIconTile name="scale-outline" color="#4FB77E" size={40} iconSize={20} style={{ marginRight: theme.spacing.sm }} />
           <View>
-            <AppText variant="headingSmall">Weight</AppText>
-            <AppText variant="bodySmall" color={theme.colors.textSecondary}>
+            <AppText variant="headingSmall" color="#FFFFFF">
+              Weight
+            </AppText>
+            <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
               {current ? `Logged ${new Date(current.timestamp).toLocaleDateString()}` : 'No entries yet'}
             </AppText>
           </View>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
-          <AppText variant="headingSmall">{current ? `${current.weightKg.toFixed(1)} kg` : '—'}</AppText>
+          <AppText variant="headingSmall" color="#FFFFFF">
+            {current ? `${current.weightKg.toFixed(1)} kg` : '—'}
+          </AppText>
           {current ? (
             <AppBadge label={current.source === 'manual' ? 'Manual' : current.source.replace('_', ' ')} tone={current.source === 'manual' ? 'neutral' : 'info'} />
           ) : null}
           {trend !== 0 ? (
-            <AppText variant="caption" color={trend < 0 ? theme.colors.success : theme.colors.warning}>
+            <AppText variant="caption" color={trend < 0 ? '#4FB77E' : '#E0A24E'}>
               {trend > 0 ? '+' : ''}
               {trend} kg
             </AppText>
           ) : null}
         </View>
       </View>
-    </AppCard>
+    </HeroCard>
   );
 });
 

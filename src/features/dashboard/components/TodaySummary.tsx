@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { AppCard } from '@/components/common/AppCard';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon, AppIconName } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
@@ -18,8 +18,8 @@ export const TodaySummary: React.FC = React.memo(() => {
   const fastingStats = useAppSelector(selectFastingStats);
 
   return (
-    <AppCard style={{ marginBottom: theme.spacing.sm }}>
-      <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.sm }}>
+    <HeroCard style={{ marginBottom: theme.spacing.sm }}>
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.sm }}>
         Today
       </AppText>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
@@ -28,7 +28,7 @@ export const TodaySummary: React.FC = React.memo(() => {
         <SummaryPill icon="leaf-outline" label={`${Math.round(meditationSeconds / 60)} min`} />
         <SummaryPill icon="flame-outline" label={`${fastingStats.currentStreak}d streak`} />
       </View>
-    </AppCard>
+    </HeroCard>
   );
 });
 
@@ -41,7 +41,7 @@ const SummaryPill: React.FC<{ icon: AppIconName; label: string }> = React.memo((
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: theme.colors.surfaceElevated,
+        backgroundColor: 'rgba(255,255,255,0.1)',
         borderRadius: theme.radius.pill,
         paddingHorizontal: theme.spacing.sm,
         paddingVertical: 6,
@@ -49,8 +49,8 @@ const SummaryPill: React.FC<{ icon: AppIconName; label: string }> = React.memo((
         marginBottom: theme.spacing.xs,
       }}
     >
-      <AppIcon name={icon} size={14} color={theme.colors.textSecondary} />
-      <AppText variant="bodySmall" style={{ marginLeft: 4 }}>
+      <AppIcon name={icon} size={14} color="rgba(255,255,255,0.7)" />
+      <AppText variant="bodySmall" color="#FFFFFF" style={{ marginLeft: 4 }}>
         {label}
       </AppText>
     </View>

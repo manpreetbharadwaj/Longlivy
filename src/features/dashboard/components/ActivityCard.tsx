@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { MainTabParamList } from '@/navigation/types';
-import { AppCard } from '@/components/common/AppCard';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppBadge } from '@/components/common/AppBadge';
 import { AppIconTile } from '@/components/common/AppIconTile';
@@ -19,20 +19,22 @@ export const ActivityCard: React.FC = React.memo(() => {
   const todayCalories = useAppSelector(selectTodayActivityCalories);
 
   return (
-    <AppCard onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome' })} style={{ marginBottom: theme.spacing.sm }}>
+    <HeroCard onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome' })} style={{ marginBottom: theme.spacing.sm }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <AppIconTile name="walk" color={theme.colors.activity} size={40} iconSize={20} style={{ marginRight: theme.spacing.sm }} />
+          <AppIconTile name="walk" color="#6AA3DE" size={40} iconSize={20} style={{ marginRight: theme.spacing.sm }} />
           <View>
-            <AppText variant="headingSmall">Activity</AppText>
-            <AppText variant="bodySmall" color={theme.colors.textSecondary}>
+            <AppText variant="headingSmall" color="#FFFFFF">
+              Activity
+            </AppText>
+            <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
               {todayCalories} kcal burned today
             </AppText>
           </View>
         </View>
         {active ? <AppBadge label={`${ACTIVITY_TYPE_LABELS[active.type]} · ${active.status}`} tone="info" /> : null}
       </View>
-    </AppCard>
+    </HeroCard>
   );
 });
 

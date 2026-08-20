@@ -47,15 +47,17 @@ export const QuickActions: React.FC = React.memo(() => {
             width: 52,
             height: 52,
             borderRadius: theme.radius.lg,
-            backgroundColor: theme.colors.primaryMuted,
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.14)',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 6,
           }}
         >
-          <AppIcon name={action.icon} size={22} color={theme.colors.primary} />
+          <AppIcon name={action.icon} size={22} color="#5FBFAE" />
         </View>
-        <AppText variant="caption" align="center">
+        <AppText variant="caption" color="rgba(255,255,255,0.8)" align="center">
           {action.label}
         </AppText>
       </Pressable>
@@ -67,7 +69,7 @@ export const QuickActions: React.FC = React.memo(() => {
 
   return (
     <View style={{ marginBottom: theme.spacing.sm }}>
-      <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.sm }}>
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.sm }}>
         Quick actions
       </AppText>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{rows.map(renderAction)}</View>

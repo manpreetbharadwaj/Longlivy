@@ -1,6 +1,5 @@
 import React from 'react';
 import { View } from 'react-native';
-import { useTheme } from '@/hooks/useTheme';
 import { AppText } from './AppText';
 import { AppIcon } from './AppIcon';
 
@@ -15,13 +14,14 @@ interface AppTrendBadgeProps {
  * "vs previous period" indicator — an arrow + percentage, never claiming
  * precision the underlying data doesn't have (renders "No prior data"
  * instead of a fabricated 0% when there's nothing to compare against).
+ *
+ * Only used on StatisticsScreen (a dark hero screen), so styled for that
+ * surface directly rather than via a variant flag.
  */
 export const AppTrendBadge: React.FC<AppTrendBadgeProps> = React.memo(({ percent, higherIsBetter = true }) => {
-  const { theme } = useTheme();
-
   if (percent === null) {
     return (
-      <AppText variant="caption" color={theme.colors.textTertiary}>
+      <AppText variant="caption" color="rgba(255,255,255,0.45)">
         No prior period data
       </AppText>
     );
@@ -30,7 +30,7 @@ export const AppTrendBadge: React.FC<AppTrendBadgeProps> = React.memo(({ percent
   const isFlat = percent === 0;
   const isUp = percent > 0;
   const good = isFlat ? null : isUp === higherIsBetter;
-  const color = isFlat ? theme.colors.textSecondary : good ? theme.colors.success : theme.colors.warning;
+  const color = isFlat ? 'rgba(255,255,255,0.6)' : good ? '#4FB77E' : '#E0A24E';
   const iconName = isFlat ? 'remove-outline' : isUp ? 'trending-up' : 'trending-down';
 
   return (

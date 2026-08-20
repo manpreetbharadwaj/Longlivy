@@ -1,9 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppInput } from '@/components/common/AppInput';
-import { AppButton } from '@/components/common/AppButton';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroTextField } from '@/components/common/HeroTextField';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppText } from '@/components/common/AppText';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -30,15 +29,12 @@ export const EnterWeightScreen: React.FC = () => {
   }, [weight, dispatch, navigation]);
 
   return (
-    <>
-      <AppHeader title="Enter weight" onBack={() => navigation.goBack()} />
-      <AppScreen>
-        <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
-          Manually entered weight is marked separately from values imported from a connected health platform.
-        </AppText>
-        <AppInput label="Weight (kg)" value={weight} onChangeText={setWeight} keyboardType="numeric" style={{ marginBottom: theme.spacing.md }} />
-        <AppButton label="Save weight" onPress={save} disabled={!weight} loading={saving} />
-      </AppScreen>
-    </>
+    <TabHeroLayout title="Enter weight" onBack={() => navigation.goBack()}>
+      <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.md }}>
+        Manually entered weight is marked separately from values imported from a connected health platform.
+      </AppText>
+      <HeroTextField label="Weight (kg)" value={weight} onChangeText={setWeight} keyboardType="numeric" style={{ marginBottom: theme.spacing.md }} />
+      <AppGradientButton label="Save weight" onPress={save} disabled={!weight} loading={saving} />
+    </TabHeroLayout>
   );
 };

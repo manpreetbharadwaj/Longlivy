@@ -14,10 +14,13 @@ interface AppMiniBarChartProps {
  * dependency. Bars scale relative to the max value in the series; an
  * all-zero series renders as flat baseline bars rather than crashing on a
  * divide-by-zero, which also keeps "no data yet" visually honest.
+ *
+ * Only used on StatisticsScreen (a dark hero screen), so styled for that
+ * surface directly rather than via a variant flag.
  */
 export const AppMiniBarChart: React.FC<AppMiniBarChartProps> = React.memo(({ data, color, height = 64 }) => {
   const { theme } = useTheme();
-  const tint = color ?? theme.colors.primary;
+  const tint = color ?? '#5FBFAE';
   const max = useMemo(() => Math.max(1, ...data.map((d) => d.value)), [data]);
 
   return (
@@ -30,10 +33,10 @@ export const AppMiniBarChart: React.FC<AppMiniBarChartProps> = React.memo(({ dat
               maxWidth: 22,
               height: Math.max(3, (d.value / max) * (height - 16)),
               borderRadius: theme.radius.sm,
-              backgroundColor: d.value > 0 ? tint : theme.colors.border,
+              backgroundColor: d.value > 0 ? tint : 'rgba(255,255,255,0.15)',
             }}
           />
-          <AppText variant="caption" color={theme.colors.textTertiary} style={{ marginTop: 4 }}>
+          <AppText variant="caption" color="rgba(255,255,255,0.5)" style={{ marginTop: 4 }}>
             {d.label}
           </AppText>
         </View>

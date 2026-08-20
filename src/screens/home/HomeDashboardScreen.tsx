@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AppScreen } from '@/components/common/AppScreen';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { useAppDispatch } from '@/store/hooks';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { TodaySummary } from '@/features/dashboard/components/TodaySummary';
@@ -40,7 +40,7 @@ export const HomeDashboardScreen: React.FC = () => {
   }, [loadAll]);
 
   return (
-    <AppScreen refreshing={refreshing} onRefresh={onRefresh}>
+    <TabHeroLayout refreshing={refreshing} onRefresh={onRefresh}>
       <DashboardHeader />
       <TodaySummary />
       <QuickActions />
@@ -51,6 +51,6 @@ export const HomeDashboardScreen: React.FC = () => {
       <MeditationCard />
       <WeightCard />
       <GoalsCard />
-    </AppScreen>
+    </TabHeroLayout>
   );
 };

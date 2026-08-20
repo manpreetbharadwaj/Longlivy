@@ -3,12 +3,11 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MeditationStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
-import { AppButton } from '@/components/common/AppButton';
-import { AppCard } from '@/components/common/AppCard';
-import { AppIconTile } from '@/components/common/AppIconTile';
-import { AppIconName } from '@/components/common/AppIcon';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { AppIcon, AppIconName } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadMeditationData } from '@/features/meditation/meditationSlice';
@@ -27,18 +26,16 @@ export const MeditationHomeScreen: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <AppScreen>
-      <AppText variant="displayMedium" style={{ marginBottom: theme.spacing.xs }}>
-        Meditation
-      </AppText>
-      <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
+    <TabHeroLayout title="Meditation">
+      <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginBottom: theme.spacing.md }}>
         {todaySeconds > 0 ? `Today: ${Math.round(todaySeconds / 60)} minutes` : 'Not meditating today'}
         {streak > 0 ? ` · ${streak} day streak` : ''}
       </AppText>
 
-      <AppButton
+      <AppGradientButton
         label="Start meditation"
         onPress={() => navigation.navigate('MeditationCategories')}
+        colors={['#B98CE0', '#4A3A7A']}
         style={{ marginBottom: theme.spacing.md, height: 60 }}
       />
 
@@ -51,32 +48,54 @@ export const MeditationHomeScreen: React.FC = () => {
 
       {favorites.length > 0 ? (
         <>
-          <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
+          <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
             Favorites
           </AppText>
           {favorites.map((m) => (
-            <AppCard
+            <HeroCard
               key={m.id}
               onPress={() => navigation.navigate('MeditationPlayer', { meditationId: m.id, type: m.type, durationSeconds: m.durationSeconds })}
               style={{ marginBottom: theme.spacing.sm }}
             >
-              <AppText variant="headingSmall">{m.title}</AppText>
-              <AppText variant="bodySmall" color={theme.colors.textSecondary}>
+              <AppText variant="headingSmall" color="#FFFFFF">
+                {m.title}
+              </AppText>
+              <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
                 {Math.round(m.durationSeconds / 60)} min · {m.category}
               </AppText>
-            </AppCard>
+            </HeroCard>
           ))}
         </>
       ) : null}
 
       <View style={{ marginTop: theme.spacing.sm }}>
-        <AppButton label="My templates" onPress={() => navigation.navigate('MeditationTemplates')} variant="outline" style={{ marginBottom: theme.spacing.xs }} />
-        <AppButton label="Goals" onPress={() => navigation.navigate('MeditationGoalsScreen')} variant="outline" style={{ marginBottom: theme.spacing.xs }} />
-        <AppButton label="History" onPress={() => navigation.navigate('MeditationHistory')} variant="outline" style={{ marginBottom: theme.spacing.xs }} />
-        <AppButton label="Statistics" onPress={() => navigation.navigate('MeditationStatistics')} variant="outline" style={{ marginBottom: theme.spacing.xs }} />
-        <AppButton label="Reminders" onPress={() => navigation.navigate('MeditationReminders')} variant="ghost" />
+        <HeroCard onPress={() => navigation.navigate('MeditationTemplates')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
+          <AppText variant="headingSmall" color="#FFFFFF" align="center">
+            My templates
+          </AppText>
+        </HeroCard>
+        <HeroCard onPress={() => navigation.navigate('MeditationGoalsScreen')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
+          <AppText variant="headingSmall" color="#FFFFFF" align="center">
+            Goals
+          </AppText>
+        </HeroCard>
+        <HeroCard onPress={() => navigation.navigate('MeditationHistory')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
+          <AppText variant="headingSmall" color="#FFFFFF" align="center">
+            History
+          </AppText>
+        </HeroCard>
+        <HeroCard onPress={() => navigation.navigate('MeditationStatistics')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
+          <AppText variant="headingSmall" color="#FFFFFF" align="center">
+            Statistics
+          </AppText>
+        </HeroCard>
+        <HeroCard onPress={() => navigation.navigate('MeditationReminders')} style={{ paddingVertical: theme.spacing.sm }}>
+          <AppText variant="headingSmall" color="rgba(255,255,255,0.7)" align="center">
+            Reminders
+          </AppText>
+        </HeroCard>
       </View>
-    </AppScreen>
+    </TabHeroLayout>
   );
 };
 
@@ -84,12 +103,23 @@ const QuickTile: React.FC<{ icon: AppIconName; label: string; onPress: () => voi
   const { theme } = useTheme();
   return (
     <View style={{ width: '50%', paddingHorizontal: theme.spacing.xxs, marginBottom: theme.spacing.xs }}>
-      <AppCard onPress={onPress} style={{ alignItems: 'center' }}>
-        <AppIconTile name={icon} color={theme.colors.meditation} size={40} iconSize={20} />
-        <AppText variant="bodySmall" style={{ marginTop: 4 }}>
+      <HeroCard onPress={onPress} style={{ alignItems: 'center' }}>
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: theme.radius.md,
+            backgroundColor: 'rgba(185,140,224,0.18)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <AppIcon name={icon} size={20} color="#B98CE0" />
+        </View>
+        <AppText variant="bodySmall" color="#FFFFFF" style={{ marginTop: 4 }}>
           {label}
         </AppText>
-      </AppCard>
+      </HeroCard>
     </View>
   );
 });

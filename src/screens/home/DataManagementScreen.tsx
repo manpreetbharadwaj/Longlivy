@@ -6,11 +6,10 @@ import { useNavigation } from '@react-navigation/native';
 // this screen already uses, with no behavior change.
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppCard } from '@/components/common/AppCard';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
-import { AppButton } from '@/components/common/AppButton';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { store as reduxStore } from '@/store/store';
@@ -111,37 +110,41 @@ export const DataManagementScreen: React.FC = () => {
   }, [performDeletion]);
 
   return (
-    <>
-      <AppHeader title="Data management" onBack={() => navigation.goBack()} />
-      <AppScreen>
-        <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
-          All data currently lives on this device via local mock repositories. Each item below carries a
-          source tag so its origin stays traceable once real sync is added.
-        </AppText>
-        <AppCard style={{ marginBottom: theme.spacing.lg }}>
-          {rows.map((r) => (
-            <AppText key={r.label} variant="bodyMedium" style={{ marginBottom: theme.spacing.xs }}>
-              {r.label}: <AppText variant="headingSmall">{r.value}</AppText>
+    <TabHeroLayout title="Data management" onBack={() => navigation.goBack()}>
+      <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.md }}>
+        All data currently lives on this device via local mock repositories. Each item below carries a
+        source tag so its origin stays traceable once real sync is added.
+      </AppText>
+      <HeroCard style={{ marginBottom: theme.spacing.lg }}>
+        {rows.map((r) => (
+          <AppText key={r.label} variant="bodyMedium" color="rgba(255,255,255,0.8)" style={{ marginBottom: theme.spacing.xs }}>
+            {r.label}:{' '}
+            <AppText variant="headingSmall" color="#FFFFFF">
+              {r.value}
             </AppText>
-          ))}
-        </AppCard>
+          </AppText>
+        ))}
+      </HeroCard>
 
-        <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
-          Export your data
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
+        Export your data
+      </AppText>
+      <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.sm }}>
+        Download a JSON copy of everything Longlivy has stored for you.
+      </AppText>
+      <HeroCard onPress={exporting ? undefined : handleExport} style={{ marginBottom: theme.spacing.lg, paddingVertical: theme.spacing.sm }}>
+        <AppText variant="headingSmall" color="#FFFFFF" align="center">
+          {exporting ? 'Exporting…' : 'Export my data'}
         </AppText>
-        <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.sm }}>
-          Download a JSON copy of everything Longlivy has stored for you.
-        </AppText>
-        <AppButton label="Export my data" onPress={handleExport} loading={exporting} variant="outline" style={{ marginBottom: theme.spacing.lg }} />
+      </HeroCard>
 
-        <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
-          Delete your data
-        </AppText>
-        <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.sm }}>
-          Permanently erase all locally stored data and sign out of this device.
-        </AppText>
-        <AppButton label="Delete all my data" onPress={handleDelete} loading={deleting} variant="danger" />
-      </AppScreen>
-    </>
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
+        Delete your data
+      </AppText>
+      <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.sm }}>
+        Permanently erase all locally stored data and sign out of this device.
+      </AppText>
+      <AppGradientButton label="Delete all my data" onPress={handleDelete} loading={deleting} colors={['#E7896A', '#C4463A']} />
+    </TabHeroLayout>
   );
 };

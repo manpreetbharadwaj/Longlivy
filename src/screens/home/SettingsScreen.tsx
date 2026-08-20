@@ -3,13 +3,11 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppCard } from '@/components/common/AppCard';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppSegmentedControl } from '@/components/common/AppSegmentedControl';
 import { AppSwitch } from '@/components/common/AppSwitch';
-import { AppButton } from '@/components/common/AppButton';
 import { useTheme } from '@/hooks/useTheme';
 import { ThemePreference } from '@/contexts/ThemeContext';
 import { useAppPreferences } from '@/contexts/AppPreferencesContext';
@@ -20,53 +18,64 @@ export const SettingsScreen: React.FC = () => {
   const { preferences, setUnitSystem, setLiveMomentsEnabled, setHapticsEnabled } = useAppPreferences();
 
   return (
-    <>
-      <AppHeader title="Settings" onBack={() => navigation.goBack()} />
-      <AppScreen>
-        <SectionLabel>Appearance</SectionLabel>
-        <AppCard style={{ marginBottom: theme.spacing.md }}>
-          <AppSegmentedControl
-            segments={[
-              { key: 'light', label: 'Light' },
-              { key: 'dark', label: 'Dark' },
-              { key: 'system', label: 'System' },
-            ]}
-            selectedKey={preference}
-            onChange={(k) => setPreference(k as ThemePreference)}
-          />
-        </AppCard>
+    <TabHeroLayout title="Settings" onBack={() => navigation.goBack()}>
+      <SectionLabel>Appearance</SectionLabel>
+      <HeroCard style={{ marginBottom: theme.spacing.md }}>
+        <AppSegmentedControl
+          variant="hero"
+          segments={[
+            { key: 'light', label: 'Light' },
+            { key: 'dark', label: 'Dark' },
+            { key: 'system', label: 'System' },
+          ]}
+          selectedKey={preference}
+          onChange={(k) => setPreference(k as ThemePreference)}
+        />
+      </HeroCard>
 
-        <SectionLabel>Units</SectionLabel>
-        <AppCard style={{ marginBottom: theme.spacing.md }}>
-          <AppSegmentedControl
-            segments={[
-              { key: 'metric', label: 'Metric' },
-              { key: 'imperial', label: 'Imperial' },
-            ]}
-            selectedKey={preferences.unitSystem}
-            onChange={(k) => setUnitSystem(k as 'metric' | 'imperial')}
-          />
-        </AppCard>
+      <SectionLabel>Units</SectionLabel>
+      <HeroCard style={{ marginBottom: theme.spacing.md }}>
+        <AppSegmentedControl
+          variant="hero"
+          segments={[
+            { key: 'metric', label: 'Metric' },
+            { key: 'imperial', label: 'Imperial' },
+          ]}
+          selectedKey={preferences.unitSystem}
+          onChange={(k) => setUnitSystem(k as 'metric' | 'imperial')}
+        />
+      </HeroCard>
 
-        <SectionLabel>Fasting timeline "live moments"</SectionLabel>
-        <AppCard style={{ marginBottom: theme.spacing.md }}>
-          <ToggleRow label="Show live moment cards" value={preferences.liveMomentsEnabled} onChange={setLiveMomentsEnabled} />
-          <ToggleRow label="Haptic feedback" value={preferences.hapticsEnabled} onChange={setHapticsEnabled} last />
-        </AppCard>
+      <SectionLabel>Fasting timeline "live moments"</SectionLabel>
+      <HeroCard style={{ marginBottom: theme.spacing.md }}>
+        <ToggleRow label="Show live moment cards" value={preferences.liveMomentsEnabled} onChange={setLiveMomentsEnabled} />
+        <ToggleRow label="Haptic feedback" value={preferences.hapticsEnabled} onChange={setHapticsEnabled} last />
+      </HeroCard>
 
-        <SectionLabel>Data</SectionLabel>
-        <AppButton label="Health integrations" onPress={() => navigation.navigate('HealthIntegrations')} variant="outline" style={{ marginBottom: theme.spacing.xs }} />
-        <AppButton label="Privacy & data" onPress={() => navigation.navigate('Privacy')} variant="outline" style={{ marginBottom: theme.spacing.xs }} />
-        <AppButton label="Data management" onPress={() => navigation.navigate('DataManagement')} variant="outline" />
-      </AppScreen>
-    </>
+      <SectionLabel>Data</SectionLabel>
+      <HeroCard onPress={() => navigation.navigate('HealthIntegrations')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
+        <AppText variant="headingSmall" color="#FFFFFF" align="center">
+          Health integrations
+        </AppText>
+      </HeroCard>
+      <HeroCard onPress={() => navigation.navigate('Privacy')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
+        <AppText variant="headingSmall" color="#FFFFFF" align="center">
+          Privacy & data
+        </AppText>
+      </HeroCard>
+      <HeroCard onPress={() => navigation.navigate('DataManagement')} style={{ paddingVertical: theme.spacing.sm }}>
+        <AppText variant="headingSmall" color="#FFFFFF" align="center">
+          Data management
+        </AppText>
+      </HeroCard>
+    </TabHeroLayout>
   );
 };
 
 const SectionLabel: React.FC<{ children: string }> = ({ children }) => {
   const { theme } = useTheme();
   return (
-    <AppText variant="label" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.xs, marginTop: theme.spacing.xs }}>
+    <AppText variant="label" color="rgba(255,255,255,0.55)" style={{ marginBottom: theme.spacing.xs, marginTop: theme.spacing.xs }}>
       {children.toUpperCase()}
     </AppText>
   );
@@ -82,11 +91,13 @@ const ToggleRow: React.FC<{ label: string; value: boolean; onChange: (v: boolean
         alignItems: 'center',
         paddingVertical: theme.spacing.xs,
         borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: theme.colors.divider,
+        borderBottomColor: 'rgba(255,255,255,0.1)',
       }}
     >
-      <AppText variant="bodyMedium">{label}</AppText>
-      <AppSwitch value={value} onValueChange={onChange} accessibilityLabel={label} />
+      <AppText variant="bodyMedium" color="#FFFFFF">
+        {label}
+      </AppText>
+      <AppSwitch variant="hero" value={value} onValueChange={onChange} accessibilityLabel={label} />
     </View>
   );
 };
