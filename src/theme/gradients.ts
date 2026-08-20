@@ -33,3 +33,20 @@ export const pillarGradients = {
 } as const;
 
 export type PillarKey = keyof typeof pillarGradients;
+
+/**
+ * A distinct dark atmosphere for the fasting "moment" screens (active fast,
+ * start-fasting confirmation) — deliberately not identical to `heroGradient`.
+ * The design brief asked for fasting to feel "dynamic, motivating,
+ * scientific" as its own mood, separate from onboarding's "premium arrival"
+ * feel: cooler, more cyan-forward, closer to a data/lab aesthetic.
+ */
+export const fastingHeroGradient = ['#020D14', '#062430', '#0B3A44'] as const;
+
+/** Energy-source colors for the fasting energy-mix visualization — shared between the visualization and its legend. */
+export const energySourceColors = {
+  lastMeal: '#E7A868',
+  glycogen: '#6AA3DE',
+  fat: '#1FA391',
+  ketones: '#B98CE0',
+} as const;

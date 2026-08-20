@@ -29,24 +29,37 @@ export const SelectFastingMethodScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const [category, setCategory] = useState('intermittent');
   const [customHours, setCustomHours] = useState('16');
+  const [selectedMethod, setSelectedMethod] = useState<FastingMethodId | null>(null);
   const actionStatus = useAppSelector(selectFastingActionStatus);
 
   const methods = useMemo(() => FASTING_METHODS.filter((m) => m.category === category), [category]);
 
-  const start = useCallback(
-    async (methodId: FastingMethodId) => {
-      await dispatch(startFastThunk({ method: methodId, customHours: methodId === 'individual' ? Number(customHours) || 16 : undefined }));
-      navigation.replace('ActiveFast');
-    },
-    [dispatch, navigation, customHours]
-  );
+  // Changing category clears the selection — a method chosen while browsing
+  // "Longer" shouldn't silently carry over into "Intermittent".
+  const changeCategory = useCallback((next: string) => {
+    setCategory(next);
+    setSelectedMethod(null);
+  }, []);
+
+  // Selecting a method only highlights it — starting the fast is a
+  // deliberate, separate confirmation (see "Start this fast" below), not an
+  // immediate side effect of tapping the card.
+  const selectMethod = useCallback((methodId: FastingMethodId) => setSelectedMethod((prev) => (prev === methodId ? null : methodId)), []);
+
+  const confirmStart = useCallback(async () => {
+    if (!selectedMethod) return;
+    await dispatch(startFastThunk({ method: selectedMethod, customHours: selectedMethod === 'individual' ? Number(customHours) || 16 : undefined }));
+    navigation.replace('FastingStarted');
+  }, [dispatch, navigation, selectedMethod, customHours]);
+
+  const selectedDefinition = FASTING_METHODS.find((m) => m.id === selectedMethod);
 
   return (
     <>
       <AppHeader title="Choose a method" onBack={() => navigation.goBack()} />
       <AppScreen>
         <View style={{ marginBottom: theme.spacing.md }}>
-          <AppSegmentedControl segments={CATEGORY_SEGMENTS} selectedKey={category} onChange={setCategory} />
+          <AppSegmentedControl segments={CATEGORY_SEGMENTS} selectedKey={category} onChange={changeCategory} />
         </View>
 
         {category === 'longer' ? <View style={{ marginBottom: theme.spacing.sm }}><SafetyNotice /></View> : null}
@@ -54,19 +67,28 @@ export const SelectFastingMethodScreen: React.FC = () => {
         {category === 'individual' ? (
           <View style={{ marginBottom: theme.spacing.sm }}>
             <AppInput label="Fasting duration (hours)" value={customHours} onChangeText={setCustomHours} keyboardType="numeric" style={{ marginBottom: theme.spacing.sm }} />
-            <AppButton label="Start individual fast" onPress={() => start('individual')} loading={actionStatus === 'loading'} />
+            <MethodCard method={FASTING_METHODS.find((m) => m.id === 'individual')!} selected={selectedMethod === 'individual'} onPress={() => selectMethod('individual')} />
           </View>
         ) : (
           methods.map((method) => (
-            <MethodCard key={method.id} method={method} onPress={() => start(method.id)} />
+            <MethodCard key={method.id} method={method} selected={selectedMethod === method.id} onPress={() => selectMethod(method.id)} />
           ))
         )}
+
+        {selectedDefinition ? (
+          <View style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.md }}>
+            <AppText variant="bodySmall" color={theme.colors.textSecondary} align="center" style={{ marginBottom: theme.spacing.sm }}>
+              {selectedDefinition.name === 'Individual fasting' ? `${customHours || 16}-hour fast selected.` : `${selectedDefinition.name} selected.`} Ready when you are.
+            </AppText>
+            <AppButton label="Start this fast" onPress={confirmStart} loading={actionStatus === 'loading'} />
+          </View>
+        ) : null}
 
         <AppButton
           label="Set up a recurring plan instead"
           variant="ghost"
           onPress={() => navigation.navigate('CreateFastingPlan')}
-          style={{ marginTop: theme.spacing.md }}
+          style={{ marginTop: theme.spacing.sm }}
         />
       </AppScreen>
     </>

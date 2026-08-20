@@ -41,6 +41,7 @@ export type FastingStackParamList = {
   CustomFasting: undefined;
   CreateFastingPlan: undefined;
   FastingPlans: undefined;
+  FastingStarted: undefined;
   ActiveFast: undefined;
   FastSummary: { sessionId: string };
   FastingHistory: undefined;

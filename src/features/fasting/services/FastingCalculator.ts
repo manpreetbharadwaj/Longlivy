@@ -64,3 +64,51 @@ export function calculateActualDuration(session: FastingSession, endedAt: number
   const start = new Date(session.startTimestamp).getTime();
   return Math.max(endedAt - start, 0);
 }
+
+export interface EnergySourceMix {
+  /** Each 0..1, always summing to 1 — the relative (not absolute) contribution of each source at this point in the fast. */
+  lastMeal: number;
+  glycogen: number;
+  fat: number;
+  ketones: number;
+}
+
+function smoothstep(edgeStart: number, edgeEnd: number, x: number): number {
+  const t = Math.max(0, Math.min(1, (x - edgeStart) / (edgeEnd - edgeStart)));
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * A simplified, illustrative model of how the body's primary energy source
+ * typically shifts over the course of a fast — NOT a live physiological
+ * measurement and not claiming exact onset times for any individual.
+ *
+ * Modeled as smooth, overlapping transitions (via smoothstep, not step
+ * functions) deliberately: real metabolic shifts are gradual and vary
+ * between people, so the visualization should never look like a source
+ * switches on/off at a precise hour. Rough basis for the transition windows
+ * (typical ranges cited in fasting-physiology literature, not exact
+ * checkpoints): digestion/absorption of a meal generally completing within
+ * a few hours; liver glycogen providing the dominant fuel through roughly
+ * the first half-day and progressively depleting over ~12-24h of
+ * continued fasting; fatty acid oxidation increasing from early on and
+ * becoming dominant as glycogen availability falls; ketone production
+ * beginning to rise only once fasting extends well past half a day and
+ * continuing to increase over 24-72h+.
+ */
+export function calculateEnergySourceMix(elapsedHours: number): EnergySourceMix {
+  const h = Math.max(0, elapsedHours);
+
+  const lastMeal = 1 - smoothstep(0, 6, h);
+  const glycogen = Math.max(0, smoothstep(0, 4, h) - smoothstep(10, 24, h) * 0.85);
+  const fat = smoothstep(3, 20, h) * (1 - 0.15 * smoothstep(0, 3, h));
+  const ketones = smoothstep(12, 48, h) * 0.85;
+
+  const total = lastMeal + glycogen + fat + ketones || 1;
+  return {
+    lastMeal: lastMeal / total,
+    glycogen: glycogen / total,
+    fat: fat / total,
+    ketones: ketones / total,
+  };
+}

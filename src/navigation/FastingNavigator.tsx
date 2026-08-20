@@ -6,6 +6,7 @@ import { SelectFastingMethodScreen } from '@/screens/fasting/SelectFastingMethod
 import { CustomFastingScreen } from '@/screens/fasting/CustomFastingScreen';
 import { CreateFastingPlanScreen } from '@/screens/fasting/CreateFastingPlanScreen';
 import { FastingPlansScreen } from '@/screens/fasting/FastingPlansScreen';
+import { FastingStartedScreen } from '@/screens/fasting/FastingStartedScreen';
 import { ActiveFastScreen } from '@/screens/fasting/ActiveFastScreen';
 import { FastSummaryScreen } from '@/screens/fasting/FastSummaryScreen';
 import { FastingHistoryScreen } from '@/screens/fasting/FastingHistoryScreen';
@@ -22,6 +23,7 @@ export const FastingNavigator: React.FC = () => (
     <Stack.Screen name="CustomFasting" component={CustomFastingScreen} />
     <Stack.Screen name="CreateFastingPlan" component={CreateFastingPlanScreen} />
     <Stack.Screen name="FastingPlans" component={FastingPlansScreen} />
+    <Stack.Screen name="FastingStarted" component={FastingStartedScreen} />
     <Stack.Screen name="ActiveFast" component={ActiveFastScreen} />
     <Stack.Screen name="FastSummary" component={FastSummaryScreen} />
     <Stack.Screen name="FastingHistory" component={FastingHistoryScreen} />

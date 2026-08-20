@@ -9,14 +9,18 @@ import { FastingMethodDefinition } from '../models';
 interface MethodCardProps {
   method: FastingMethodDefinition;
   onPress: () => void;
+  selected?: boolean;
 }
 
-export const MethodCard: React.FC<MethodCardProps> = React.memo(({ method, onPress }) => {
+export const MethodCard: React.FC<MethodCardProps> = React.memo(({ method, onPress, selected }) => {
   const { theme } = useTheme();
   const categoryTone = method.category === 'longer' ? 'warning' : method.category === 'individual' ? 'info' : 'primary';
 
   return (
-    <AppCard onPress={onPress} style={{ marginBottom: theme.spacing.sm }}>
+    <AppCard
+      onPress={onPress}
+      style={{ marginBottom: theme.spacing.sm, borderColor: selected ? theme.colors.primary : theme.colors.border, borderWidth: selected ? 2 : 1 }}
+    >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <View style={{ flex: 1, marginRight: theme.spacing.sm }}>
           <AppText variant="headingSmall">{method.name}</AppText>
