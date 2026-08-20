@@ -1,18 +1,19 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { View, Pressable, Alert } from 'react-native';
+import { View, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NutritionStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroTextField } from '@/components/common/HeroTextField';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { HeroCard } from '@/components/common/HeroCard';
+import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
+import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { AppText } from '@/components/common/AppText';
-import { AppInput } from '@/components/common/AppInput';
-import { AppButton } from '@/components/common/AppButton';
-import { AppCard } from '@/components/common/AppCard';
-import { AppLoader } from '@/components/common/AppLoader';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { motion } from '@/theme/motion';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
 import { Food } from '@/features/nutrition/models';
 import { scaleNutrition } from '@/features/nutrition/services/NutritionCalculationService';
@@ -20,6 +21,8 @@ import { addFoodToMealThunk, loadFavoriteFoods } from '@/features/nutrition/nutr
 import { selectFavoriteFoods } from '@/features/nutrition/selectors';
 import { selectActiveFast } from '@/features/fasting/selectors';
 import { endFastThunk } from '@/features/fasting/fastingSlice';
+
+const NUTRITION_GRADIENT = ['#E7A868', '#B4652A'] as const;
 
 export const AddFoodScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -74,59 +77,69 @@ export const AddFoodScreen: React.FC = () => {
     dispatch(loadFavoriteFoods());
   }, [dispatch, route.params.foodId]);
 
-  if (!food) return <AppLoader fullscreen />;
+  if (!food) {
+    return (
+      <TabHeroLayout scroll={false}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      </TabHeroLayout>
+    );
+  }
 
   return (
-    <>
-      <AppHeader
-        title={food.name}
-        onBack={() => navigation.goBack()}
-        rightElement={
-          <Pressable onPress={toggleFavorite} accessibilityRole="button" accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'} hitSlop={8}>
-            <AppIcon name={isFavorite ? 'star' : 'star-outline'} size={22} color={isFavorite ? theme.colors.secondary : theme.colors.textSecondary} />
-          </Pressable>
-        }
-      />
-      <AppScreen>
-        <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
-          {food.brand ? `${food.brand} · ` : ''}
-          {food.category}
-        </AppText>
+    <TabHeroLayout
+      title={food.name}
+      onBack={() => navigation.goBack()}
+      rightElement={
+        <Pressable onPress={toggleFavorite} accessibilityRole="button" accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'} hitSlop={8}>
+          <AppIcon name={isFavorite ? 'star' : 'star-outline'} size={22} color={isFavorite ? '#E7C069' : 'rgba(255,255,255,0.6)'} />
+        </Pressable>
+      }
+    >
+      <AppText variant="bodyMedium" color="rgba(255,255,255,0.7)" style={{ marginBottom: theme.spacing.md }}>
+        {food.brand ? `${food.brand} · ` : ''}
+        {food.category}
+      </AppText>
 
-        <AppInput label={`Quantity (${food.unit})`} value={quantity} onChangeText={setQuantity} keyboardType="numeric" style={{ marginBottom: theme.spacing.md }} />
+      <HeroTextField label={`Quantity (${food.unit})`} value={quantity} onChangeText={setQuantity} keyboardType="numeric" style={{ marginBottom: theme.spacing.md }} />
 
-        {scaled ? (
-          <AppCard style={{ marginBottom: theme.spacing.lg }}>
-            <NutrientRow label="Calories" value={`${scaled.calories} kcal`} />
-            <NutrientRow label="Protein" value={`${scaled.protein} g`} />
-            <NutrientRow label="Carbohydrates" value={`${scaled.carbohydrates} g`} />
-            <NutrientRow label="Fat" value={`${scaled.fat} g`} last={scaled.fiber === undefined} />
-            {scaled.fiber !== undefined ? <NutrientRow label="Fiber" value={`${scaled.fiber} g`} last /> : null}
-          </AppCard>
-        ) : null}
+      {scaled ? (
+        <HeroCard style={{ marginBottom: theme.spacing.lg }}>
+          <NutrientRow index={0} label="Calories" value={scaled.calories} unit=" kcal" />
+          <NutrientRow index={1} label="Protein" value={scaled.protein} unit=" g" />
+          <NutrientRow index={2} label="Carbohydrates" value={scaled.carbohydrates} unit=" g" />
+          <NutrientRow index={3} label="Fat" value={scaled.fat} unit=" g" last={scaled.fiber === undefined} />
+          {scaled.fiber !== undefined ? <NutrientRow index={4} label="Fiber" value={scaled.fiber} unit=" g" last /> : null}
+        </HeroCard>
+      ) : null}
 
-        <AppButton label={`Add to ${route.params.mealType}`} onPress={handleAdd} loading={saving} />
-      </AppScreen>
-    </>
+      <AppGradientButton label={`Add to ${route.params.mealType}`} onPress={handleAdd} loading={saving} colors={NUTRITION_GRADIENT} />
+    </TabHeroLayout>
   );
 };
 
-const NutrientRow: React.FC<{ label: string; value: string; last?: boolean }> = ({ label, value, last }) => {
+const NutrientRow: React.FC<{ index: number; label: string; value: number; unit: string; last?: boolean }> = ({ index, label, value, unit, last }) => {
   const { theme } = useTheme();
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: theme.spacing.xs,
-        borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: theme.colors.divider,
-      }}
-    >
-      <AppText variant="bodyMedium" color={theme.colors.textSecondary}>
-        {label}
-      </AppText>
-      <AppText variant="bodyMedium">{value}</AppText>
-    </View>
+    <FadeSlideIn delay={index * motion.staggerStepMs} fromY={6}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          paddingVertical: theme.spacing.xs,
+          borderBottomWidth: last ? 0 : 1,
+          borderBottomColor: 'rgba(255,255,255,0.12)',
+        }}
+      >
+        <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
+          {label}
+        </AppText>
+        <AppText variant="bodyMedium" color="#FFFFFF">
+          <AnimatedNumberText value={value} variant="bodyMedium" color="#FFFFFF" />
+          {unit}
+        </AppText>
+      </View>
+    </FadeSlideIn>
   );
 };

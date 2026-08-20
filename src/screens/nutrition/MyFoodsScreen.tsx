@@ -3,15 +3,16 @@ import { View } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NutritionStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppInput } from '@/components/common/AppInput';
-import { AppButton } from '@/components/common/AppButton';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroTextField } from '@/components/common/HeroTextField';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
 import { DEMO_USER_ID } from '@/mock/demoUser';
+
+const NUTRITION_GRADIENT = ['#E7A868', '#B4652A'] as const;
 
 export const MyFoodsScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -48,38 +49,35 @@ export const MyFoodsScreen: React.FC = () => {
   void DEMO_USER_ID;
 
   return (
-    <>
-      <AppHeader title="Create own food" onBack={() => navigation.goBack()} />
-      <AppScreen>
-        <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
-          Values are per 100g. Your own foods stay private to your account.
+    <TabHeroLayout title="Create own food" onBack={() => navigation.goBack()}>
+      <AppText variant="bodyMedium" color="rgba(255,255,255,0.7)" style={{ marginBottom: theme.spacing.md }}>
+        Values are per 100g. Your own foods stay private to your account.
+      </AppText>
+      {barcode ? (
+        <AppText variant="caption" color="rgba(255,255,255,0.5)" style={{ marginBottom: theme.spacing.sm }}>
+          Barcode {barcode} will be linked to this food, so scanning it again finds this entry.
         </AppText>
-        {barcode ? (
-          <AppText variant="caption" color={theme.colors.textTertiary} style={{ marginBottom: theme.spacing.sm }}>
-            Barcode {barcode} will be linked to this food, so scanning it again finds this entry.
-          </AppText>
-        ) : null}
-        <AppInput label="Name" value={name} onChangeText={setName} style={{ marginBottom: theme.spacing.sm }} />
-        <AppInput label="Calories (per 100g)" value={calories} onChangeText={setCalories} keyboardType="numeric" style={{ marginBottom: theme.spacing.sm }} />
-        <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginBottom: theme.spacing.md }}>
-          <View style={{ flex: 1 }}>
-            <AppInput label="Protein (g)" value={protein} onChangeText={setProtein} keyboardType="numeric" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <AppInput label="Carbs (g)" value={carbs} onChangeText={setCarbs} keyboardType="numeric" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <AppInput label="Fat (g)" value={fat} onChangeText={setFat} keyboardType="numeric" />
-          </View>
+      ) : null}
+      <HeroTextField label="Name" value={name} onChangeText={setName} style={{ marginBottom: theme.spacing.sm }} />
+      <HeroTextField label="Calories (per 100g)" value={calories} onChangeText={setCalories} keyboardType="numeric" style={{ marginBottom: theme.spacing.sm }} />
+      <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginBottom: theme.spacing.md }}>
+        <View style={{ flex: 1 }}>
+          <HeroTextField label="Protein (g)" value={protein} onChangeText={setProtein} keyboardType="numeric" />
         </View>
-        <AppButton
-          label={saved ? 'Saved' : 'Save food'}
-          icon={saved ? <AppIcon name="checkmark-circle" size={18} color={theme.colors.onPrimary} /> : undefined}
-          onPress={save}
-          disabled={!valid}
-          loading={saving}
-        />
-      </AppScreen>
-    </>
+        <View style={{ flex: 1 }}>
+          <HeroTextField label="Carbs (g)" value={carbs} onChangeText={setCarbs} keyboardType="numeric" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <HeroTextField label="Fat (g)" value={fat} onChangeText={setFat} keyboardType="numeric" />
+        </View>
+      </View>
+      <AppGradientButton
+        label={saved ? 'Saved' : 'Save food'}
+        onPress={save}
+        disabled={!valid}
+        loading={saving}
+        colors={saved ? (['#4FB77E', '#2F8F5C'] as const) : NUTRITION_GRADIENT}
+      />
+    </TabHeroLayout>
   );
 };

@@ -1,15 +1,14 @@
 import React, { useEffect } from 'react';
 import { FlatList, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppCard } from '@/components/common/AppCard';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
-import { AppEmptyState } from '@/components/common/AppEmptyState';
+import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadFavoriteFoods } from '@/features/nutrition/nutritionSlice';
 import { selectFavoriteFoods } from '@/features/nutrition/selectors';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const FavoritesScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -22,24 +21,49 @@ export const FavoritesScreen: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
-      <AppHeader title="Favorites" onBack={() => navigation.goBack()} />
+    <TabHeroLayout title="Favorites" onBack={() => navigation.goBack()} scroll={false}>
       <FlatList
         data={favorites}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: theme.spacing.md, flexGrow: 1 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <AppCard style={{ marginBottom: theme.spacing.sm }}>
+          <HeroCard style={{ marginBottom: theme.spacing.sm }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <AppText variant="headingSmall">{item.name}</AppText>
-              <AppText variant="bodyMedium" color={theme.colors.textSecondary}>
+              <AppText variant="headingSmall" color="#FFFFFF">
+                {item.name}
+              </AppText>
+              <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
                 {item.calories} kcal
               </AppText>
             </View>
-          </AppCard>
+          </HeroCard>
         )}
-        ListEmptyComponent={<AppEmptyState icon="star-outline" title="No favorites yet" message="Star foods from the search screen to see them here." />}
+        ListEmptyComponent={
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: theme.spacing.xxl }}>
+            <View
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 36,
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              <AppIcon name="star-outline" size={30} color="rgba(255,255,255,0.5)" />
+            </View>
+            <AppText variant="headingSmall" color="#FFFFFF" align="center">
+              No favorites yet
+            </AppText>
+            <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.xxs }}>
+              Star foods from the search screen to see them here.
+            </AppText>
+          </View>
+        }
       />
-    </SafeAreaView>
+    </TabHeroLayout>
   );
 };

@@ -2,13 +2,14 @@ import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NutritionStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroTextField } from '@/components/common/HeroTextField';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppText } from '@/components/common/AppText';
-import { AppInput } from '@/components/common/AppInput';
-import { AppButton } from '@/components/common/AppButton';
 import { useTheme } from '@/hooks/useTheme';
 import { aiNutritionRecognitionService } from '@/features/nutrition/services/AiNutritionRecognitionService';
+
+const NUTRITION_GRADIENT = ['#E7A868', '#B4652A'] as const;
 
 interface AiTextVoiceEntryScreenProps {
   mode: 'voice' | 'text';
@@ -36,28 +37,25 @@ export const AiTextVoiceEntryScreen: React.FC<AiTextVoiceEntryScreenProps> = ({ 
   }, [text, mode, navigation]);
 
   return (
-    <>
-      <AppHeader title={mode === 'voice' ? 'Voice nutrition' : 'Text nutrition'} onBack={() => navigation.goBack()} />
-      <AppScreen>
-        <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
-          {mode === 'voice'
-            ? 'Tap the field below, then use your keyboard’s microphone button to dictate a meal — e.g. "two eggs, two slices of wholemeal bread and 200 grams of Skyr."'
-            : 'Describe a meal in your own words — e.g. "300 grams of chicken with 150 grams of rice and vegetables."'}
-        </AppText>
-        <AppInput
-          value={text}
-          onChangeText={setText}
-          placeholder={mode === 'voice' ? 'Tap here, then dictate…' : 'Type a meal description…'}
-          multiline
-          textAlignVertical="top"
-          style={{ height: 120, paddingTop: theme.spacing.sm, marginBottom: theme.spacing.md }}
-        />
-        <AppButton label="Recognize meal" onPress={handleParse} loading={parsing} disabled={!text.trim()} />
-        <AppText variant="caption" color={theme.colors.textTertiary} align="center" style={{ marginTop: theme.spacing.md }}>
-          The structured result will always be editable before saving — nothing is stored automatically.
-        </AppText>
-      </AppScreen>
-    </>
+    <TabHeroLayout title={mode === 'voice' ? 'Voice nutrition' : 'Text nutrition'} onBack={() => navigation.goBack()}>
+      <AppText variant="bodyMedium" color="rgba(255,255,255,0.7)" style={{ marginBottom: theme.spacing.md }}>
+        {mode === 'voice'
+          ? 'Tap the field below, then use your keyboard’s microphone button to dictate a meal — e.g. "two eggs, two slices of wholemeal bread and 200 grams of Skyr."'
+          : 'Describe a meal in your own words — e.g. "300 grams of chicken with 150 grams of rice and vegetables."'}
+      </AppText>
+      <HeroTextField
+        value={text}
+        onChangeText={setText}
+        placeholder={mode === 'voice' ? 'Tap here, then dictate…' : 'Type a meal description…'}
+        multiline
+        textAlignVertical="top"
+        style={{ height: 120, paddingTop: theme.spacing.sm, marginBottom: theme.spacing.md }}
+      />
+      <AppGradientButton label="Recognize meal" onPress={handleParse} loading={parsing} disabled={!text.trim()} colors={NUTRITION_GRADIENT} />
+      <AppText variant="caption" color="rgba(255,255,255,0.5)" align="center" style={{ marginTop: theme.spacing.md }}>
+        The structured result will always be editable before saving — nothing is stored automatically.
+      </AppText>
+    </TabHeroLayout>
   );
 };
 

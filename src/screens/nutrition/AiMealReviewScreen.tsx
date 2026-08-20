@@ -1,22 +1,26 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NutritionStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
+import { HeroChip } from '@/components/common/HeroChip';
+import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppText } from '@/components/common/AppText';
-import { AppCard } from '@/components/common/AppCard';
-import { AppButton } from '@/components/common/AppButton';
-import { AppChip } from '@/components/common/AppChip';
-import { AppInput } from '@/components/common/AppInput';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppIcon } from '@/components/common/AppIcon';
 import { AppBadge } from '@/components/common/AppBadge';
+import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
+import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch } from '@/store/hooks';
+import { motion } from '@/theme/motion';
 import { addFoodToMealThunk } from '@/features/nutrition/nutritionSlice';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
 import { MealType } from '@/features/nutrition/models';
+
+const NUTRITION_GRADIENT = ['#E7A868', '#B4652A'] as const;
 
 const MEAL_TYPES: { key: MealType; label: string }[] = [
   { key: 'breakfast', label: 'Breakfast' },
@@ -69,58 +73,63 @@ export const AiMealReviewScreen: React.FC = () => {
   }, [items, mealType, dispatch, navigation]);
 
   return (
-    <>
-      <AppHeader title="Review before saving" onBack={() => navigation.goBack()} />
-      <AppScreen>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.md }}>
-          <AppIcon name="information-circle-outline" size={18} color={theme.colors.info} />
-          <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginLeft: theme.spacing.xxs, flex: 1 }}>
-            {SOURCE_LABEL[route.params.source]}-based recognition is an estimate. Check and adjust each item before
-            saving — nothing is stored automatically.
-          </AppText>
-        </View>
-
-        <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
-          Meal
+    <TabHeroLayout title="Review before saving" onBack={() => navigation.goBack()}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.md }}>
+        <AppIcon name="information-circle-outline" size={18} color="#6AA3DE" />
+        <AppText variant="bodySmall" color="rgba(255,255,255,0.7)" style={{ marginLeft: theme.spacing.xxs, flex: 1 }}>
+          {SOURCE_LABEL[route.params.source]}-based recognition is an estimate. Check and adjust each item before
+          saving — nothing is stored automatically.
         </AppText>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: theme.spacing.md }}>
-          {MEAL_TYPES.map((mt) => (
-            <AppChip key={mt.key} label={mt.label} selected={mealType === mt.key} onPress={() => setMealType(mt.key)} />
-          ))}
-        </View>
+      </View>
 
-        {items.length === 0 ? (
-          <AppText variant="bodyMedium" color={theme.colors.textTertiary} style={{ marginBottom: theme.spacing.md }}>
-            No items left to save — go back to try again.
-          </AppText>
-        ) : (
-          items.map((item) => (
-            <AppCard key={item.foodId} style={{ marginBottom: theme.spacing.sm }}>
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
+        Meal
+      </AppText>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: theme.spacing.xs, marginBottom: theme.spacing.md }}>
+        {MEAL_TYPES.map((mt) => (
+          <HeroChip key={mt.key} label={mt.label} selected={mealType === mt.key} onPress={() => setMealType(mt.key)} />
+        ))}
+      </View>
+
+      {items.length === 0 ? (
+        <AppText variant="bodyMedium" color="rgba(255,255,255,0.5)" style={{ marginBottom: theme.spacing.md }}>
+          No items left to save — go back to try again.
+        </AppText>
+      ) : (
+        items.map((item, index) => (
+          <FadeSlideIn key={item.foodId} delay={index * motion.staggerStepMs} fromY={8}>
+            <HeroCard style={{ marginBottom: theme.spacing.sm }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: theme.spacing.xs }}>
                 <View style={{ flex: 1, marginRight: theme.spacing.sm }}>
-                  <AppText variant="headingSmall">{item.foodName}</AppText>
+                  <AppText variant="headingSmall" color="#FFFFFF">
+                    {item.foodName}
+                  </AppText>
                   <AppBadge label={`${Math.round(item.confidence * 100)}% confidence`} tone={item.confidence >= 0.5 ? 'info' : 'warning'} />
                 </View>
-                <AppButton label="Remove" variant="ghost" fullWidth={false} onPress={() => removeItem(item.foodId)} style={{ height: 32 }} />
+                <Pressable onPress={() => removeItem(item.foodId)} accessibilityRole="button" hitSlop={8}>
+                  <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
+                    Remove
+                  </AppText>
+                </Pressable>
               </View>
-              <AppInput
+              <HeroTextField
                 label={`Quantity (${item.unit})`}
                 value={item.quantityText}
                 onChangeText={(t) => updateQuantity(item.foodId, t)}
                 keyboardType="numeric"
               />
-            </AppCard>
-          ))
-        )}
+            </HeroCard>
+          </FadeSlideIn>
+        ))
+      )}
 
-        {items.length > 0 ? (
-          <AppText variant="bodyMedium" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
-            Estimated total: {Math.round(totalCalories)} kcal
-          </AppText>
-        ) : null}
+      {items.length > 0 ? (
+        <AppText variant="bodyMedium" color="rgba(255,255,255,0.7)" style={{ marginBottom: theme.spacing.md }}>
+          Estimated total: <AnimatedNumberText value={Math.round(totalCalories)} variant="bodyMedium" color="rgba(255,255,255,0.7)" /> kcal
+        </AppText>
+      ) : null}
 
-        <AppButton label={`Save to ${mealType}`} onPress={handleSave} loading={saving} disabled={items.length === 0} />
-      </AppScreen>
-    </>
+      <AppGradientButton label={`Save to ${mealType}`} onPress={handleSave} loading={saving} disabled={items.length === 0} colors={NUTRITION_GRADIENT} />
+    </TabHeroLayout>
   );
 };

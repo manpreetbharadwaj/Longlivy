@@ -1,18 +1,22 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppInput } from '@/components/common/AppInput';
-import { AppButton } from '@/components/common/AppButton';
-import { AppCard } from '@/components/common/AppCard';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroTextField } from '@/components/common/HeroTextField';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
+import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
+import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { motion } from '@/theme/motion';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
 import { FOOD_DATABASE_SEED } from '@/mock/foodDatabaseSeed';
 import { generateId } from '@/utils/id';
 import { DEMO_USER_ID } from '@/mock/demoUser';
 import { scaleNutrition } from '@/features/nutrition/services/NutritionCalculationService';
+
+const NUTRITION_GRADIENT = ['#E7A868', '#B4652A'] as const;
 
 export const CreateRecipeScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -62,47 +66,53 @@ export const CreateRecipeScreen: React.FC = () => {
   }, [name, ingredients, servings, totals, navigation]);
 
   return (
-    <>
-      <AppHeader title="Create recipe" onBack={() => navigation.goBack()} />
-      <AppScreen>
-        <AppInput label="Recipe name" value={name} onChangeText={setName} style={{ marginBottom: theme.spacing.sm }} />
-        <AppInput label="Servings" value={servings} onChangeText={setServings} keyboardType="numeric" style={{ marginBottom: theme.spacing.md }} />
+    <TabHeroLayout title="Create recipe" onBack={() => navigation.goBack()}>
+      <HeroTextField label="Recipe name" value={name} onChangeText={setName} style={{ marginBottom: theme.spacing.sm }} />
+      <HeroTextField label="Servings" value={servings} onChangeText={setServings} keyboardType="numeric" style={{ marginBottom: theme.spacing.md }} />
 
-        <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
-          Ingredients
-        </AppText>
-        {FOOD_DATABASE_SEED.slice(0, 8).map((food) => (
-          <AppCard
-            key={food.id}
-            onPress={() => toggleFood(food.id)}
-            style={{
-              marginBottom: theme.spacing.xs,
-              borderColor: selectedFoodIds.includes(food.id) ? theme.colors.primary : theme.colors.border,
-              borderWidth: selectedFoodIds.includes(food.id) ? 2 : 1,
-            }}
-          >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <AppText variant="bodyMedium">{food.name}</AppText>
-              <AppText variant="bodySmall" color={theme.colors.textSecondary}>
-                {food.calories} kcal / {food.servingSize}{food.unit}
-              </AppText>
-            </View>
-          </AppCard>
-        ))}
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
+        Ingredients
+      </AppText>
+      {FOOD_DATABASE_SEED.slice(0, 8).map((food, index) => {
+        const selected = selectedFoodIds.includes(food.id);
+        return (
+          <FadeSlideIn key={food.id} delay={index * 40} fromY={6}>
+            <HeroCard
+              onPress={() => toggleFood(food.id)}
+              scaleOnPress
+              style={{
+                marginBottom: theme.spacing.xs,
+                borderColor: selected ? '#5FBFAE' : 'rgba(255,255,255,0.14)',
+                borderWidth: selected ? 2 : 1.5,
+              }}
+            >
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <AppText variant="bodyMedium" color="#FFFFFF">
+                  {food.name}
+                </AppText>
+                <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
+                  {food.calories} kcal / {food.servingSize}
+                  {food.unit}
+                </AppText>
+              </View>
+            </HeroCard>
+          </FadeSlideIn>
+        );
+      })}
 
-        {ingredients.length > 0 ? (
-          <AppCard style={{ marginTop: theme.spacing.md, marginBottom: theme.spacing.md }}>
-            <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xxs }}>
-              Totals ({servings || 1} servings)
-            </AppText>
-            <AppText variant="bodySmall" color={theme.colors.textSecondary}>
-              {Math.round(totals.calories)} kcal total · {Math.round(totals.calories / (Number(servings) || 1))} kcal/serving
-            </AppText>
-          </AppCard>
-        ) : null}
+      {ingredients.length > 0 ? (
+        <HeroCard style={{ marginTop: theme.spacing.md, marginBottom: theme.spacing.md }}>
+          <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xxs }}>
+            Totals ({servings || 1} servings)
+          </AppText>
+          <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
+            <AnimatedNumberText value={Math.round(totals.calories)} variant="bodySmall" color="rgba(255,255,255,0.6)" /> kcal total ·{' '}
+            {Math.round(totals.calories / (Number(servings) || 1))} kcal/serving
+          </AppText>
+        </HeroCard>
+      ) : null}
 
-        <AppButton label="Save recipe" onPress={save} disabled={!name || ingredients.length === 0} loading={saving} />
-      </AppScreen>
-    </>
+      <AppGradientButton label="Save recipe" onPress={save} disabled={!name || ingredients.length === 0} loading={saving} colors={NUTRITION_GRADIENT} />
+    </TabHeroLayout>
   );
 };

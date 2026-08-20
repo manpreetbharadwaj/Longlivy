@@ -1,14 +1,13 @@
 import React from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { AppHeader } from '@/components/common/AppHeader';
-import { AppCard } from '@/components/common/AppCard';
+import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
-import { AppEmptyState } from '@/components/common/AppEmptyState';
+import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
 import { selectTodayMeals } from '@/features/nutrition/selectors';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const NutritionHistoryScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -16,24 +15,47 @@ export const NutritionHistoryScreen: React.FC = () => {
   const meals = useAppSelector(selectTodayMeals);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
-      <AppHeader title="Nutrition history" onBack={() => navigation.goBack()} />
+    <TabHeroLayout title="Nutrition history" onBack={() => navigation.goBack()} scroll={false}>
       <FlatList
         data={meals}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: theme.spacing.md, flexGrow: 1 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <AppCard style={{ marginBottom: theme.spacing.sm }}>
-            <AppText variant="headingSmall" style={{ textTransform: 'capitalize' }}>
+          <HeroCard style={{ marginBottom: theme.spacing.sm }}>
+            <AppText variant="headingSmall" color="#FFFFFF" style={{ textTransform: 'capitalize' }}>
               {item.mealType}
             </AppText>
-            <AppText variant="bodySmall" color={theme.colors.textSecondary}>
+            <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
               {new Date(item.timestamp).toLocaleString()} · {Math.round(item.totalCalories)} kcal
             </AppText>
-          </AppCard>
+          </HeroCard>
         )}
-        ListEmptyComponent={<AppEmptyState title="No history yet" message="Meals you log will build your nutrition history over time." />}
+        ListEmptyComponent={
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: theme.spacing.xxl }}>
+            <View
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 36,
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              <AppIcon name="time-outline" size={30} color="rgba(255,255,255,0.5)" />
+            </View>
+            <AppText variant="headingSmall" color="#FFFFFF" align="center">
+              No history yet
+            </AppText>
+            <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.xxs }}>
+              Meals you log will build your nutrition history over time.
+            </AppText>
+          </View>
+        }
       />
-    </SafeAreaView>
+    </TabHeroLayout>
   );
 };
