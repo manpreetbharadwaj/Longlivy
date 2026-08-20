@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { AppCard } from '@/components/common/AppCard';
+import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppBadge } from '@/components/common/AppBadge';
 import { useTheme } from '@/hooks/useTheme';
@@ -14,28 +14,42 @@ interface MethodCardProps {
 
 export const MethodCard: React.FC<MethodCardProps> = React.memo(({ method, onPress, selected }) => {
   const { theme } = useTheme();
-  const categoryTone = method.category === 'longer' ? 'warning' : method.category === 'individual' ? 'info' : 'primary';
+  // AppBadge's "primary" tone reads theme.colors.primary, which in light
+  // mode (the app's actual current system-following mode, even though this
+  // screen's own surface is hardcoded dark) is a very dark teal close to
+  // the hero gradient's own background — effectively invisible on this
+  // card. "success" resolves to a genuinely bright green in both modes, so
+  // it's used here purely for contrast, not because "intermittent" is
+  // semantically a success state.
+  const categoryTone = method.category === 'longer' ? 'warning' : method.category === 'individual' ? 'info' : 'success';
 
   return (
-    <AppCard
+    <HeroCard
       onPress={onPress}
-      style={{ marginBottom: theme.spacing.sm, borderColor: selected ? theme.colors.primary : theme.colors.border, borderWidth: selected ? 2 : 1 }}
+      scaleOnPress
+      style={{
+        marginBottom: theme.spacing.sm,
+        borderColor: selected ? '#5FBFAE' : 'rgba(255,255,255,0.14)',
+        borderWidth: selected ? 2 : 1.5,
+      }}
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <View style={{ flex: 1, marginRight: theme.spacing.sm }}>
-          <AppText variant="headingSmall">{method.name}</AppText>
-          <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginTop: 2 }}>
+          <AppText variant="headingSmall" color="#FFFFFF">
+            {method.name}
+          </AppText>
+          <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginTop: 2 }}>
             {method.shortExplanation}
           </AppText>
         </View>
         <AppBadge label={method.category} tone={categoryTone as any} />
       </View>
       {method.recommendation ? (
-        <AppText variant="caption" color={theme.colors.primary} style={{ marginTop: theme.spacing.xxs }}>
+        <AppText variant="caption" color="#5FBFAE" style={{ marginTop: theme.spacing.xxs }}>
           {method.recommendation}
         </AppText>
       ) : null}
-    </AppCard>
+    </HeroCard>
   );
 });
 

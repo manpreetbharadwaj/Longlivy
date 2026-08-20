@@ -1,27 +1,30 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FastingStackParamList } from '@/navigation/types';
-import { AppScreen } from '@/components/common/AppScreen';
-import { AppHeader } from '@/components/common/AppHeader';
 import { AppText } from '@/components/common/AppText';
 import { AppSegmentedControl } from '@/components/common/AppSegmentedControl';
-import { AppButton } from '@/components/common/AppButton';
-import { AppInput } from '@/components/common/AppInput';
+import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { HeroTextField } from '@/components/common/HeroTextField';
+import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { motion } from '@/theme/motion';
 import { FASTING_METHODS, FastingMethodId } from '@/features/fasting/models';
 import { MethodCard } from '@/features/fasting/components/MethodCard';
 import { SafetyNotice } from '@/features/fasting/components/SafetyNotice';
 import { startFastThunk } from '@/features/fasting/fastingSlice';
 import { selectFastingActionStatus } from '@/features/fasting/selectors';
+import { FastingHeroLayout } from './FastingHeroLayout';
 
 const CATEGORY_SEGMENTS = [
   { key: 'intermittent', label: 'Intermittent' },
   { key: 'longer', label: 'Longer' },
   { key: 'individual', label: 'Individual' },
 ];
+
+const FASTING_GRADIENT = ['#5FBFAE', '#0B4F4A'] as const;
 
 export const SelectFastingMethodScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -55,42 +58,68 @@ export const SelectFastingMethodScreen: React.FC = () => {
   const selectedDefinition = FASTING_METHODS.find((m) => m.id === selectedMethod);
 
   return (
-    <>
-      <AppHeader title="Choose a method" onBack={() => navigation.goBack()} />
-      <AppScreen>
+    <FastingHeroLayout title="Choose a method" onBack={() => navigation.goBack()}>
+      <FadeSlideIn delay={0}>
         <View style={{ marginBottom: theme.spacing.md }}>
-          <AppSegmentedControl segments={CATEGORY_SEGMENTS} selectedKey={category} onChange={changeCategory} />
+          <AppSegmentedControl segments={CATEGORY_SEGMENTS} selectedKey={category} onChange={changeCategory} variant="hero" />
         </View>
+      </FadeSlideIn>
 
-        {category === 'longer' ? <View style={{ marginBottom: theme.spacing.sm }}><SafetyNotice /></View> : null}
-
-        {category === 'individual' ? (
+      {category === 'longer' ? (
+        <FadeSlideIn delay={motion.staggerStepMs}>
           <View style={{ marginBottom: theme.spacing.sm }}>
-            <AppInput label="Fasting duration (hours)" value={customHours} onChangeText={setCustomHours} keyboardType="numeric" style={{ marginBottom: theme.spacing.sm }} />
+            <SafetyNotice />
+          </View>
+        </FadeSlideIn>
+      ) : null}
+
+      {category === 'individual' ? (
+        <FadeSlideIn delay={motion.staggerStepMs}>
+          <View style={{ marginBottom: theme.spacing.sm }}>
+            <HeroTextField
+              label="Fasting duration (hours)"
+              value={customHours}
+              onChangeText={setCustomHours}
+              keyboardType="numeric"
+              style={{ marginBottom: theme.spacing.sm }}
+            />
             <MethodCard method={FASTING_METHODS.find((m) => m.id === 'individual')!} selected={selectedMethod === 'individual'} onPress={() => selectMethod('individual')} />
           </View>
-        ) : (
-          methods.map((method) => (
-            <MethodCard key={method.id} method={method} selected={selectedMethod === method.id} onPress={() => selectMethod(method.id)} />
-          ))
-        )}
+        </FadeSlideIn>
+      ) : (
+        methods.map((method, index) => (
+          <FadeSlideIn key={method.id} delay={motion.staggerStepMs * (index + 1)} fromY={10}>
+            <MethodCard method={method} selected={selectedMethod === method.id} onPress={() => selectMethod(method.id)} />
+          </FadeSlideIn>
+        ))
+      )}
 
-        {selectedDefinition ? (
+      {selectedDefinition ? (
+        <FadeSlideIn delay={0} fromY={12}>
           <View style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.md }}>
-            <AppText variant="bodySmall" color={theme.colors.textSecondary} align="center" style={{ marginBottom: theme.spacing.sm }}>
+            <AppText variant="bodySmall" color="rgba(255,255,255,0.65)" align="center" style={{ marginBottom: theme.spacing.sm }}>
               {selectedDefinition.name === 'Individual fasting' ? `${customHours || 16}-hour fast selected.` : `${selectedDefinition.name} selected.`} Ready when you are.
             </AppText>
-            <AppButton label="Start this fast" onPress={confirmStart} loading={actionStatus === 'loading'} />
+            <AppGradientButton label="Start this fast" onPress={confirmStart} loading={actionStatus === 'loading'} colors={FASTING_GRADIENT} />
           </View>
-        ) : null}
+        </FadeSlideIn>
+      ) : null}
 
-        <AppButton
-          label="Set up a recurring plan instead"
-          variant="ghost"
-          onPress={() => navigation.navigate('CreateFastingPlan')}
-          style={{ marginTop: theme.spacing.sm }}
-        />
-      </AppScreen>
-    </>
+      <Pressable
+        onPress={() => navigation.navigate('CreateFastingPlan')}
+        accessibilityRole="button"
+        style={({ pressed }) => ({
+          height: theme.componentSizes.buttonHeight,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: theme.spacing.sm,
+          opacity: pressed ? 0.7 : 1,
+        })}
+      >
+        <AppText variant="headingSmall" color="rgba(255,255,255,0.7)">
+          Set up a recurring plan instead
+        </AppText>
+      </Pressable>
+    </FastingHeroLayout>
   );
 };
