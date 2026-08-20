@@ -13,17 +13,22 @@ import { useAppSelector } from '@/store/hooks';
 import { selectActiveFast } from '@/features/fasting/selectors';
 import { useFastingTimer } from '@/features/fasting/hooks/useFastingTimer';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
+import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 
 export const FastingCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const activeFast = useAppSelector(selectActiveFast);
   const progress = useFastingTimer(activeFast);
+  // Eases toward each new tick rather than snapping — reads as the ring
+  // "filling" on mount and gliding forward each second instead of a
+  // robotic per-second jump.
+  const animatedProgress = useAnimatedProgress(progress?.progress ?? 0);
 
   return (
     <HeroCard onPress={() => navigation.navigate('FastingTab', { screen: 'FastingHome' })} style={{ marginBottom: theme.spacing.sm }}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <AppProgressRing progress={progress?.progress ?? 0} size={72} strokeWidth={8} color="#5FBFAE" trackColor="rgba(255,255,255,0.12)">
+        <AppProgressRing progress={animatedProgress} size={72} strokeWidth={8} color="#5FBFAE" trackColor="rgba(255,255,255,0.12)">
           <AppIcon name="timer-outline" size={22} color="#5FBFAE" />
         </AppProgressRing>
         <View style={{ flex: 1, marginLeft: theme.spacing.md }}>
