@@ -16,24 +16,42 @@ const TAB_META: Record<keyof MainTabParamList, { active: AppIconName; inactive: 
   StatisticsTab: { active: 'stats-chart', inactive: 'stats-chart-outline', label: 'Statistics' },
 };
 
-const PILL_HEIGHT = 64;
-const CENTER_SIZE = 62;
-// How far the center button sinks down into the pill from its own top edge —
-// the rest of it protrudes above the bar, which is what makes it read as
-// "raised" rather than just another (bigger) tab icon.
-const CENTER_OVERLAP = 26;
+export const FLOATING_TAB_BAR_METRICS = {
+  pillHeight: 64,
+  centerSize: 62,
+  // How far the center button sinks down into the pill from its own top edge —
+  // the rest of it protrudes above the bar, which is what makes it read as
+  // "raised" rather than just another (bigger) tab icon.
+  centerOverlap: 26,
+  pillMarginH: 18,
+  pillMarginBottom: 10,
+} as const;
+
+const { pillHeight: PILL_HEIGHT, centerSize: CENTER_SIZE, centerOverlap: CENTER_OVERLAP, pillMarginH: PILL_MARGIN_H, pillMarginBottom: PILL_MARGIN_BOTTOM } =
+  FLOATING_TAB_BAR_METRICS;
 const TOP_SPACE = CENTER_SIZE - CENTER_OVERLAP;
-const PILL_MARGIN_H = 18;
-const PILL_MARGIN_BOTTOM = 10;
+
+/** The bar's total footprint (its own transparent top space + the pill + its bottom gap + the device's safe-area inset) — screens under it should add this much bottom padding to their scrollable content so nothing ends up hidden underneath the opaque pill. See useFloatingTabBarSpacing. */
+export function getFloatingTabBarHeight(safeAreaBottom: number): number {
+  return TOP_SPACE + PILL_HEIGHT + PILL_MARGIN_BOTTOM + safeAreaBottom;
+}
 
 /**
  * A floating, pill-shaped replacement for the flat default tab bar — six
  * icon-only tabs split 3-and-3 around a raised center action button, with
  * enough transparent margin above/below the pill that it visually detaches
- * from the screen edges rather than docking flush against them. Rendered
- * via React Navigation's `tabBar` prop, so it participates in the normal
- * tab-navigator layout (screens size themselves above whatever height this
- * component reports) — no per-screen padding changes needed anywhere else.
+ * from the screen edges rather than docking flush against them.
+ *
+ * Absolutely positioned over the screen content (not laid out as a normal
+ * flex sibling) so there is no separate container reserving space — and
+ * therefore no separate background layer that could ever show through as
+ * a card behind it. What's visible around the bar is simply the current
+ * screen's own background, unmodified, extending all the way down.
+ * Because of that, every screen reachable while this bar is visible needs
+ * to add `getFloatingTabBarHeight(insets.bottom)` of bottom padding to its
+ * own scrollable content so the last item never ends up underneath the
+ * opaque pill — see useFloatingTabBarSpacing, applied in TabHeroLayout,
+ * FastingHeroLayout, ActivityHeroLayout and MeditationHeroLayout.
  */
 export const FloatingTabBar: React.FC<BottomTabBarProps> = ({ state, navigation, insets }) => {
   const { theme } = useTheme();
@@ -57,7 +75,10 @@ export const FloatingTabBar: React.FC<BottomTabBarProps> = ({ state, navigation,
   };
 
   return (
-    <View style={{ height: TOP_SPACE + PILL_HEIGHT + PILL_MARGIN_BOTTOM + insets.bottom }} pointerEvents="box-none">
+    <View
+      style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: getFloatingTabBarHeight(insets.bottom) }}
+      pointerEvents="box-none"
+    >
       <View
         style={[
           {

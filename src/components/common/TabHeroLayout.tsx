@@ -7,6 +7,7 @@ import { AppIcon } from './AppIcon';
 import { GlowOrb } from './GlowOrb';
 import { useTheme } from '@/hooks/useTheme';
 import { heroGradient } from '@/theme/gradients';
+import { useFloatingTabBarSpacing } from '@/navigation/components/useFloatingTabBarSpacing';
 
 interface TabHeroLayoutProps {
   children: React.ReactNode;
@@ -38,6 +39,10 @@ export const TabHeroLayout: React.FC<TabHeroLayoutProps> = ({
   contentContainerStyle,
 }) => {
   const { theme } = useTheme();
+  // The floating tab bar is an absolutely-positioned overlay, not a docked
+  // bar that reserves its own layout space — so every screen under it has
+  // to add this manually, or its last item can end up underneath the pill.
+  const tabBarSpacing = useFloatingTabBarSpacing();
 
   const header =
     onBack || title || rightElement ? (
@@ -65,18 +70,18 @@ export const TabHeroLayout: React.FC<TabHeroLayoutProps> = ({
       <StatusBar barStyle="light-content" />
       <LinearGradient colors={heroGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
       <GlowOrb size={340} color="#1FA391" opacity={0.22} style={{ top: -110, right: -90 }} />
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
         {scroll ? (
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={[{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl }, contentContainerStyle]}
+            contentContainerStyle={[{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl + tabBarSpacing }, contentContainerStyle]}
             refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" /> : undefined}
           >
             {header}
             {children}
           </ScrollView>
         ) : (
-          <View style={{ flex: 1, padding: theme.spacing.md }}>
+          <View style={{ flex: 1, padding: theme.spacing.md, paddingBottom: theme.spacing.md + tabBarSpacing }}>
             {header}
             {children}
           </View>

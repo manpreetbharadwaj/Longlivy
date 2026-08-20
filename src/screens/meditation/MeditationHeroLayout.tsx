@@ -7,6 +7,7 @@ import { AppIcon } from '@/components/common/AppIcon';
 import { GlowOrb } from '@/components/common/GlowOrb';
 import { useTheme } from '@/hooks/useTheme';
 import { meditationHeroGradient } from '@/theme/gradients';
+import { useFloatingTabBarSpacing } from '@/navigation/components/useFloatingTabBarSpacing';
 
 interface MeditationHeroLayoutProps {
   children: React.ReactNode;
@@ -27,6 +28,7 @@ interface MeditationHeroLayoutProps {
  */
 export const MeditationHeroLayout: React.FC<MeditationHeroLayoutProps> = ({ children, title, onBack, scroll = true, contentContainerStyle }) => {
   const { theme } = useTheme();
+  const tabBarSpacing = useFloatingTabBarSpacing();
 
   const header = (
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.md }}>
@@ -54,14 +56,14 @@ export const MeditationHeroLayout: React.FC<MeditationHeroLayoutProps> = ({ chil
       <LinearGradient colors={meditationHeroGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
       <GlowOrb size={380} color="#9B7FD9" opacity={0.26} pulse style={{ top: -110, left: -110 }} />
       <GlowOrb size={280} color="#B98CE0" opacity={0.18} pulse style={{ bottom: 20, right: -90 }} />
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
         {scroll ? (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl }, contentContainerStyle]}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl + tabBarSpacing }, contentContainerStyle]}>
             {(onBack || title) ? header : null}
             {children}
           </ScrollView>
         ) : (
-          <View style={{ flex: 1, padding: theme.spacing.md }}>
+          <View style={{ flex: 1, padding: theme.spacing.md, paddingBottom: theme.spacing.md + tabBarSpacing }}>
             {(onBack || title) ? header : null}
             {children}
           </View>

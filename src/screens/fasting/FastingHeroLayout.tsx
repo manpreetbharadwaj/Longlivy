@@ -7,6 +7,7 @@ import { AppIcon } from '@/components/common/AppIcon';
 import { GlowOrb } from '@/components/common/GlowOrb';
 import { useTheme } from '@/hooks/useTheme';
 import { fastingHeroGradient } from '@/theme/gradients';
+import { useFloatingTabBarSpacing } from '@/navigation/components/useFloatingTabBarSpacing';
 
 interface FastingHeroLayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ interface FastingHeroLayoutProps {
  */
 export const FastingHeroLayout: React.FC<FastingHeroLayoutProps> = ({ children, title, onBack, scroll = true, contentContainerStyle }) => {
   const { theme } = useTheme();
+  const tabBarSpacing = useFloatingTabBarSpacing();
 
   const header = (
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.md }}>
@@ -53,14 +55,14 @@ export const FastingHeroLayout: React.FC<FastingHeroLayoutProps> = ({ children, 
       <LinearGradient colors={fastingHeroGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
       <GlowOrb size={360} color="#1FA391" opacity={0.24} style={{ top: -120, right: -100 }} />
       <GlowOrb size={260} color="#6AA3DE" opacity={0.16} style={{ bottom: 60, left: -100 }} />
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
         {scroll ? (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl }, contentContainerStyle]}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl + tabBarSpacing }, contentContainerStyle]}>
             {(onBack || title) ? header : null}
             {children}
           </ScrollView>
         ) : (
-          <View style={{ flex: 1, padding: theme.spacing.md }}>
+          <View style={{ flex: 1, padding: theme.spacing.md, paddingBottom: theme.spacing.md + tabBarSpacing }}>
             {(onBack || title) ? header : null}
             {children}
           </View>
