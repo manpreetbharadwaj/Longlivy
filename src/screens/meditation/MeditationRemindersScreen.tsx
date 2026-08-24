@@ -55,7 +55,7 @@ export const MeditationRemindersScreen: React.FC = () => {
         <View style={{ flex: 1, marginRight: theme.spacing.sm }}>
           <AppDateField label="New reminder time" mode="time" value={newTime} onChange={setNewTime} variant="hero" />
         </View>
-        <AppGradientButton label="Add" onPress={add} fullWidth={false} colors={['#B98CE0', '#4A3A7A']} style={{ paddingHorizontal: theme.spacing.lg }} />
+        <AppGradientButton label="Add" onPress={add} fullWidth={false} colors={['#A78BC9', '#453569']} style={{ paddingHorizontal: theme.spacing.lg }} />
       </View>
     </TabHeroLayout>
   );

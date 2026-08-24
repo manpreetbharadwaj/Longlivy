@@ -35,9 +35,9 @@ export const MeditationGoalsScreen: React.FC = () => {
                 {current} / {goal.target} {goal.unit}
               </AppText>
             </View>
-            <AppProgressBar progress={progress.percentage / 100} color="#B98CE0" trackColor="rgba(255,255,255,0.12)" />
+            <AppProgressBar progress={progress.percentage / 100} color="#A78BC9" trackColor="rgba(255,255,255,0.12)" />
             {progress.exceeded ? (
-              <AppText variant="caption" color="#4FB77E" style={{ marginTop: 4 }}>
+              <AppText variant="caption" color="#3FCE87" style={{ marginTop: 4 }}>
                 Goal exceeded
               </AppText>
             ) : null}

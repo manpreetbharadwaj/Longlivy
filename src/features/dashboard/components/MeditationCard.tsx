@@ -14,6 +14,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { selectTodayMeditationSeconds, selectMeditationStreak } from '@/features/meditation/selectors';
+import { homeIconTileStyle } from '../homeIconTileStyle';
+import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
 
 export const MeditationCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -42,23 +44,27 @@ export const MeditationCard: React.FC = React.memo(() => {
   const breatheStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + breathe.value * 0.08 }] }));
 
   return (
-    <HeroCard onPress={() => navigation.navigate('MeditationTab', { screen: 'MeditationHome' })} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
+    <HeroCard
+      onPress={() => navigation.navigate('MeditationTab', { screen: 'MeditationHome' })}
+      style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]}
+      scaleOnPress
+    >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Animated.View style={breatheStyle}>
-            <AppIconTile name="leaf" color="#B98CE0" size={40} iconSize={20} style={{ marginRight: theme.spacing.sm }} />
+            <AppIconTile name="leaf" color="#A78BC9" size={40} iconSize={20} style={[homeIconTileStyle, { marginRight: theme.spacing.sm }]} />
           </Animated.View>
           <View>
-            <AppText variant="headingSmall" color="#FFFFFF">
+            <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
               Meditation
             </AppText>
             {todaySeconds > 0 ? (
-              <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
-                <AnimatedNumberText value={Math.round(todaySeconds / 60)} variant="bodySmall" color="rgba(255,255,255,0.6)" />
+              <AppText variant="bodySmall" color={dashboardColors.textMuted}>
+                <AnimatedNumberText value={Math.round(todaySeconds / 60)} variant="bodySmall" color={dashboardColors.textMuted} />
                 {' min today'}
               </AppText>
             ) : (
-              <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
+              <AppText variant="bodySmall" color={dashboardColors.textMuted}>
                 Not meditating today
               </AppText>
             )}
@@ -66,10 +72,10 @@ export const MeditationCard: React.FC = React.memo(() => {
         </View>
         {streak > 0 ? (
           <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-            <GlowOrb size={56} color="#B98CE0" opacity={0.3} pulse style={{ top: -20, right: -20 }} />
+            <GlowOrb size={56} color="#A78BC9" opacity={0.3} pulse style={{ top: -20, right: -20 }} />
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <AppIcon name="flame" size={16} color="#B98CE0" />
-              <AnimatedNumberText value={streak} variant="bodyMedium" color="#B98CE0" formatter={(n) => `${Math.round(n)}d`} style={{ marginLeft: 3 }} />
+              <AppIcon name="flame" size={16} color="#A78BC9" />
+              <AnimatedNumberText value={streak} variant="bodyMedium" color="#A78BC9" formatter={(n) => `${Math.round(n)}d`} style={{ marginLeft: 3 }} />
             </View>
           </View>
         ) : null}

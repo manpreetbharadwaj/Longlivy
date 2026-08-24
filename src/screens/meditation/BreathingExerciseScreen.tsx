@@ -80,9 +80,9 @@ export const BreathingExerciseScreen: React.FC = () => {
         </AppText>
       </View>
       {running ? (
-        <AppGradientButton label="Finish" onPress={finish} colors={['#B98CE0', '#4A3A7A']} />
+        <AppGradientButton label="Finish" onPress={finish} colors={['#A78BC9', '#453569']} />
       ) : (
-        <AppGradientButton label="Start breathing exercise" onPress={start} colors={['#B98CE0', '#4A3A7A']} />
+        <AppGradientButton label="Start breathing exercise" onPress={start} colors={['#A78BC9', '#453569']} />
       )}
     </MeditationHeroLayout>
   );

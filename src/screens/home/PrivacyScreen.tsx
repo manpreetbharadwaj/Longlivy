@@ -39,7 +39,7 @@ export const PrivacyScreen: React.FC = () => {
           Manage consent
         </AppText>
       </HeroCard>
-      <AppGradientButton label="Delete my account" onPress={() => undefined} colors={['#E7896A', '#C4463A']} />
+      <AppGradientButton label="Delete my account" onPress={() => undefined} colors={['#DD7A68', '#C4463A']} />
 
       <View style={{ marginTop: theme.spacing.lg }}>
         <AppText variant="caption" color="rgba(255,255,255,0.45)">

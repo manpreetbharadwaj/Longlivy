@@ -14,6 +14,7 @@ import { useAppSelector } from '@/store/hooks';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { motion } from '@/theme/motion';
 import { selectNutritionProgress } from '@/features/nutrition/selectors';
+import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
 
 export const NutritionCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -21,49 +22,70 @@ export const NutritionCard: React.FC = React.memo(() => {
   const progress = useAppSelector(selectNutritionProgress);
 
   return (
-    <HeroCard onPress={() => navigation.navigate('NutritionTab', { screen: 'NutritionDashboard' })} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: theme.spacing.sm }}>
-        <AppText variant="headingSmall" color="#FFFFFF">
-          Nutrition
+    <HeroCard
+      onPress={() => navigation.navigate('NutritionTab', { screen: 'NutritionDashboard' })}
+      style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]}
+      scaleOnPress
+    >
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.sm }}>
+        <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
+          Nutrition summary
         </AppText>
-        <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
-          <AnimatedNumberText value={Math.round(progress.calories.current)} variant="bodySmall" color="rgba(255,255,255,0.6)" />
-          {` / ${progress.calories.target} kcal`}
+        <AppText variant="bodySmall" color={dashboardColors.accent}>
+          View details
         </AppText>
       </View>
-      <MacroRow index={0} label="Protein" icon="egg-outline" progress={progress.protein} color="#E7A868" />
-      <MacroRow index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} color="#6AA3DE" />
-      <MacroRow index={2} label="Fat" icon="water-outline" progress={progress.fat} color="#B98CE0" />
+      <MacroRow index={0} label="Protein" icon="egg-outline" progress={progress.protein} color="#E0AC55" />
+      <MacroRow index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} color="#5B9BD5" />
+      <MacroRow index={2} label="Fat" icon="water-outline" progress={progress.fat} color="#A78BC9" isLast />
     </HeroCard>
   );
 });
 
 NutritionCard.displayName = 'NutritionCard';
 
-const MacroRow: React.FC<{ index: number; label: string; icon: AppIconName; progress: { current: number; target: number; percentage: number }; color: string }> = React.memo(
-  ({ index, label, icon, progress, color }) => {
-    const animatedFraction = useAnimatedProgress(progress.percentage / 100);
-    return (
-      <FadeSlideIn delay={index * motion.staggerStepMs} fromY={6}>
-        <View style={{ marginBottom: 8 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ marginRight: 4 }}>
-                <AppIcon name={icon} size={13} color={color} />
-              </View>
-              <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
-                {label}
-              </AppText>
-            </View>
-            <AppText variant="bodySmall" color="#FFFFFF">
-              <AnimatedNumberText value={Math.round(progress.current)} variant="bodySmall" color="#FFFFFF" />
+const MacroRow: React.FC<{
+  index: number;
+  label: string;
+  icon: AppIconName;
+  progress: { current: number; target: number; percentage: number };
+  color: string;
+  isLast?: boolean;
+}> = React.memo(({ index, label, icon, progress, color, isLast }) => {
+  const animatedFraction = useAnimatedProgress(progress.percentage / 100);
+  return (
+    <FadeSlideIn delay={index * motion.staggerStepMs} fromY={6}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isLast ? 0 : 12 }}>
+        <View
+          style={{
+            width: 26,
+            height: 26,
+            borderRadius: 13,
+            backgroundColor: color + '22',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 10,
+          }}
+        >
+          <AppIcon name={icon} size={13} color={color} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+            <AppText variant="bodySmall" color={dashboardColors.textSecondary}>
+              {label}
+            </AppText>
+            <AppText variant="bodySmall" color={dashboardColors.textPrimary}>
+              <AnimatedNumberText value={Math.round(progress.current)} variant="bodySmall" color={dashboardColors.textPrimary} />
               {`g / ${progress.target}g`}
             </AppText>
           </View>
-          <AppProgressBar progress={animatedFraction} color={color} trackColor="rgba(255,255,255,0.12)" height={6} />
+          <AppProgressBar progress={animatedFraction} color={color} trackColor={dashboardColors.border} height={6} />
         </View>
-      </FadeSlideIn>
-    );
-  }
-);
+        <View style={{ marginLeft: 6 }}>
+          <AppIcon name="chevron-forward" size={14} color={dashboardColors.textMuted} />
+        </View>
+      </View>
+    </FadeSlideIn>
+  );
+});
 MacroRow.displayName = 'MacroRow';

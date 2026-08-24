@@ -60,7 +60,7 @@ export const MeditationDetailsScreen: React.FC = () => {
       onBack={() => navigation.goBack()}
       rightElement={
         <Pressable onPress={toggleFavorite} accessibilityRole="button" accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'} hitSlop={8}>
-          <AppIcon name={isFavorite ? 'star' : 'star-outline'} size={22} color={isFavorite ? '#E7C069' : 'rgba(255,255,255,0.6)'} />
+          <AppIcon name={isFavorite ? 'star' : 'star-outline'} size={22} color={isFavorite ? '#E5BC72' : 'rgba(255,255,255,0.6)'} />
         </Pressable>
       }
     >
@@ -75,7 +75,7 @@ export const MeditationDetailsScreen: React.FC = () => {
       <AppGradientButton
         label="Start meditation"
         onPress={() => navigation.navigate('MeditationPlayer', { meditationId: meditation.id, type: meditation.type, durationSeconds: meditation.durationSeconds })}
-        colors={['#B98CE0', '#4A3A7A']}
+        colors={['#A78BC9', '#453569']}
       />
     </TabHeroLayout>
   );

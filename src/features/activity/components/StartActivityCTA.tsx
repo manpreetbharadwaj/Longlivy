@@ -6,8 +6,9 @@ import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { motion } from '@/theme/motion';
+import { dashboardColors } from '@/features/dashboard/dashboardTheme';
 
-const GRADIENT = ['#6AA3DE', '#1F4E7A'] as const;
+const GRADIENT = [dashboardColors.accent, dashboardColors.accentDark] as const;
 
 /**
  * The Activity screen's primary CTA — a full card treatment (icon tile +

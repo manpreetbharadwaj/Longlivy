@@ -48,7 +48,7 @@ export const MeditationTemplatesScreen: React.FC = () => {
         </AppText>
         <HeroTextField label="Name" value={name} onChangeText={setName} style={{ marginBottom: theme.spacing.sm }} />
         <HeroTextField label="Duration (minutes)" value={minutes} onChangeText={setMinutes} keyboardType="numeric" style={{ marginBottom: theme.spacing.sm }} />
-        <AppGradientButton label="Save template" onPress={create} disabled={!name.trim()} colors={['#B98CE0', '#4A3A7A']} />
+        <AppGradientButton label="Save template" onPress={create} disabled={!name.trim()} colors={['#A78BC9', '#453569']} />
       </HeroCard>
       <FlatList
         data={templates}

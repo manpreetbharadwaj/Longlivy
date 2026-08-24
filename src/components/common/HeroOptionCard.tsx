@@ -24,13 +24,13 @@ const UNSELECTED_BG = 'rgba(255,255,255,0.07)';
 
 /**
  * The selectable-option building block for the dark "hero" onboarding
- * screens — the glass-card equivalent of AppCard, but for screens using
- * OnboardingStepLayout's variant="hero" (see WelcomeScreen/WhatIsLonglivy/
- * TrackingOverview). AppCard itself is untouched; this is a parallel
- * component for the dark surface, not a replacement.
+ * screens — the glass-card equivalent of AppCard, but for screens rendered
+ * inside OnboardingStepLayout (e.g. ActivityLevelStepScreen). AppCard
+ * itself is untouched; this is a parallel component for the dark surface,
+ * not a replacement.
  */
 export const HeroOptionCard: React.FC<HeroOptionCardProps> = React.memo(
-  ({ icon, title, description, selected, onPress, layout = 'row', accentColor = '#5FBFAE', style }) => {
+  ({ icon, title, description, selected, onPress, layout = 'row', accentColor = '#1BA7D1', style }) => {
     const { theme } = useTheme();
     const progress = useSharedValue(selected ? 1 : 0);
     const pulse = useSharedValue(1);

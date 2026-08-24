@@ -18,7 +18,7 @@ export const AppSwitch: React.FC<AppSwitchProps> = React.memo(({ value, onValueC
       value={value}
       onValueChange={onValueChange}
       accessibilityLabel={accessibilityLabel}
-      trackColor={hero ? { false: 'rgba(255,255,255,0.18)', true: '#1FA391' } : { false: theme.colors.border, true: theme.colors.primary }}
+      trackColor={hero ? { false: 'rgba(255,255,255,0.18)', true: '#0E7A9E' } : { false: theme.colors.border, true: theme.colors.primary }}
       thumbColor={hero ? '#FFFFFF' : theme.colors.surface}
     />
   );

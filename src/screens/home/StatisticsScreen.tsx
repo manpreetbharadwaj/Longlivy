@@ -17,6 +17,7 @@ import {
   selectWeightStatisticsForPeriod,
 } from '@/features/statistics/selectors';
 import { setStatisticsPeriod, StatisticsPeriod } from '@/features/statistics/statisticsSlice';
+import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 
 const PERIODS: { key: StatisticsPeriod; label: string }[] = [
   { key: 'day', label: 'Day' },
@@ -42,16 +43,16 @@ export const StatisticsScreen: React.FC = () => {
 
       <SectionTitle>Fasting</SectionTitle>
       {fasting.hasData ? (
-        <HeroCard style={{ marginBottom: theme.spacing.md }}>
+        <HeroCard style={[dashboardCardStyle, { marginBottom: theme.spacing.md }]}>
           <Row label="Sessions" value={`${fasting.sessionCount}`} />
           <Row label="Completed" value={`${fasting.completedCount}`} />
           <Row label="Total hours" value={`${fasting.totalHours}h`} />
           <Row label="Average" value={`${fasting.averageHours}h`} last />
           <AppTrendBadge percent={fasting.trend} />
-          <AppText variant="caption" color="rgba(255,255,255,0.45)" style={{ marginTop: theme.spacing.sm }}>
+          <AppText variant="caption" color={dashboardColors.textMuted} style={{ marginTop: theme.spacing.sm }}>
             Completed hours, last 7 days
           </AppText>
-          <AppMiniBarChart data={fasting.dailySeries} color="#5FBFAE" />
+          <AppMiniBarChart data={fasting.dailySeries} color={dashboardColors.accent} />
         </HeroCard>
       ) : (
         <NoData />
@@ -59,16 +60,16 @@ export const StatisticsScreen: React.FC = () => {
 
       <SectionTitle>Activity</SectionTitle>
       {activity.hasData ? (
-        <HeroCard style={{ marginBottom: theme.spacing.md }}>
+        <HeroCard style={[dashboardCardStyle, { marginBottom: theme.spacing.md }]}>
           <Row label="Activities" value={`${activity.activityCount}`} />
           <Row label="Distance" value={`${(activity.totalDistanceMeters / 1000).toFixed(1)} km`} />
           <Row label="Calories" value={`${activity.totalCalories}`} />
           <Row label="Duration" value={`${Math.round(activity.totalDurationMs / 60000)} min`} last />
           <AppTrendBadge percent={activity.trend} />
-          <AppText variant="caption" color="rgba(255,255,255,0.45)" style={{ marginTop: theme.spacing.sm }}>
+          <AppText variant="caption" color={dashboardColors.textMuted} style={{ marginTop: theme.spacing.sm }}>
             Calories burned, last 7 days
           </AppText>
-          <AppMiniBarChart data={activity.dailySeries} color="#6AA3DE" />
+          <AppMiniBarChart data={activity.dailySeries} color="#5B9BD5" />
         </HeroCard>
       ) : (
         <NoData />
@@ -76,15 +77,15 @@ export const StatisticsScreen: React.FC = () => {
 
       <SectionTitle>Meditation</SectionTitle>
       {meditation.hasData ? (
-        <HeroCard style={{ marginBottom: theme.spacing.md }}>
+        <HeroCard style={[dashboardCardStyle, { marginBottom: theme.spacing.md }]}>
           <Row label="Sessions" value={`${meditation.sessionCount}`} />
           <Row label="Total minutes" value={`${meditation.totalMinutes}`} />
           <Row label="Average" value={`${meditation.averageMinutes} min`} last />
           <AppTrendBadge percent={meditation.trend} />
-          <AppText variant="caption" color="rgba(255,255,255,0.45)" style={{ marginTop: theme.spacing.sm }}>
+          <AppText variant="caption" color={dashboardColors.textMuted} style={{ marginTop: theme.spacing.sm }}>
             Active minutes, last 7 days
           </AppText>
-          <AppMiniBarChart data={meditation.dailySeries} color="#B98CE0" />
+          <AppMiniBarChart data={meditation.dailySeries} color="#A78BC9" />
         </HeroCard>
       ) : (
         <NoData />
@@ -92,15 +93,15 @@ export const StatisticsScreen: React.FC = () => {
 
       <SectionTitle>Weight</SectionTitle>
       {weight.hasData ? (
-        <HeroCard>
+        <HeroCard style={dashboardCardStyle}>
           <Row label="Latest" value={`${weight.latest?.toFixed(1)} kg`} />
           <Row label="Change" value={`${weight.change > 0 ? '+' : ''}${weight.change} kg`} last />
           {weight.dailySeries.length ? (
             <>
-              <AppText variant="caption" color="rgba(255,255,255,0.45)" style={{ marginTop: theme.spacing.sm }}>
+              <AppText variant="caption" color={dashboardColors.textMuted} style={{ marginTop: theme.spacing.sm }}>
                 Last 7 days
               </AppText>
-              <AppMiniBarChart data={weight.dailySeries} color="#4FB77E" />
+              <AppMiniBarChart data={weight.dailySeries} color={dashboardColors.success} />
             </>
           ) : null}
         </HeroCard>
@@ -114,7 +115,7 @@ export const StatisticsScreen: React.FC = () => {
 const SectionTitle: React.FC<{ children: string }> = ({ children }) => {
   const { theme } = useTheme();
   return (
-    <AppText variant="headingSmall" color="#FFFFFF" style={{ marginTop: theme.spacing.md, marginBottom: theme.spacing.xs }}>
+    <AppText variant="headingSmall" color={dashboardColors.textPrimary} style={{ marginTop: theme.spacing.md, marginBottom: theme.spacing.xs }}>
       {children}
     </AppText>
   );
@@ -123,9 +124,11 @@ const SectionTitle: React.FC<{ children: string }> = ({ children }) => {
 const NoData: React.FC = () => {
   const { theme } = useTheme();
   return (
-    <AppText variant="bodyMedium" color="rgba(255,255,255,0.45)" style={{ marginBottom: theme.spacing.md }}>
-      No data available for this period.
-    </AppText>
+    <View style={[dashboardCardStyle, { padding: theme.spacing.md, marginBottom: theme.spacing.md, alignItems: 'center' }]}>
+      <AppText variant="bodyMedium" color={dashboardColors.textMuted} align="center">
+        No data available for this period.
+      </AppText>
+    </View>
   );
 };
 
@@ -138,13 +141,13 @@ const Row: React.FC<{ label: string; value: string; last?: boolean }> = ({ label
         justifyContent: 'space-between',
         paddingVertical: theme.spacing.xs,
         borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: 'rgba(255,255,255,0.1)',
+        borderBottomColor: dashboardColors.border,
       }}
     >
-      <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
+      <AppText variant="bodyMedium" color={dashboardColors.textSecondary}>
         {label}
       </AppText>
-      <AppText variant="bodyMedium" color="#FFFFFF">
+      <AppText variant="bodyMedium" weight="600" color={dashboardColors.textPrimary}>
         {value}
       </AppText>
     </View>

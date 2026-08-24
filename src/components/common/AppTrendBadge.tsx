@@ -30,7 +30,7 @@ export const AppTrendBadge: React.FC<AppTrendBadgeProps> = React.memo(({ percent
   const isFlat = percent === 0;
   const isUp = percent > 0;
   const good = isFlat ? null : isUp === higherIsBetter;
-  const color = isFlat ? 'rgba(255,255,255,0.6)' : good ? '#4FB77E' : '#E0A24E';
+  const color = isFlat ? 'rgba(255,255,255,0.6)' : good ? '#3FCE87' : '#E0A94E';
   const iconName = isFlat ? 'remove-outline' : isUp ? 'trending-up' : 'trending-down';
 
   return (

@@ -2,15 +2,18 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 
 export type OnboardingStackParamList = {
   Welcome: undefined;
-  WhatIsLonglivy: undefined;
-  TrackingOverview: undefined;
-  ChooseGoal: undefined;
-  PersonalInfo: undefined;
+  Value: undefined;
+  Gender: undefined;
+  /** Route name kept as "Age" for minimal navigation churn — the screen itself now collects date of birth, not a raw age (see AgeStepScreen). */
+  Age: undefined;
+  Height: undefined;
+  Weight: undefined;
   ActivityLevelStep: undefined;
-  NutritionGoalsStep: undefined;
-  FastingPreferenceStep: undefined;
-  MeditationPreferenceStep: undefined;
-  NotificationPreferenceStep: undefined;
+  TrainingDetails: undefined;
+  ChooseGoal: undefined;
+  /** Only ever pushed when `goal !== 'maintenance'` — ChooseGoalScreen routes straight past this to FastingPreference otherwise. */
+  GoalPace: undefined;
+  FastingPreference: undefined;
   CompleteSetup: undefined;
 };
 
@@ -18,6 +21,8 @@ export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
+  /** Reached automatically once authenticated with no address on file yet — see AuthNavigator's initialRouteName and RootNavigator's routing check. */
+  Address: undefined;
   EmailVerification: undefined;
 };
 

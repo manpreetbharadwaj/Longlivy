@@ -123,7 +123,7 @@ export const ActiveFastScreen: React.FC = () => {
             </AppText>
           </View>
           <View style={{ alignItems: 'center' }}>
-            <AppText variant="headingMedium" color={progress.isOverdue ? '#4FB77E' : '#FFFFFF'}>
+            <AppText variant="headingMedium" color={progress.isOverdue ? '#3FCE87' : '#FFFFFF'}>
               {progress.isOverdue ? 'Reached' : formatDurationHM(progress.remainingMs)}
             </AppText>
             <AppText variant="caption" color="rgba(255,255,255,0.5)">
@@ -185,7 +185,7 @@ export const ActiveFastScreen: React.FC = () => {
             <OutlineButton label="Extend" onPress={() => setShowExtend(true)} />
           </View>
           <View style={{ flex: 1 }}>
-            <AppGradientButton label="End fast" onPress={handleEnd} colors={['#E7896A', '#C4463A']} />
+            <AppGradientButton label="End fast" onPress={handleEnd} colors={['#DD7A68', '#C4463A']} />
           </View>
         </View>
       )}

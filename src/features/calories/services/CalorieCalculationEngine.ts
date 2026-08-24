@@ -46,12 +46,20 @@ export class CalorieCalculationEngine {
     return Math.round(bmr * ACTIVITY_MULTIPLIERS[profile.activityLevel]);
   }
 
-  calculateCalorieGoal(nrla: number, goal: 'weight_loss' | 'maintenance' | 'general_wellness' | 'muscle_gain'): number {
+  /**
+   * `paceKgPerWeek` (optional) converts a chosen weight-change pace into
+   * the actual daily deficit/surplus, at ~7700 kcal per kg of body mass
+   * (÷7 days/week ≈ 1100 kcal/day per kg/week): 0.5 kg/week loss → a ~550
+   * kcal/day deficit. Omitted (or `goal === 'maintenance'`, where pace
+   * isn't meaningful) falls back to the original fixed ±500/+300 estimate.
+   */
+  calculateCalorieGoal(nrla: number, goal: 'weight_loss' | 'maintenance' | 'general_wellness' | 'muscle_gain', paceKgPerWeek?: number | null): number {
+    const paceOffset = paceKgPerWeek != null ? Math.round((paceKgPerWeek * 7700) / 7) : null;
     switch (goal) {
       case 'weight_loss':
-        return Math.round(nrla - 500);
+        return Math.round(nrla - (paceOffset ?? 500));
       case 'muscle_gain':
-        return Math.round(nrla + 300);
+        return Math.round(nrla + (paceOffset ?? 300));
       default:
         return Math.round(nrla);
     }

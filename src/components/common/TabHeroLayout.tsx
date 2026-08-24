@@ -69,7 +69,7 @@ export const TabHeroLayout: React.FC<TabHeroLayoutProps> = ({
     <View style={{ flex: 1, backgroundColor: heroGradient[0] }}>
       <StatusBar barStyle="light-content" />
       <LinearGradient colors={heroGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-      <GlowOrb size={340} color="#1FA391" opacity={0.22} style={{ top: -110, right: -90 }} />
+      <GlowOrb size={340} color="#0E7A9E" opacity={0.22} style={{ top: -110, right: -90 }} />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
         {scroll ? (
           <ScrollView

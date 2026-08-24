@@ -14,6 +14,8 @@ import { useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { selectActiveActivity, selectTodayActivityCalories } from '@/features/activity/selectors';
 import { ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
+import { homeIconTileStyle } from '../homeIconTileStyle';
+import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
 
 export const ActivityCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -43,18 +45,22 @@ export const ActivityCard: React.FC = React.memo(() => {
   const bobStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -bob.value * 3 }] }));
 
   return (
-    <HeroCard onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome' })} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
+    <HeroCard
+      onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome' })}
+      style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]}
+      scaleOnPress
+    >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Animated.View style={bobStyle}>
-            <AppIconTile name="walk" color="#6AA3DE" size={40} iconSize={20} style={{ marginRight: theme.spacing.sm }} />
+            <AppIconTile name="walk" color="#5B9BD5" size={40} iconSize={20} style={[homeIconTileStyle, { marginRight: theme.spacing.sm }]} />
           </Animated.View>
           <View>
-            <AppText variant="headingSmall" color="#FFFFFF">
+            <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
               Activity
             </AppText>
-            <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
-              <AnimatedNumberText value={todayCalories} variant="bodySmall" color="rgba(255,255,255,0.6)" />
+            <AppText variant="bodySmall" color={dashboardColors.textMuted}>
+              <AnimatedNumberText value={todayCalories} variant="bodySmall" color={dashboardColors.textMuted} />
               {' kcal burned today'}
             </AppText>
           </View>

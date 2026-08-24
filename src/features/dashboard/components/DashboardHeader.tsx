@@ -11,6 +11,7 @@ import { useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { selectUserProfile } from '@/features/profile/selectors';
 import { selectUnreadNotificationCount } from '@/features/notifications/selectors';
+import { dashboardColors } from '../dashboardTheme';
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -28,24 +29,24 @@ export const DashboardHeader: React.FC = React.memo(() => {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing.md }}>
       <View>
-        <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
+        <AppText variant="bodyMedium" color={dashboardColors.textSecondary}>
           {greeting()}
         </AppText>
-        <AppText variant="headingLarge" color="#FFFFFF">
+        <AppText variant="headingLarge" weight="700" color={dashboardColors.textPrimary}>
           {profile.firstName}
         </AppText>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <PressScale onPress={() => navigation.navigate('Notifications')} accessibilityLabel="Notifications" style={{ marginRight: theme.spacing.sm }}>
           <View>
-            <AppIcon name="notifications-outline" size={22} color="#FFFFFF" />
+            <AppIcon name="notifications-outline" size={22} color={dashboardColors.textPrimary} />
             {unread > 0 ? (
               <View
                 style={{
                   position: 'absolute',
                   top: -2,
                   right: -4,
-                  backgroundColor: '#E06A5D',
+                  backgroundColor: dashboardColors.accent,
                   borderRadius: 8,
                   minWidth: 16,
                   height: 16,
@@ -54,7 +55,7 @@ export const DashboardHeader: React.FC = React.memo(() => {
                   paddingHorizontal: 2,
                 }}
               >
-                <AppText variant="caption" color="#FFFFFF">
+                <AppText variant="caption" color={dashboardColors.background} weight="700">
                   {unread}
                 </AppText>
               </View>
@@ -67,14 +68,14 @@ export const DashboardHeader: React.FC = React.memo(() => {
               width: 40,
               height: 40,
               borderRadius: 20,
-              backgroundColor: 'rgba(95,191,174,0.25)',
+              backgroundColor: dashboardColors.surfaceElevated,
               borderWidth: 1.5,
-              borderColor: 'rgba(95,191,174,0.5)',
+              borderColor: dashboardColors.accent,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <AppText variant="headingSmall" color="#5FBFAE">
+            <AppText variant="headingSmall" color={dashboardColors.accent}>
               {profile.firstName.charAt(0)}
             </AppText>
           </View>

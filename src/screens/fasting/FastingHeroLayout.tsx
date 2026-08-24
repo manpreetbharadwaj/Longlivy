@@ -53,8 +53,8 @@ export const FastingHeroLayout: React.FC<FastingHeroLayoutProps> = ({ children, 
     <View style={{ flex: 1, backgroundColor: fastingHeroGradient[0] }}>
       <StatusBar barStyle="light-content" />
       <LinearGradient colors={fastingHeroGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-      <GlowOrb size={360} color="#1FA391" opacity={0.24} style={{ top: -120, right: -100 }} />
-      <GlowOrb size={260} color="#6AA3DE" opacity={0.16} style={{ bottom: 60, left: -100 }} />
+      <GlowOrb size={360} color="#0E7A9E" opacity={0.24} style={{ top: -120, right: -100 }} />
+      <GlowOrb size={260} color="#5B9BD5" opacity={0.16} style={{ bottom: 60, left: -100 }} />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
         {scroll ? (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl + tabBarSpacing }, contentContainerStyle]}>

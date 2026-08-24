@@ -5,6 +5,7 @@ import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { motion } from '@/theme/motion';
+import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 
 /**
  * The manual-log secondary action — a deliberate icon-tile + title/subtitle
@@ -35,37 +36,34 @@ export const LogManuallyButton: React.FC<{ onPress: () => void }> = React.memo((
       accessibilityRole="button"
       accessibilityLabel="Log activity manually"
     >
-      <Animated.View
-        style={[
-          {
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: 'rgba(255,255,255,0.08)',
-            borderWidth: 1.5,
-            borderColor: 'rgba(255,255,255,0.14)',
-            borderRadius: theme.radius.lg,
-            padding: theme.spacing.md,
-          },
-          containerStyle,
-        ]}
-      >
+      <Animated.View style={[dashboardCardStyle, { flexDirection: 'row', alignItems: 'center', padding: theme.spacing.md }, containerStyle]}>
         <Animated.View
           style={[
-            { width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', marginRight: theme.spacing.sm },
+            {
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              backgroundColor: dashboardColors.surfaceSecondary,
+              borderWidth: 1,
+              borderColor: dashboardColors.border,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: theme.spacing.sm,
+            },
             iconStyle,
           ]}
         >
-          <AppIcon name="create-outline" size={19} color="#6AA3DE" />
+          <AppIcon name="create-outline" size={19} color={dashboardColors.accent} />
         </Animated.View>
         <View style={{ flex: 1 }}>
-          <AppText variant="headingSmall" color="#FFFFFF">
+          <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
             Log Activity Manually
           </AppText>
-          <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
+          <AppText variant="bodySmall" color={dashboardColors.textMuted}>
             Add a past workout by hand
           </AppText>
         </View>
-        <AppIcon name="chevron-forward" size={18} color="rgba(255,255,255,0.5)" />
+        <AppIcon name="chevron-forward" size={18} color={dashboardColors.textMuted} />
       </Animated.View>
     </Pressable>
   );

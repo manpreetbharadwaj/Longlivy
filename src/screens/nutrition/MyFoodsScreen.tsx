@@ -12,7 +12,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
 import { DEMO_USER_ID } from '@/mock/demoUser';
 
-const NUTRITION_GRADIENT = ['#E7A868', '#B4652A'] as const;
+const NUTRITION_GRADIENT = ['#E0AC55', '#8F6A2E'] as const;
 
 export const MyFoodsScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -76,7 +76,7 @@ export const MyFoodsScreen: React.FC = () => {
         onPress={save}
         disabled={!valid}
         loading={saving}
-        colors={saved ? (['#4FB77E', '#2F8F5C'] as const) : NUTRITION_GRADIENT}
+        colors={saved ? (['#3FCE87', '#1F8F5F'] as const) : NUTRITION_GRADIENT}
       />
     </TabHeroLayout>
   );

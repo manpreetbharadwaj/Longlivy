@@ -26,7 +26,7 @@ export const AuthHeroLayout: React.FC<AuthHeroLayoutProps> = ({ children, onBack
     <View style={{ flex: 1, backgroundColor: heroGradient[0] }}>
       <StatusBar barStyle="light-content" />
       <LinearGradient colors={heroGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-      <GlowOrb size={340} color="#1FA391" opacity={0.28} pulse style={{ top: -110, right: -90 }} />
+      <GlowOrb size={340} color="#0E7A9E" opacity={0.28} pulse style={{ top: -110, right: -90 }} />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl, flexGrow: 1 }}>
           {onBack ? (

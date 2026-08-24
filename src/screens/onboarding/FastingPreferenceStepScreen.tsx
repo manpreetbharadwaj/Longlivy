@@ -1,112 +1,110 @@
-import React, { useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Svg, { Circle } from 'react-native-svg';
-import Animated, { useSharedValue, useAnimatedProps, withTiming } from 'react-native-reanimated';
 import { OnboardingStackParamList } from '@/navigation/types';
-import { HeroOptionCard } from '@/components/common/HeroOptionCard';
-import { HeroLegendDot } from '@/components/common/HeroLegendDot';
-import { AppIcon } from '@/components/common/AppIcon';
+import { AppText } from '@/components/common/AppText';
+import { AppSegmentedControl } from '@/components/common/AppSegmentedControl';
+import { AppSwitch } from '@/components/common/AppSwitch';
+import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
-import { useOnboardingDraft, OnboardingDraft } from '@/features/onboarding/OnboardingContext';
+import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
 import { motion } from '@/theme/motion';
+import { FASTING_METHODS, FastingMethodId, LONGER_FASTING_THRESHOLD_HOURS } from '@/features/fasting/models';
+import { MethodCard } from '@/features/fasting/components/MethodCard';
+import { SafetyNotice } from '@/features/fasting/components/SafetyNotice';
+import { onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
 import { OnboardingStepLayout } from './OnboardingStepLayout';
 
-type Method = NonNullable<OnboardingDraft['fastingMethod']>;
-
-const OPTIONS: { key: Method; label: string; desc: string }[] = [
-  { key: '16:8', label: '16:8', desc: 'A daily 8-hour eating window — the most common starting point.' },
-  { key: '18:6', label: '18:6', desc: 'A tighter daily eating window.' },
-  { key: '24h', label: 'Occasional 24h fasts', desc: 'Longer, less frequent fasts.' },
-  { key: 'none_yet', label: "I'm not sure yet", desc: 'You can explore methods later in the Fasting tab.' },
+const CATEGORY_SEGMENTS = [
+  { key: 'intermittent', label: 'Intermittent' },
+  { key: 'longer', label: 'Longer' },
+  { key: 'individual', label: 'Individual' },
 ];
 
-const FASTING_COLOR = '#5FBFAE';
-const EATING_COLOR = '#E7A868';
-
-/** Illustrative eating-window fraction of a 24h day per method — a visual cue, not a scientific claim (the copy already frames this as adjustable). */
-const EATING_FRACTIONS: Record<Method, number> = {
-  '16:8': 8 / 24,
-  '18:6': 6 / 24,
-  '24h': 1 / 24,
-  none_yet: 8 / 24,
-};
-const DEFAULT_FRACTION = 8 / 24;
-
-const RING_SIZE = 128;
-const STROKE = 14;
-const RADIUS = (RING_SIZE - STROKE) / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
-/** A day/night ring showing the eating window against the fasting window — the split smoothly redraws as the user picks a method, instead of a plain list. */
-const FastingHeroVisual: React.FC<{ method: Method | null }> = ({ method }) => {
-  const eating = useSharedValue(DEFAULT_FRACTION);
-
-  useEffect(() => {
-    eating.value = withTiming(method ? EATING_FRACTIONS[method] : DEFAULT_FRACTION, { duration: motion.duration.slow, easing: motion.easing.standard });
-  }, [method, eating]);
-
-  const eatingProps = useAnimatedProps(() => ({ strokeDasharray: `${eating.value * CIRCUMFERENCE} ${CIRCUMFERENCE}`, strokeDashoffset: 0 }));
-  const fastingProps = useAnimatedProps(() => ({
-    strokeDasharray: `${(1 - eating.value) * CIRCUMFERENCE} ${CIRCUMFERENCE}`,
-    strokeDashoffset: -eating.value * CIRCUMFERENCE,
-  }));
-
-  return (
-    <View style={{ alignItems: 'center', marginBottom: 8 }}>
-      <View style={{ width: RING_SIZE, height: RING_SIZE, alignItems: 'center', justifyContent: 'center' }}>
-        <View style={{ position: 'absolute', top: -8 }}>
-          <AppIcon name="sunny-outline" size={18} color="rgba(255,255,255,0.55)" />
-        </View>
-        <View style={{ position: 'absolute', bottom: -8 }}>
-          <AppIcon name="moon-outline" size={16} color="rgba(255,255,255,0.55)" />
-        </View>
-        <Svg width={RING_SIZE} height={RING_SIZE} style={{ position: 'absolute', transform: [{ rotate: '-90deg' }] }}>
-          <Circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RADIUS} stroke="rgba(255,255,255,0.1)" strokeWidth={STROKE} fill="none" />
-          <AnimatedCircle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RADIUS} stroke={EATING_COLOR} strokeWidth={STROKE} strokeLinecap="round" fill="none" animatedProps={eatingProps} />
-          <AnimatedCircle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RADIUS} stroke={FASTING_COLOR} strokeWidth={STROKE} strokeLinecap="round" fill="none" animatedProps={fastingProps} />
-        </Svg>
-        <AppIcon name="timer-outline" size={26} color="#FFFFFF" />
-      </View>
-      <View style={{ flexDirection: 'row', marginTop: 10 }}>
-        <HeroLegendDot color={EATING_COLOR} label="Eating window" />
-        <HeroLegendDot color={FASTING_COLOR} label="Fasting window" />
-      </View>
-    </View>
-  );
-};
-
+/**
+ * The last of the personalization steps, feeding into "Build my plan".
+ * Captures a *preference* for later — not an active fast (that's
+ * `startFastThunk`, reached from the Fasting tab) and not a full recurring
+ * plan (specific start/end times, weekdays, timezone, notifications —
+ * `CreateFastingPlan`, also reached later, once the user is actually ready
+ * to schedule something rather than still creating their account).
+ *
+ * Reuses the same MethodCard/SafetyNotice/FASTING_METHODS catalog as
+ * SelectFastingMethodScreen so a 24h+ choice reads identically wherever it
+ * appears. The safety notice alone isn't a confirmation gate on that
+ * existing screen; here — per the requirement that a disclaimer must be
+ * shown "before it's confirmed" for a longer method — picking one directly
+ * from the disclaimer moment "beforehand" enables an explicit
+ * acknowledgment toggle that must be turned on before Continue does.
+ */
 export const FastingPreferenceStepScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const { theme } = useTheme();
   const { draft, update } = useOnboardingDraft();
+  const [category, setCategory] = useState<'intermittent' | 'longer' | 'individual'>('intermittent');
+  const [acknowledged, setAcknowledged] = useState(false);
+
+  const methods = useMemo(() => FASTING_METHODS.filter((m) => m.category === category), [category]);
+  const selected = FASTING_METHODS.find((m) => m.id === draft.fastingMethod);
+  const needsAcknowledgment = !!selected && selected.fastingHours >= LONGER_FASTING_THRESHOLD_HOURS;
+
+  const selectMethod = (id: FastingMethodId) => {
+    update({ fastingMethod: draft.fastingMethod === id ? null : id });
+    setAcknowledged(false);
+  };
 
   return (
     <OnboardingStepLayout
-      variant="hero"
-      step={7}
-      totalSteps={11}
-      title="Fasting preference"
-      subtitle="Sets your default fasting method — always changeable."
-      onNext={() => navigation.navigate('MeditationPreferenceStep')}
+      step={9}
+      totalSteps={9}
+      title="How do you want to fast?"
+      subtitle="A starting preference — change it anytime from the Fasting tab."
+      onNext={() => navigation.navigate('CompleteSetup')}
       onBack={() => navigation.goBack()}
-      nextDisabled={!draft.fastingMethod}
+      nextDisabled={!draft.fastingMethod || (needsAcknowledgment && !acknowledged)}
+      nextLabel="Build my plan"
+      dimBackground
     >
-      <FastingHeroVisual method={draft.fastingMethod} />
-      {OPTIONS.map((o) => (
-        <HeroOptionCard
-          key={o.key}
-          title={o.label}
-          description={o.desc}
-          selected={draft.fastingMethod === o.key}
-          accentColor={FASTING_COLOR}
-          onPress={() => update({ fastingMethod: o.key })}
-          style={{ marginBottom: theme.spacing.sm }}
-        />
+      <View style={{ marginBottom: theme.spacing.md }}>
+        <AppSegmentedControl segments={CATEGORY_SEGMENTS} selectedKey={category} onChange={(k) => setCategory(k as typeof category)} variant="hero" />
+      </View>
+
+      {category === 'longer' ? (
+        <FadeSlideIn delay={0}>
+          <View style={{ marginBottom: theme.spacing.sm }}>
+            <SafetyNotice />
+          </View>
+        </FadeSlideIn>
+      ) : null}
+
+      {methods.map((method, index) => (
+        <FadeSlideIn key={method.id} delay={motion.staggerStepMs * (index + 1)} fromY={10}>
+          <MethodCard method={method} selected={draft.fastingMethod === method.id} onPress={() => selectMethod(method.id)} />
+        </FadeSlideIn>
       ))}
+
+      {needsAcknowledgment ? (
+        <FadeSlideIn delay={0} fromY={12}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: onboardingGlass.fill,
+              borderWidth: 1.5,
+              borderColor: onboardingGlass.border,
+              borderRadius: theme.radius.lg,
+              padding: theme.spacing.sm,
+              marginTop: theme.spacing.xs,
+            }}
+          >
+            <AppSwitch value={acknowledged} onValueChange={setAcknowledged} variant="hero" accessibilityLabel="I understand the safety notice" />
+            <AppText variant="bodySmall" color={onboardingGlass.textSecondary} style={{ flex: 1, marginLeft: theme.spacing.sm }}>
+              I understand and want to proceed with {selected?.name}.
+            </AppText>
+          </View>
+        </FadeSlideIn>
+      ) : null}
     </OnboardingStepLayout>
   );
 };

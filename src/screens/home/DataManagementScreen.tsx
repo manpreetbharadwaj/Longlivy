@@ -144,7 +144,7 @@ export const DataManagementScreen: React.FC = () => {
       <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.sm }}>
         Permanently erase all locally stored data and sign out of this device.
       </AppText>
-      <AppGradientButton label="Delete all my data" onPress={handleDelete} loading={deleting} colors={['#E7896A', '#C4463A']} />
+      <AppGradientButton label="Delete all my data" onPress={handleDelete} loading={deleting} colors={['#DD7A68', '#C4463A']} />
     </TabHeroLayout>
   );
 };

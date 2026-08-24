@@ -13,6 +13,8 @@ export interface TypographyTokens {
   caption: TextStyle;
   metricLarge: TextStyle;
   metricMedium: TextStyle;
+  /** The giant numeric readout on the onboarding ruler pickers (age/height/weight) and the calibration screen's calorie count-up — one size up from `metricLarge`, reserved for a single hero number per screen. */
+  metricHero: TextStyle;
 }
 
 export const typography: TypographyTokens = {
@@ -28,4 +30,5 @@ export const typography: TypographyTokens = {
   caption: { fontSize: 11, fontWeight: '500', lineHeight: 14 },
   metricLarge: { fontSize: 40, fontWeight: '800', lineHeight: 44 },
   metricMedium: { fontSize: 24, fontWeight: '700', lineHeight: 28 },
+  metricHero: { fontSize: 68, fontWeight: '800', lineHeight: 72, letterSpacing: -1 },
 };

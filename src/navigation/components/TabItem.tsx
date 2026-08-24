@@ -2,24 +2,27 @@ import React, { useEffect } from 'react';
 import { Pressable } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { AppIcon, AppIconName } from '@/components/common/AppIcon';
+import { AppText } from '@/components/common/AppText';
 import { motion } from '@/theme/motion';
+import { dashboardColors } from '@/features/dashboard/dashboardTheme';
 
 interface TabItemProps {
   icon: AppIconName;
   activeIcon: AppIconName;
+  label: string;
   focused: boolean;
   onPress: () => void;
   accessibilityLabel: string;
 }
 
 /**
- * A single icon-only tab — labels are dropped in favor of a clear selected
- * state (a soft rounded "bubble" behind the icon, the icon rising slightly
- * and tinting teal) since six tabs plus a center action leaves too little
- * width per item for comfortable label text without cramming. Every press
- * gets a small scale-down regardless of whether it changes the selection.
+ * A single tab — icon plus a small label underneath, with a soft rounded
+ * "bubble" behind the icon on the selected tab (the icon rising slightly
+ * and tinting cyan) so the selected state stays unmistakable even with a
+ * label now doing double duty on identification. Every press gets a small
+ * scale-down regardless of whether it changes the selection.
  */
-export const TabItem: React.FC<TabItemProps> = React.memo(({ icon, activeIcon, focused, onPress, accessibilityLabel }) => {
+export const TabItem: React.FC<TabItemProps> = React.memo(({ icon, activeIcon, label, focused, onPress, accessibilityLabel }) => {
   const pressScale = useSharedValue(1);
   const focusProgress = useSharedValue(focused ? 1 : 0);
 
@@ -32,8 +35,10 @@ export const TabItem: React.FC<TabItemProps> = React.memo(({ icon, activeIcon, f
     transform: [{ scale: 0.6 + focusProgress.value * 0.4 }],
   }));
   const iconWrapStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: -focusProgress.value * 3 }, { scale: pressScale.value }],
+    transform: [{ translateY: -focusProgress.value * 2 }, { scale: pressScale.value }],
   }));
+
+  const color = focused ? dashboardColors.accent : dashboardColors.iconInactive;
 
   return (
     <Pressable
@@ -51,12 +56,23 @@ export const TabItem: React.FC<TabItemProps> = React.memo(({ icon, activeIcon, f
     >
       <Animated.View
         style={[
-          { position: 'absolute', width: 40, height: 40, borderRadius: 14, backgroundColor: 'rgba(95,191,174,0.22)' },
+          { position: 'absolute', top: 4, width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(25,184,242,0.14)' },
           bubbleStyle,
         ]}
       />
-      <Animated.View style={iconWrapStyle}>
-        <AppIcon name={focused ? activeIcon : icon} size={22} color={focused ? '#5FBFAE' : 'rgba(255,255,255,0.5)'} />
+      <Animated.View style={[{ alignItems: 'center', maxWidth: '100%' }, iconWrapStyle]}>
+        <AppIcon name={focused ? activeIcon : icon} size={20} color={color} />
+        <AppText
+          variant="caption"
+          color={color}
+          weight={focused ? '700' : '500'}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          style={{ marginTop: 3, fontSize: 10, lineHeight: 12 }}
+        >
+          {label}
+        </AppText>
       </Animated.View>
     </Pressable>
   );

@@ -36,7 +36,14 @@ export const loginThunk = createAsyncThunk(
   'auth/login',
   async (input: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      return await authRepository.login(input.email, input.password);
+      const session = await authRepository.login(input.email, input.password);
+      // A successful login means this is a returning, already-known user —
+      // onboarding (the personalization/marketing flow for new users) has
+      // no reason to show again on a future launch just because a session
+      // was cleared. Persisted here (not only in Redux state) so it holds
+      // across app restarts, the same way `completeOnboardingThunk` does.
+      await authRepository.setOnboardingComplete(true);
+      return session;
     } catch (e) {
       return rejectWithValue(e instanceof Error ? e.message : 'Login failed');
     }
@@ -47,7 +54,9 @@ export const registerThunk = createAsyncThunk(
   'auth/register',
   async (input: RegisterInput, { rejectWithValue }) => {
     try {
-      return await authRepository.register(input);
+      const session = await authRepository.register(input);
+      await authRepository.setOnboardingComplete(true);
+      return session;
     } catch (e) {
       return rejectWithValue(e instanceof Error ? e.message : 'Registration failed');
     }
@@ -87,6 +96,7 @@ const authSlice = createSlice({
       .addCase(loginThunk.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.session = action.payload;
+        state.onboardingComplete = true;
       })
       .addCase(loginThunk.rejected, (state, action) => {
         state.status = 'failed';
@@ -99,6 +109,7 @@ const authSlice = createSlice({
       .addCase(registerThunk.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.session = action.payload;
+        state.onboardingComplete = true;
       })
       .addCase(registerThunk.rejected, (state, action) => {
         state.status = 'failed';

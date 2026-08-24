@@ -6,30 +6,32 @@
  * hero, fasting/meditation atmosphere, premium CTAs) use these for the
  * premium, modern-tech-meets-lifestyle feel described in the design brief.
  *
- * Kept deliberately dark and brand-anchored (deep forest teal, the existing
- * `primary`) rather than borrowing another app's palette wholesale — the
- * futuristic/biohacking read comes from depth + glow + motion, not from
- * switching brand colors.
+ * Charcoal/graphite direction, refined: hero backgrounds carry a subtle
+ * blue-black undertone now instead of being perfectly neutral, and the
+ * single bold accent is a deep cobalt-teal (matches `colors.ts`'s `primary`)
+ * rather than the earlier bright mint — depth and mood still come primarily
+ * from per-pillar undertones and restrained glow, not from switching brand
+ * hues.
  */
 
 /** Deep, atmospheric hero background — used regardless of light/dark theme preference on "moment" screens (Welcome, feature intros). */
-export const heroGradient = ['#03100D', '#0A2B26', '#0F4A42'] as const;
+export const heroGradient = ['#08090C', '#101319', '#181C24'] as const;
 
 /** Slightly lighter variant for hero cards/panels sitting on top of `heroGradient`. */
-export const heroPanelGradient = ['#0F3D37', '#123F38'] as const;
+export const heroPanelGradient = ['#181B24', '#1E212C'] as const;
 
-/** Warm glow accent — echoes the existing `secondary` amber, used sparingly for CTA glow / highlight moments. */
-export const accentGlow = ['#F2B679', '#D98E4A'] as const;
+/** Bold cobalt-teal glow accent — the app's one saturated accent, used sparingly for CTA glow / highlight moments. */
+export const accentGlow = ['#5FE0FF', '#1BA7D1'] as const;
 
-/** Primary CTA gradient — brand teal deepening, used on the hero gradient buttons. */
-export const ctaGradient = ['#1FA391', '#0B4F4A'] as const;
+/** Primary CTA gradient — the bold accent deepening, used on the hero gradient buttons. */
+export const ctaGradient = ['#1BA7D1', '#0E7A9E'] as const;
 
 /** Per-pillar gradients for the "What is Longlivy" pillar intro — pairs with `colors.ts`'s flat fasting/nutrition/activity/meditation tokens. */
 export const pillarGradients = {
-  fasting: ['#0F4A42', '#1FA391'],
-  nutrition: ['#B4652A', '#E7A868'],
-  activity: ['#1F4E7A', '#5C9BD9'],
-  meditation: ['#4A3A7A', '#9B7FD9'],
+  fasting: ['#0E7A9E', '#1BA7D1'],
+  nutrition: ['#8F6A2E', '#E0AC55'],
+  activity: ['#2C5C87', '#5B9BD5'],
+  meditation: ['#453569', '#A78BC9'],
 } as const;
 
 export type PillarKey = keyof typeof pillarGradients;
@@ -37,36 +39,32 @@ export type PillarKey = keyof typeof pillarGradients;
 /**
  * A distinct dark atmosphere for the fasting "moment" screens (active fast,
  * start-fasting confirmation) — deliberately not identical to `heroGradient`.
- * The design brief asked for fasting to feel "dynamic, motivating,
- * scientific" as its own mood, separate from onboarding's "premium arrival"
- * feel: cooler, more cyan-forward, closer to a data/lab aesthetic.
+ * Same blue-black base as the other hero moods, with just enough
+ * cobalt-teal undertone to read as "fasting" next to activity's blue and
+ * meditation's violet.
  */
-export const fastingHeroGradient = ['#020D14', '#062430', '#0B3A44'] as const;
+export const fastingHeroGradient = ['#070A0C', '#0C161A', '#112129'] as const;
 
 /**
  * A distinct dark atmosphere for the activity "live tracking" screens
- * (active workout, post-workout summary) — its own mood again, separate
- * from both `heroGradient` and `fastingHeroGradient`: deep navy deepening
- * into the existing `pillarGradients.activity` blue, for the kinetic,
- * in-motion feel a workout session should have next to fasting's calmer
- * "lab" read.
+ * (active workout, post-workout summary) — same charcoal base, subtle
+ * blue undertone for the kinetic, in-motion feel a workout session should
+ * have next to fasting's calmer "lab" read.
  */
-export const activityHeroGradient = ['#04070F', '#0B2140', '#123A5C'] as const;
+export const activityHeroGradient = ['#08090B', '#0F1620', '#161F2C'] as const;
 
 /**
  * A distinct dark atmosphere for meditation's "live session" screens
- * (player, breathing exercise) — deep violet deepening toward the existing
- * `pillarGradients.meditation` purple. Where fasting reads as a cooler
- * "lab" mood and activity as kinetic navy-blue, meditation is meant to
- * read as calm and slow — paired with GlowOrb's `pulse` option (a slow
- * breathing opacity cycle) rather than the sharper glows used elsewhere.
+ * (player, breathing exercise) — same charcoal base, subtle violet
+ * undertone, paired with GlowOrb's `pulse` option (a slow breathing
+ * opacity cycle) rather than the sharper glows used elsewhere.
  */
-export const meditationHeroGradient = ['#0B0716', '#211348', '#3B2168'] as const;
+export const meditationHeroGradient = ['#09080B', '#151220', '#1E1830'] as const;
 
 /** Energy-source colors for the fasting energy-mix visualization — shared between the visualization and its legend. */
 export const energySourceColors = {
-  lastMeal: '#E7A868',
-  glycogen: '#6AA3DE',
-  fat: '#1FA391',
-  ketones: '#B98CE0',
+  lastMeal: '#E0AC55',
+  glycogen: '#5B9BD5',
+  fat: '#1BA7D1',
+  ketones: '#A78BC9',
 } as const;

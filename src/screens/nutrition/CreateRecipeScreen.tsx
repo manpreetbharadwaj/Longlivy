@@ -16,7 +16,7 @@ import { generateId } from '@/utils/id';
 import { DEMO_USER_ID } from '@/mock/demoUser';
 import { scaleNutrition } from '@/features/nutrition/services/NutritionCalculationService';
 
-const NUTRITION_GRADIENT = ['#E7A868', '#B4652A'] as const;
+const NUTRITION_GRADIENT = ['#E0AC55', '#8F6A2E'] as const;
 
 export const CreateRecipeScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -82,7 +82,7 @@ export const CreateRecipeScreen: React.FC = () => {
               scaleOnPress
               style={{
                 marginBottom: theme.spacing.xs,
-                borderColor: selected ? '#5FBFAE' : 'rgba(255,255,255,0.14)',
+                borderColor: selected ? '#1BA7D1' : 'rgba(255,255,255,0.14)',
                 borderWidth: selected ? 2 : 1.5,
               }}
             >

@@ -12,6 +12,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginThunk } from '@/features/auth/authSlice';
 import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
+import { DEMO_LOGIN_EMAIL, DEMO_LOGIN_PASSWORD } from '@/mock/demoUser';
 import { AuthHeroLayout } from './AuthHeroLayout';
 
 // Deliberately permissive (not RFC 5322) — this only needs to catch "clearly
@@ -26,10 +27,15 @@ export const LoginScreen: React.FC = () => {
   const status = useAppSelector(selectAuthStatus);
   const error = useAppSelector(selectAuthError);
 
-  // Starts genuinely empty — the user always types their own credentials,
-  // never a pre-filled demo account.
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // Pre-filled with a genuinely fictitious demo credential (DEMO_LOGIN_EMAIL,
+  // not any real person's address — see demoUser.ts) so this prototype can
+  // be entered in one tap. Deliberately not DEMO_USER.email, which is the
+  // actual signed-in developer's real address and must never appear as a
+  // form default (see the [[demo-user-had-real-email]] fix this reverses
+  // the *shape* of, not the substance — that one removed a real personal
+  // email from a pre-filled field; this restores pre-filling with fake data).
+  const [email, setEmail] = useState(DEMO_LOGIN_EMAIL);
+  const [password, setPassword] = useState(DEMO_LOGIN_PASSWORD);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
@@ -64,7 +70,7 @@ export const LoginScreen: React.FC = () => {
     <AuthHeroLayout>
       <View style={{ alignItems: 'center', marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl }}>
         <View style={{ width: 56, height: 56, borderRadius: 18, overflow: 'hidden', marginBottom: theme.spacing.md }}>
-          <LinearGradient colors={['#1FA391', '#0B4F4A']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <LinearGradient colors={['#0E7A9E', '#0E7A9E']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <AppText variant="headingLarge" color="#FFFFFF" weight="800">
               L
             </AppText>
@@ -90,7 +96,7 @@ export const LoginScreen: React.FC = () => {
           style={{ marginBottom: emailError ? theme.spacing.xxs : theme.spacing.sm }}
         />
         {emailError ? (
-          <AppText variant="bodySmall" color="#E06A5D" style={{ marginBottom: theme.spacing.sm }}>
+          <AppText variant="bodySmall" color="#E5695C" style={{ marginBottom: theme.spacing.sm }}>
             {emailError}
           </AppText>
         ) : null}
@@ -104,13 +110,13 @@ export const LoginScreen: React.FC = () => {
           style={{ marginBottom: passwordError ? theme.spacing.xxs : theme.spacing.xxs }}
         />
         {passwordError ? (
-          <AppText variant="bodySmall" color="#E06A5D" style={{ marginTop: theme.spacing.xxs }}>
+          <AppText variant="bodySmall" color="#E5695C" style={{ marginTop: theme.spacing.xxs }}>
             {passwordError}
           </AppText>
         ) : null}
 
         {error ? (
-          <AppText variant="bodySmall" color="#E06A5D" style={{ marginTop: theme.spacing.xs }}>
+          <AppText variant="bodySmall" color="#E5695C" style={{ marginTop: theme.spacing.xs }}>
             {error}
           </AppText>
         ) : null}
@@ -128,7 +134,7 @@ export const LoginScreen: React.FC = () => {
             New to Longlivy?{' '}
           </AppText>
           <Pressable onPress={() => navigation.navigate('Register')} hitSlop={8}>
-            <AppText variant="bodyMedium" color="#5FBFAE">
+            <AppText variant="bodyMedium" color="#1BA7D1">
               Create an account
             </AppText>
           </Pressable>

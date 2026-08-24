@@ -15,7 +15,7 @@ import { nutritionRepository } from '@/features/nutrition/repository/MockNutriti
 import { DEMO_BARCODES } from '@/mock/foodDatabaseSeed';
 import { heroGradient } from '@/theme/gradients';
 
-const NUTRITION_GRADIENT = ['#E7A868', '#B4652A'] as const;
+const NUTRITION_GRADIENT = ['#E0AC55', '#8F6A2E'] as const;
 
 /**
  * Scan barcode → recognize product → view product data → select quantity →
@@ -113,7 +113,7 @@ export const BarcodeScannerScreen: React.FC = () => {
                 This product isn't in the food database yet. Add it manually and it'll be found next time.
               </AppText>
               <Pressable onPress={() => navigation.navigate('MyFoods', { barcode: manualCode || undefined })} accessibilityRole="button">
-                <AppText variant="bodyMedium" color="#5FBFAE">
+                <AppText variant="bodyMedium" color="#1BA7D1">
                   Add this product manually
                 </AppText>
               </Pressable>

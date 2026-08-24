@@ -21,7 +21,7 @@
       "package": "com.longlivy.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon-foreground.png",
-        "backgroundColor": "#0B4F4A"
+        "backgroundColor": "#070A0F"
       },
       "permissions": [
         "CAMERA",
@@ -57,11 +57,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0B4F4A",
+          "backgroundColor": "#070A0F",
           "image": "./assets/splash-icon.png",
           "resizeMode": "contain"
         }
-      ]
+      ],
+      "expo-asset"
     ]
   }
 }

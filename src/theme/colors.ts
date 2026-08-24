@@ -1,6 +1,15 @@
 /**
  * Longlivy color tokens.
  * Every UI component must consume these via useTheme() instead of hardcoding hex values.
+ *
+ * v4 palette — premium dark refinement. Same charcoal-graphite structure as
+ * v3 (a real elevation hierarchy, not one flat gray), but the base tones now
+ * carry a subtle blue-black undertone instead of being perfectly neutral,
+ * and the single bold accent moved from a bright mint-emerald to a deeper,
+ * richer cobalt-teal — reads as premium health-tech rather than a flat
+ * "dark mode + bright green button" combination. Feature tones
+ * (nutrition/activity/meditation/weight) are untouched — they're deliberate,
+ * muted category markers, not part of the accent system.
  */
 
 export interface ColorTokens {
@@ -39,71 +48,71 @@ export interface ColorTokens {
 }
 
 export const lightColors: ColorTokens = {
-  background: '#F6F7F5',
+  background: '#F4F5F7',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
   card: '#FFFFFF',
-  border: '#E3E7E4',
-  divider: '#ECEFED',
+  border: '#DFE2E8',
+  divider: '#E7E9EE',
 
-  textPrimary: '#131C1A',
-  textSecondary: '#5B6A66',
-  textTertiary: '#8B9895',
+  textPrimary: '#15171C',
+  textSecondary: '#565C68',
+  textTertiary: '#868C99',
   textInverse: '#FFFFFF',
 
-  primary: '#0B4F4A',
-  primaryMuted: '#E4EFEC',
+  primary: '#0E7A9E',
+  primaryMuted: '#DEF1F6',
   onPrimary: '#FFFFFF',
 
-  secondary: '#D98E4A',
-  onSecondary: '#241505',
+  secondary: '#B0791E',
+  onSecondary: '#FFFFFF',
 
-  success: '#2E8B57',
-  warning: '#C77E2A',
+  success: '#1F8F5F',
+  warning: '#B4791E',
   danger: '#C4463A',
   info: '#3D77B3',
 
-  fasting: '#0B4F4A',
-  nutrition: '#D98E4A',
+  fasting: '#0E7A9E',
+  nutrition: '#B0791E',
   activity: '#3D77B3',
-  meditation: '#7A5FB0',
-  weight: '#2E8B57',
+  meditation: '#7C5FB0',
+  weight: '#1F8F5F',
 
-  overlay: 'rgba(11, 22, 20, 0.45)',
-  skeleton: '#E7EAE8',
+  overlay: 'rgba(15, 17, 22, 0.45)',
+  skeleton: '#E9EBEF',
 };
 
 export const darkColors: ColorTokens = {
-  background: '#0D1412',
-  surface: '#151F1D',
-  surfaceElevated: '#1B2725',
-  card: '#182422',
-  border: '#26332F',
-  divider: '#212D2A',
+  background: '#0A0B0F',
+  surface: '#12141B',
+  surfaceElevated: '#1B1E28',
+  card: '#161922',
+  border: '#262A35',
+  divider: '#1E212B',
 
-  textPrimary: '#F2F5F3',
-  textSecondary: '#A8B5B1',
-  textTertiary: '#76847F',
-  textInverse: '#0D1412',
+  textPrimary: '#F3F4F7',
+  textSecondary: '#9CA3B2',
+  textTertiary: '#6B7280',
+  textInverse: '#0A0B0F',
 
-  primary: '#5FBFAE',
-  primaryMuted: '#1C2E2A',
-  onPrimary: '#052421',
+  primary: '#1BA7D1',
+  primaryMuted: '#0F2B34',
+  onPrimary: '#04222B',
 
-  secondary: '#E7A868',
+  secondary: '#E0AC55',
   onSecondary: '#241505',
 
-  success: '#4FB77E',
-  warning: '#E0A24E',
-  danger: '#E06A5D',
-  info: '#6AA3DE',
+  success: '#3FCE87',
+  warning: '#E0A94E',
+  danger: '#E5695C',
+  info: '#5B9BD5',
 
-  fasting: '#5FBFAE',
-  nutrition: '#E7A868',
-  activity: '#6AA3DE',
-  meditation: '#A98CE0',
-  weight: '#4FB77E',
+  fasting: '#1BA7D1',
+  nutrition: '#E0AC55',
+  activity: '#5B9BD5',
+  meditation: '#A78BC9',
+  weight: '#3FCE87',
 
   overlay: 'rgba(0, 0, 0, 0.6)',
-  skeleton: '#22302C',
+  skeleton: '#22252F',
 };

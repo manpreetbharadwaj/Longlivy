@@ -11,6 +11,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { selectCurrentWeight, selectWeightTrend } from '@/features/weight/selectors';
+import { homeIconTileStyle } from '../homeIconTileStyle';
+import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
 
 export const WeightCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -39,26 +41,26 @@ export const WeightCard: React.FC = React.memo(() => {
   const settleStyle = useAnimatedStyle(() => ({ transform: [{ translateY: settle.value * 2.5 }] }));
 
   return (
-    <HeroCard style={{ marginBottom: theme.spacing.sm }}>
+    <HeroCard style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Animated.View style={settleStyle}>
-            <AppIconTile name="scale-outline" color="#4FB77E" size={40} iconSize={20} style={{ marginRight: theme.spacing.sm }} />
+            <AppIconTile name="scale-outline" color="#3FCE87" size={40} iconSize={20} style={[homeIconTileStyle, { marginRight: theme.spacing.sm }]} />
           </Animated.View>
           <View>
-            <AppText variant="headingSmall" color="#FFFFFF">
+            <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
               Weight
             </AppText>
-            <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
+            <AppText variant="bodySmall" color={dashboardColors.textMuted}>
               {current ? `Logged ${new Date(current.timestamp).toLocaleDateString()}` : 'No entries yet'}
             </AppText>
           </View>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
           {current ? (
-            <AnimatedNumberText value={current.weightKg} formatter={(n) => `${n.toFixed(1)} kg`} variant="headingSmall" color="#FFFFFF" />
+            <AnimatedNumberText value={current.weightKg} formatter={(n) => `${n.toFixed(1)} kg`} variant="headingSmall" color={dashboardColors.textPrimary} />
           ) : (
-            <AppText variant="headingSmall" color="#FFFFFF">
+            <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
               —
             </AppText>
           )}
@@ -67,7 +69,7 @@ export const WeightCard: React.FC = React.memo(() => {
           ) : null}
           {trend !== 0 ? (
             <FadeSlideIn delay={200} fromY={4}>
-              <AppText variant="caption" color={trend < 0 ? '#4FB77E' : '#E0A24E'}>
+              <AppText variant="caption" color={trend < 0 ? '#3FCE87' : '#E0A94E'}>
                 {trend > 0 ? '+' : ''}
                 {trend} kg
               </AppText>

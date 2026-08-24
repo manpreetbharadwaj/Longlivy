@@ -18,6 +18,7 @@ import { ActivitySummaryCard } from '@/features/activity/components/ActivitySumm
 import { LogManuallyButton } from '@/features/activity/components/LogManuallyButton';
 import { ActivityListItem } from '@/features/activity/components/ActivityListItem';
 import { ActivityEmptyState } from '@/features/activity/components/ActivityEmptyState';
+import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 
 export const ActivityHomeScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -38,14 +39,14 @@ export const ActivityHomeScreen: React.FC = () => {
       {/* 1. Start Activity — the screen's primary action */}
       <FadeSlideIn delay={0 * motion.staggerStepMs}>
         {active ? (
-          <HeroCard onPress={() => navigation.navigate('ActiveActivity')} style={{ marginBottom: theme.spacing.md }} scaleOnPress>
+          <HeroCard onPress={() => navigation.navigate('ActiveActivity')} style={[dashboardCardStyle, { marginBottom: theme.spacing.md }]} scaleOnPress>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#4FB77E', marginRight: theme.spacing.xs }} />
+              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: dashboardColors.success, marginRight: theme.spacing.xs }} />
               <View style={{ flex: 1 }}>
-                <AppText variant="headingSmall" color="#FFFFFF">
+                <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
                   {ACTIVITY_TYPE_LABELS[active.type]} in progress
                 </AppText>
-                <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
+                <AppText variant="bodyMedium" color={dashboardColors.textSecondary}>
                   Tap to resume tracking
                 </AppText>
               </View>
@@ -72,7 +73,7 @@ export const ActivityHomeScreen: React.FC = () => {
 
       {/* 4. Recent activity */}
       <FadeSlideIn delay={3 * motion.staggerStepMs}>
-        <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.sm }}>
+        <AppText variant="headingSmall" color={dashboardColors.textPrimary} style={{ marginBottom: theme.spacing.sm }}>
           Recent activities
         </AppText>
       </FadeSlideIn>
@@ -90,8 +91,8 @@ export const ActivityHomeScreen: React.FC = () => {
       )}
 
       <FadeSlideIn delay={4 * motion.staggerStepMs + recent.length * motion.staggerStepMs}>
-        <HeroCard onPress={() => navigation.navigate('ActivityHistory')} style={{ paddingVertical: theme.spacing.sm }} scaleOnPress>
-          <AppText variant="headingSmall" color="rgba(255,255,255,0.7)" align="center">
+        <HeroCard onPress={() => navigation.navigate('ActivityHistory')} style={[dashboardCardStyle, { paddingVertical: theme.spacing.sm }]} scaleOnPress>
+          <AppText variant="headingSmall" color={dashboardColors.textSecondary} align="center">
             View full history
           </AppText>
         </HeroCard>

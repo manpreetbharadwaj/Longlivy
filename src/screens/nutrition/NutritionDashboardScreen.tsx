@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
-import { View } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NutritionStackParamList } from '@/navigation/types';
@@ -19,6 +19,7 @@ import { motion } from '@/theme/motion';
 import { loadTodayMeals } from '@/features/nutrition/nutritionSlice';
 import { selectDailyNutritionTotals, selectNutritionProgress, selectTodayMeals } from '@/features/nutrition/selectors';
 import { MealType } from '@/features/nutrition/models';
+import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 
 const MEAL_TYPES: { key: MealType; label: string; icon: AppIconName }[] = [
   { key: 'breakfast', label: 'Breakfast', icon: 'cafe-outline' },
@@ -27,11 +28,11 @@ const MEAL_TYPES: { key: MealType; label: string; icon: AppIconName }[] = [
   { key: 'snack', label: 'Snack', icon: 'nutrition-outline' },
 ];
 
-const QUICK_LINKS: { label: string; nav: keyof NutritionStackParamList }[] = [
-  { label: 'Scan barcode', nav: 'BarcodeScanner' },
-  { label: 'AI photo', nav: 'AiPhotoEntry' },
-  { label: 'AI voice', nav: 'AiVoiceEntry' },
-  { label: 'AI text', nav: 'AiTextEntry' },
+const QUICK_LINKS: { label: string; icon: AppIconName; nav: keyof NutritionStackParamList }[] = [
+  { label: 'Scan barcode', icon: 'barcode-outline', nav: 'BarcodeScanner' },
+  { label: 'AI photo', icon: 'camera-outline', nav: 'AiPhotoEntry' },
+  { label: 'AI voice', icon: 'mic-outline', nav: 'AiVoiceEntry' },
+  { label: 'AI text', icon: 'chatbubble-ellipses-outline', nav: 'AiTextEntry' },
 ];
 
 export const NutritionDashboardScreen: React.FC = () => {
@@ -51,55 +52,57 @@ export const NutritionDashboardScreen: React.FC = () => {
 
   return (
     <TabHeroLayout title="Nutrition">
-      <HeroCard style={{ alignItems: 'center', marginBottom: theme.spacing.md, overflow: 'hidden' }}>
-        <AppProgressRing progress={ringProgress} size={160} strokeWidth={14} color={progress.calories.exceeded ? '#E0A24E' : '#E7A868'} trackColor="rgba(255,255,255,0.12)" glow>
-          <AnimatedNumberText value={Math.round(totals.calories)} variant="metricMedium" color="#FFFFFF" />
-          <AppText variant="caption" color="rgba(255,255,255,0.6)">
+      <HeroCard style={[dashboardCardStyle, { alignItems: 'center', marginBottom: theme.spacing.md, overflow: 'hidden' }]}>
+        <AppProgressRing progress={ringProgress} size={160} strokeWidth={12} color={progress.calories.exceeded ? dashboardColors.warning : '#E0AC55'} trackColor={dashboardColors.border} glow>
+          <AnimatedNumberText value={Math.round(totals.calories)} variant="metricMedium" color={dashboardColors.textPrimary} />
+          <AppText variant="caption" color={dashboardColors.textMuted}>
             of {progress.calories.target} kcal
           </AppText>
         </AppProgressRing>
-        <AppText variant="bodyMedium" style={{ marginTop: theme.spacing.sm }} color={progress.calories.exceeded ? '#E0A24E' : 'rgba(255,255,255,0.6)'}>
+        <AppText variant="bodyMedium" style={{ marginTop: theme.spacing.sm }} color={progress.calories.exceeded ? dashboardColors.warning : dashboardColors.textSecondary}>
           {progress.calories.exceeded ? `Goal exceeded by ${Math.round(progress.calories.exceededBy)} kcal` : `${Math.round(progress.calories.remaining)} kcal remaining`}
         </AppText>
         <CardShimmer delay={400} />
       </HeroCard>
 
       <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
-        <MacroTile index={0} label="Protein" icon="egg-outline" progress={progress.protein} color="#E7A868" />
-        <MacroTile index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} color="#6AA3DE" />
-        <MacroTile index={2} label="Fat" icon="water-outline" progress={progress.fat} color="#B98CE0" />
+        <MacroTile index={0} label="Protein" icon="egg-outline" progress={progress.protein} color="#E0AC55" />
+        <MacroTile index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} color="#5B9BD5" />
+        <MacroTile index={2} label="Fat" icon="water-outline" progress={progress.fat} color="#A78BC9" isLast />
       </View>
 
       {MEAL_TYPES.map((mt, index) => {
         const meal = mealFor(mt.key);
         return (
           <FadeSlideIn key={mt.key} delay={index * motion.staggerStepMs} fromY={8}>
-            <HeroCard onPress={() => navigation.navigate('FoodSearch', { mealType: mt.key })} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
+            <HeroCard onPress={() => navigation.navigate('FoodSearch', { mealType: mt.key })} style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]} scaleOnPress>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <View
                     style={{
                       width: 40,
                       height: 40,
-                      borderRadius: theme.radius.md,
-                      backgroundColor: 'rgba(231,168,104,0.18)',
+                      borderRadius: 14,
+                      backgroundColor: dashboardColors.surfaceSecondary,
+                      borderWidth: 1,
+                      borderColor: dashboardColors.border,
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginRight: theme.spacing.sm,
                     }}
                   >
-                    <AppIcon name={mt.icon} size={20} color="#E7A868" />
+                    <AppIcon name={mt.icon} size={20} color="#E0AC55" />
                   </View>
                   <View>
-                    <AppText variant="headingSmall" color="#FFFFFF">
+                    <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
                       {mt.label}
                     </AppText>
-                    <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
+                    <AppText variant="bodySmall" color={dashboardColors.textMuted}>
                       {meal ? `${Math.round(meal.totalCalories)} kcal · ${meal.items.length} items` : 'No items logged'}
                     </AppText>
                   </View>
                 </View>
-                <AppIcon name="add-circle-outline" size={26} color="#5FBFAE" />
+                <AppIcon name="add-circle-outline" size={26} color={dashboardColors.accent} />
               </View>
             </HeroCard>
           </FadeSlideIn>
@@ -108,71 +111,59 @@ export const NutritionDashboardScreen: React.FC = () => {
 
       {meals.length === 0 ? (
         <View style={{ alignItems: 'center', paddingVertical: theme.spacing.lg }}>
-          <AppText variant="headingSmall" color="#FFFFFF" align="center">
+          <AppText variant="headingSmall" color={dashboardColors.textPrimary} align="center">
             Nothing logged yet
           </AppText>
-          <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.xxs }}>
+          <AppText variant="bodyMedium" color={dashboardColors.textSecondary} align="center" style={{ marginTop: theme.spacing.xxs }}>
             Add your first meal to see today's nutrition.
           </AppText>
         </View>
       ) : null}
 
+      <AppText variant="headingSmall" color={dashboardColors.textPrimary} style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
+        Quick add
+      </AppText>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: theme.spacing.md, marginHorizontal: -theme.spacing.xxs }}>
-        {QUICK_LINKS.map((link) => (
+        {QUICK_LINKS.map((link, index) => (
           <View key={link.nav} style={{ width: '50%', paddingHorizontal: theme.spacing.xxs, marginBottom: theme.spacing.xs }}>
-            <HeroCard onPress={() => navigation.navigate(link.nav as never)} style={{ paddingVertical: theme.spacing.sm }} scaleOnPress>
-              <AppText variant="headingSmall" color="#FFFFFF" align="center">
-                {link.label}
-              </AppText>
-            </HeroCard>
+            <FadeSlideIn delay={index * motion.staggerStepMs} fromY={8}>
+              <Pressable
+                onPress={() => navigation.navigate(link.nav as never)}
+                accessibilityRole="button"
+                accessibilityLabel={link.label}
+                style={({ pressed }) => [dashboardCardStyle, { flexDirection: 'row', alignItems: 'center', padding: theme.spacing.sm, opacity: pressed ? 0.85 : 1 }]}
+              >
+                <AppIcon name={link.icon} size={18} color={dashboardColors.accent} />
+                <AppText variant="bodyMedium" weight="600" color={dashboardColors.textPrimary} style={{ marginLeft: 8 }}>
+                  {link.label}
+                </AppText>
+              </Pressable>
+            </FadeSlideIn>
           </View>
         ))}
       </View>
 
-      <View style={{ marginTop: theme.spacing.md }}>
-        <HeroCard onPress={() => navigation.navigate('MyRecipes')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }} scaleOnPress>
-          <AppText variant="headingSmall" color="#FFFFFF" align="center">
-            My recipes
-          </AppText>
-        </HeroCard>
-        <HeroCard onPress={() => navigation.navigate('MyFoods')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }} scaleOnPress>
-          <AppText variant="headingSmall" color="#FFFFFF" align="center">
-            My foods
-          </AppText>
-        </HeroCard>
-        <HeroCard onPress={() => navigation.navigate('Favorites')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }} scaleOnPress>
-          <AppText variant="headingSmall" color="#FFFFFF" align="center">
-            Favorites
-          </AppText>
-        </HeroCard>
-        <HeroCard onPress={() => navigation.navigate('NutritionGoalsScreen')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }} scaleOnPress>
-          <AppText variant="headingSmall" color="#FFFFFF" align="center">
-            Nutrition goals
-          </AppText>
-        </HeroCard>
-        <HeroCard onPress={() => navigation.navigate('NutritionHistory')} style={{ paddingVertical: theme.spacing.sm }} scaleOnPress>
-          <AppText variant="headingSmall" color="rgba(255,255,255,0.7)" align="center">
-            Nutrition history
-          </AppText>
-        </HeroCard>
+      <View style={{ marginTop: theme.spacing.sm }}>
+        <ListRow index={0} icon="book-outline" label="My recipes" onPress={() => navigation.navigate('MyRecipes')} />
+        <ListRow index={1} icon="fast-food-outline" label="My foods" onPress={() => navigation.navigate('MyFoods')} />
+        <ListRow index={2} icon="heart-outline" label="Favorites" onPress={() => navigation.navigate('Favorites')} />
+        <ListRow index={3} icon="flag-outline" label="Nutrition goals" onPress={() => navigation.navigate('NutritionGoalsScreen')} />
+        <ListRow index={4} icon="time-outline" label="Nutrition history" onPress={() => navigation.navigate('NutritionHistory')} isLast />
       </View>
     </TabHeroLayout>
   );
 };
 
-const MacroTile: React.FC<{ index: number; label: string; icon: AppIconName; progress: { current: number; target: number; percentage: number; exceeded: boolean }; color: string }> = React.memo(
-  ({ index, label, icon, progress, color }) => {
+const MacroTile: React.FC<{ index: number; label: string; icon: AppIconName; progress: { current: number; target: number; percentage: number; exceeded: boolean }; color: string; isLast?: boolean }> = React.memo(
+  ({ index, label, icon, progress, color, isLast }) => {
     const { theme } = useTheme();
     // Mirrors the Home dashboard's NutritionCard macro rows — same
     // useAnimatedProgress -> AppProgressBar chain, same per-macro colors, so
     // the two places the app shows macro progress stay visually consistent.
-    // AppProgressBar already clamps its own fill to 100% regardless of how
-    // far `percentage` (which the selector deliberately allows past 100 for
-    // the "exceeded" text/color elsewhere) goes past that.
     const animatedFraction = useAnimatedProgress(progress.percentage / 100);
     return (
-      <FadeSlideIn delay={index * motion.staggerStepMs} fromY={8} style={{ flex: 1, marginRight: theme.spacing.xs }}>
-        <HeroCard>
+      <FadeSlideIn delay={index * motion.staggerStepMs} fromY={8} style={{ flex: 1, marginRight: isLast ? 0 : theme.spacing.xs }}>
+        <View style={[dashboardCardStyle, { padding: theme.spacing.sm }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }}>
             <View
               style={{
@@ -187,21 +178,61 @@ const MacroTile: React.FC<{ index: number; label: string; icon: AppIconName; pro
             >
               <AppIcon name={icon} size={12} color={color} />
             </View>
-            <AppText variant="caption" color="rgba(255,255,255,0.6)">
+            <AppText variant="caption" color={dashboardColors.textMuted}>
               {label}
             </AppText>
           </View>
-          <AppText variant="headingSmall" color={progress.exceeded ? '#E0A24E' : '#FFFFFF'}>
-            <AnimatedNumberText value={Math.round(progress.current)} variant="headingSmall" color={progress.exceeded ? '#E0A24E' : '#FFFFFF'} />
+          <AppText variant="headingSmall" color={progress.exceeded ? dashboardColors.warning : dashboardColors.textPrimary}>
+            <AnimatedNumberText value={Math.round(progress.current)} variant="headingSmall" color={progress.exceeded ? dashboardColors.warning : dashboardColors.textPrimary} />
             g
           </AppText>
-          <AppText variant="caption" color="rgba(255,255,255,0.45)" style={{ marginBottom: theme.spacing.xs }}>
+          <AppText variant="caption" color={dashboardColors.textMuted} style={{ marginBottom: theme.spacing.xs }}>
             / {progress.target}g
           </AppText>
-          <AppProgressBar progress={animatedFraction} color={color} trackColor="rgba(255,255,255,0.12)" height={5} />
-        </HeroCard>
+          <AppProgressBar progress={animatedFraction} color={color} trackColor={dashboardColors.border} height={5} />
+        </View>
       </FadeSlideIn>
     );
   }
 );
 MacroTile.displayName = 'MacroTile';
+
+const ListRow: React.FC<{ index: number; icon: AppIconName; label: string; onPress: () => void; isLast?: boolean }> = React.memo(
+  ({ index, icon, label, onPress, isLast }) => {
+    const { theme } = useTheme();
+    return (
+      <FadeSlideIn delay={index * motion.staggerStepMs} fromY={6}>
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          style={({ pressed }) => [
+            dashboardCardStyle,
+            { flexDirection: 'row', alignItems: 'center', padding: theme.spacing.sm, marginBottom: isLast ? 0 : theme.spacing.sm, opacity: pressed ? 0.85 : 1 },
+          ]}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 14,
+              backgroundColor: dashboardColors.surfaceSecondary,
+              borderWidth: 1,
+              borderColor: dashboardColors.border,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: theme.spacing.sm,
+            }}
+          >
+            <AppIcon name={icon} size={18} color={dashboardColors.accent} />
+          </View>
+          <AppText variant="bodyLarge" weight="600" color={dashboardColors.textPrimary} style={{ flex: 1 }}>
+            {label}
+          </AppText>
+          <AppIcon name="chevron-forward" size={18} color={dashboardColors.textMuted} />
+        </Pressable>
+      </FadeSlideIn>
+    );
+  }
+);
+ListRow.displayName = 'ListRow';

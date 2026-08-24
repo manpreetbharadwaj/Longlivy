@@ -105,7 +105,7 @@ export const ActiveActivityScreen: React.FC = () => {
       <View style={{ flexDirection: 'row', marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
         {isPaused ? (
           <View style={{ flex: 1 }}>
-            <AppGradientButton label="Resume" onPress={() => dispatch(resumeActivityThunk(activity.id))} colors={['#6AA3DE', '#1F4E7A']} />
+            <AppGradientButton label="Resume" onPress={() => dispatch(resumeActivityThunk(activity.id))} colors={['#5B9BD5', '#2C5C87']} />
           </View>
         ) : (
           <View style={{ flex: 1 }}>
@@ -113,7 +113,7 @@ export const ActiveActivityScreen: React.FC = () => {
           </View>
         )}
         <View style={{ flex: 1 }}>
-          <AppGradientButton label="End" onPress={handleEnd} colors={['#E7896A', '#C4463A']} />
+          <AppGradientButton label="End" onPress={handleEnd} colors={['#DD7A68', '#C4463A']} />
         </View>
       </View>
     </ActivityHeroLayout>
@@ -135,8 +135,8 @@ const GpsStatusLine: React.FC<{ gpsAvailable: boolean; status: ReturnType<typeof
   if (status === 'denied' || status === 'unavailable') {
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: 280 }}>
-        <AppIcon name="warning-outline" size={16} color="#E7B85A" />
-        <AppText variant="bodySmall" color="#E7B85A" style={{ marginLeft: 6, flexShrink: 1 }}>
+        <AppIcon name="warning-outline" size={16} color="#DFA860" />
+        <AppText variant="bodySmall" color="#DFA860" style={{ marginLeft: 6, flexShrink: 1 }}>
           {message ?? 'GPS unavailable — duration still recorded'}
         </AppText>
       </View>
@@ -145,7 +145,7 @@ const GpsStatusLine: React.FC<{ gpsAvailable: boolean; status: ReturnType<typeof
   if (status === 'tracking') {
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <AppIcon name="navigate" size={16} color="#4FB77E" />
+        <AppIcon name="navigate" size={16} color="#3FCE87" />
         <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" style={{ marginLeft: 6 }}>
           GPS tracking active
         </AppText>

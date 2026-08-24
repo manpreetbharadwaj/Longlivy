@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { AppText } from './AppText';
+import { dashboardColors } from '@/features/dashboard/dashboardTheme';
 
 interface Segment {
   key: string;
@@ -33,12 +34,12 @@ export const AppSegmentedControl: React.FC<AppSegmentedControlProps> = React.mem
             flex: 1,
             paddingVertical: theme.spacing.xs,
             borderRadius: theme.radius.sm,
-            backgroundColor: active ? (hero ? 'rgba(255,255,255,0.16)' : theme.colors.card) : 'transparent',
+            backgroundColor: active ? (hero ? dashboardColors.accent : theme.colors.card) : 'transparent',
             alignItems: 'center',
             ...(active && !hero ? theme.shadows.card : {}),
           }}
         >
-          <AppText variant="label" color={hero ? (active ? '#FFFFFF' : 'rgba(255,255,255,0.55)') : active ? theme.colors.primary : theme.colors.textSecondary}>
+          <AppText variant="label" color={hero ? (active ? dashboardColors.background : dashboardColors.textMuted) : active ? theme.colors.primary : theme.colors.textSecondary}>
             {segment.label}
           </AppText>
         </Pressable>
@@ -51,10 +52,10 @@ export const AppSegmentedControl: React.FC<AppSegmentedControlProps> = React.mem
     <View
       style={{
         flexDirection: 'row',
-        backgroundColor: hero ? 'rgba(255,255,255,0.08)' : theme.colors.surfaceElevated,
+        backgroundColor: hero ? dashboardColors.surfaceElevated : theme.colors.surfaceElevated,
         borderRadius: theme.radius.md,
         padding: 4,
-        ...(hero ? { borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.14)' } : {}),
+        ...(hero ? { borderWidth: 1, borderColor: dashboardColors.border } : {}),
       }}
     >
       {segments.map(renderSegment)}

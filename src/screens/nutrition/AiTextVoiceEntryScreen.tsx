@@ -9,7 +9,7 @@ import { AppText } from '@/components/common/AppText';
 import { useTheme } from '@/hooks/useTheme';
 import { aiNutritionRecognitionService } from '@/features/nutrition/services/AiNutritionRecognitionService';
 
-const NUTRITION_GRADIENT = ['#E7A868', '#B4652A'] as const;
+const NUTRITION_GRADIENT = ['#E0AC55', '#8F6A2E'] as const;
 
 interface AiTextVoiceEntryScreenProps {
   mode: 'voice' | 'text';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { MainTabParamList } from '@/navigation/types';
@@ -15,6 +15,7 @@ import { useFastingTimer } from '@/features/fasting/hooks/useFastingTimer';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
+import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
 
 export const FastingCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -25,17 +26,18 @@ export const FastingCard: React.FC = React.memo(() => {
   // "filling" on mount and gliding forward each second instead of a
   // robotic per-second jump.
   const animatedProgress = useAnimatedProgress(progress?.progress ?? 0);
+  const goToFasting = () => navigation.navigate('FastingTab', { screen: 'FastingHome' });
 
   return (
-    <HeroCard onPress={() => navigation.navigate('FastingTab', { screen: 'FastingHome' })} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
+    <HeroCard onPress={goToFasting} style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]} scaleOnPress>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <AppProgressRing progress={animatedProgress} size={72} strokeWidth={8} color="#5FBFAE" trackColor="rgba(255,255,255,0.12)">
-          <AppIcon name="timer-outline" size={22} color="#5FBFAE" />
+        <AppProgressRing progress={animatedProgress} size={72} strokeWidth={7} color={dashboardColors.accent} trackColor={dashboardColors.border}>
+          <AppIcon name="timer-outline" size={22} color={dashboardColors.accent} />
         </AppProgressRing>
         <View style={{ flex: 1, marginLeft: theme.spacing.md }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-            <AppText variant="headingSmall" color="#FFFFFF">
-              Fasting
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+            <AppText variant="label" color={dashboardColors.accent} style={{ letterSpacing: 0.5 }}>
+              FASTING
             </AppText>
             {activeFast ? (
               <FadeSlideIn delay={250} fromY={4}>
@@ -47,19 +49,45 @@ export const FastingCard: React.FC = React.memo(() => {
           </View>
           {activeFast && progress ? (
             <>
-              <AppText variant="metricMedium" color="#FFFFFF">
+              <AppText variant="metricMedium" color={dashboardColors.textPrimary}>
                 {formatDurationHM(progress.elapsedMs)}
               </AppText>
-              <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
+              <AppText variant="bodySmall" color={dashboardColors.textMuted}>
                 {progress.isOverdue ? 'Goal time reached' : `${formatDurationHM(progress.remainingMs)} remaining`} · {activeFast.method}
               </AppText>
             </>
           ) : (
-            <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
-              No active fast — tap to start one.
-            </AppText>
+            <>
+              <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
+                Ready when you are
+              </AppText>
+              <AppText variant="bodySmall" color={dashboardColors.textMuted} style={{ marginTop: 1 }}>
+                Start a fast to begin your journey.
+              </AppText>
+            </>
           )}
         </View>
+        {!activeFast ? (
+          <Pressable
+            onPress={goToFasting}
+            accessibilityRole="button"
+            accessibilityLabel="Start fast"
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: dashboardColors.accent,
+              paddingHorizontal: theme.spacing.sm,
+              paddingVertical: 8,
+              borderRadius: theme.radius.pill,
+              marginLeft: theme.spacing.xs,
+            }}
+          >
+            <AppText variant="bodySmall" weight="700" color={dashboardColors.background}>
+              Start Fast
+            </AppText>
+            <AppIcon name="arrow-forward" size={13} color={dashboardColors.background} />
+          </Pressable>
+        ) : null}
       </View>
     </HeroCard>
   );

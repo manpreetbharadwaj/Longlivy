@@ -6,6 +6,7 @@ import { AppIconName } from '@/components/common/AppIcon';
 import { MainTabParamList } from '../types';
 import { TabItem } from './TabItem';
 import { CenterActionButton } from './CenterActionButton';
+import { dashboardFloatingStyle } from '@/features/dashboard/dashboardTheme';
 
 const TAB_META: Record<keyof MainTabParamList, { active: AppIconName; inactive: AppIconName; label: string }> = {
   HomeTab: { active: 'home', inactive: 'home-outline', label: 'Home' },
@@ -17,7 +18,9 @@ const TAB_META: Record<keyof MainTabParamList, { active: AppIconName; inactive: 
 };
 
 export const FLOATING_TAB_BAR_METRICS = {
-  pillHeight: 64,
+  // Tall enough to fit an icon + a small label underneath it without
+  // cramping — the bar reads as icon-only no longer (see TabItem).
+  pillHeight: 72,
   centerSize: 62,
   // How far the center button sinks down into the pill from its own top edge —
   // the rest of it protrudes above the bar, which is what makes it read as
@@ -30,6 +33,17 @@ export const FLOATING_TAB_BAR_METRICS = {
 const { pillHeight: PILL_HEIGHT, centerSize: CENTER_SIZE, centerOverlap: CENTER_OVERLAP, pillMarginH: PILL_MARGIN_H, pillMarginBottom: PILL_MARGIN_BOTTOM } =
   FLOATING_TAB_BAR_METRICS;
 const TOP_SPACE = CENTER_SIZE - CENTER_OVERLAP;
+
+// A fixed, deliberately soft shadow for the pill — hardcoded rather than
+// theme.shadows.floating so the bar reads the same "gentle lift" regardless
+// of system light/dark mode.
+const TAB_BAR_SHADOW = {
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.3,
+  shadowRadius: 16,
+  elevation: 8,
+} as const;
 
 /** The bar's total footprint (its own transparent top space + the pill + its bottom gap + the device's safe-area inset) — screens under it should add this much bottom padding to their scrollable content so nothing ends up hidden underneath the opaque pill. See useFloatingTabBarSpacing. */
 export function getFloatingTabBarHeight(safeAreaBottom: number): number {
@@ -71,7 +85,7 @@ export const FloatingTabBar: React.FC<BottomTabBarProps> = ({ state, navigation,
       }
     };
 
-    return <TabItem key={route.key} icon={meta.inactive} activeIcon={meta.active} focused={focused} onPress={onPress} accessibilityLabel={meta.label} />;
+    return <TabItem key={route.key} icon={meta.inactive} activeIcon={meta.active} label={meta.label} focused={focused} onPress={onPress} accessibilityLabel={meta.label} />;
   };
 
   return (
@@ -87,15 +101,13 @@ export const FloatingTabBar: React.FC<BottomTabBarProps> = ({ state, navigation,
             left: PILL_MARGIN_H,
             right: PILL_MARGIN_H,
             height: PILL_HEIGHT,
-            borderRadius: theme.radius.pill,
-            backgroundColor: 'rgba(10,30,27,0.94)',
-            borderWidth: 1.5,
-            borderColor: 'rgba(255,255,255,0.12)',
+            borderRadius: theme.radius.xl,
             flexDirection: 'row',
             alignItems: 'center',
-            paddingHorizontal: theme.spacing.sm,
+            paddingHorizontal: theme.spacing.xs,
           },
-          theme.shadows.floating,
+          dashboardFloatingStyle,
+          TAB_BAR_SHADOW,
         ]}
       >
         {leftRoutes.map(renderTab)}

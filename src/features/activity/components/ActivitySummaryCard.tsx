@@ -6,6 +6,7 @@ import { AppIcon, AppIconName } from '@/components/common/AppIcon';
 import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { CardShimmer } from '@/components/common/CardShimmer';
 import { useTheme } from '@/hooks/useTheme';
+import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 
 interface Metric {
   icon: AppIconName;
@@ -31,7 +32,7 @@ export const ActivitySummaryCard: React.FC<{ activities: number; distanceKm: num
     ];
 
     return (
-      <HeroCard style={{ marginBottom: theme.spacing.md, overflow: 'hidden' }}>
+      <HeroCard style={[dashboardCardStyle, { marginBottom: theme.spacing.md, overflow: 'hidden' }]}>
         <View style={{ flexDirection: 'row' }}>
           {metrics.map((m, i) => (
             <React.Fragment key={m.label}>
@@ -41,20 +42,22 @@ export const ActivitySummaryCard: React.FC<{ activities: number; distanceKm: num
                     width: 36,
                     height: 36,
                     borderRadius: 12,
-                    backgroundColor: 'rgba(106,163,222,0.18)',
+                    backgroundColor: dashboardColors.surfaceSecondary,
+                    borderWidth: 1,
+                    borderColor: dashboardColors.border,
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: theme.spacing.xxs,
                   }}
                 >
-                  <AppIcon name={m.icon} size={17} color="#6AA3DE" />
+                  <AppIcon name={m.icon} size={17} color={dashboardColors.accent} />
                 </View>
-                <AnimatedNumberText value={m.value} formatter={m.formatter} variant="headingMedium" color="#FFFFFF" />
-                <AppText variant="caption" color="rgba(255,255,255,0.6)" style={{ marginTop: 2 }}>
+                <AnimatedNumberText value={m.value} formatter={m.formatter} variant="headingMedium" color={dashboardColors.textPrimary} />
+                <AppText variant="caption" color={dashboardColors.textMuted} style={{ marginTop: 2 }}>
                   {m.label}
                 </AppText>
               </View>
-              {i < metrics.length - 1 ? <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.14)', marginVertical: theme.spacing.xs }} /> : null}
+              {i < metrics.length - 1 ? <View style={{ width: 1, backgroundColor: dashboardColors.border, marginVertical: theme.spacing.xs }} /> : null}
             </React.Fragment>
           ))}
         </View>

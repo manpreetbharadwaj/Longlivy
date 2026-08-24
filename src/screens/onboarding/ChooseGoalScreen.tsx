@@ -1,94 +1,48 @@
-import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence } from 'react-native-reanimated';
 import { OnboardingStackParamList } from '@/navigation/types';
-import { HeroOptionCard } from '@/components/common/HeroOptionCard';
-import { AppIcon, AppIconName } from '@/components/common/AppIcon';
-import { GlowOrb } from '@/components/common/GlowOrb';
-import { useTheme } from '@/hooks/useTheme';
+import { AppIconName } from '@/components/common/AppIcon';
 import { useOnboardingDraft, OnboardingDraft } from '@/features/onboarding/OnboardingContext';
-import { motion } from '@/theme/motion';
+import { GoalCard } from '@/features/onboarding/components/GoalCard';
+import { onboardingGoalColors } from '@/features/onboarding/theme/onboardingTheme';
 import { OnboardingStepLayout } from './OnboardingStepLayout';
 
 type Goal = NonNullable<OnboardingDraft['goal']>;
 
-const GOALS: { key: Goal; label: string; icon: AppIconName; color: string }[] = [
-  { key: 'weight_loss', label: 'Weight loss', icon: 'trending-down-outline', color: '#5FBFAE' },
-  { key: 'maintenance', label: 'Weight maintenance', icon: 'scale-outline', color: '#6AA3DE' },
-  { key: 'general_wellness', label: 'General wellness', icon: 'leaf-outline', color: '#9B7FD9' },
-  { key: 'muscle_gain', label: 'Muscle gain', icon: 'barbell-outline', color: '#E7A868' },
+const GOALS: { key: Goal; icon: AppIconName; title: string; outcome: string }[] = [
+  { key: 'weight_loss', icon: 'trending-down-outline', title: 'Lose weight', outcome: 'A steady calorie deficit, built into your daily target.' },
+  { key: 'maintenance', icon: 'infinite-outline', title: 'Maintain weight', outcome: 'Hold steady — your targets track your baseline exactly.' },
+  { key: 'muscle_gain', icon: 'trending-up-outline', title: 'Gain weight', outcome: 'A controlled surplus to support muscle, not just the scale.' },
 ];
 
-/**
- * The visual header — a glowing icon tile that swaps icon/color and gives a
- * quick confirming pulse whenever the selected goal changes, so the choice
- * feels acknowledged rather than just recording a tap.
- */
-const GoalHeroVisual: React.FC<{ goal: Goal | null }> = ({ goal }) => {
-  const active = goal ? GOALS.find((g) => g.key === goal)! : null;
-  const color = active?.color ?? '#5FBFAE';
-  const scale = useSharedValue(1);
-
-  useEffect(() => {
-    scale.value = withSequence(withTiming(1.14, { duration: 160, easing: motion.easing.decelerate }), withTiming(1, { duration: 220, easing: motion.easing.standard }));
-  }, [goal, scale]);
-
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
-  return (
-    <View style={{ alignItems: 'center', marginBottom: 8 }}>
-      <View style={{ width: 120, height: 120, alignItems: 'center', justifyContent: 'center' }}>
-        <GlowOrb size={120} color={color} opacity={0.4} pulse />
-        <Animated.View
-          style={[
-            {
-              width: 72,
-              height: 72,
-              borderRadius: 24,
-              backgroundColor: `${color}33`,
-              borderWidth: 1.5,
-              borderColor: color,
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-            animatedStyle,
-          ]}
-        >
-          <AppIcon name={active?.icon ?? 'sparkles-outline'} size={32} color="#FFFFFF" />
-        </Animated.View>
-      </View>
-    </View>
-  );
-};
-
+/** Not the last personalization step anymore — a chosen weight_loss/muscle_gain goal is followed by GoalPace (how fast), skipped entirely for maintenance since a pace isn't meaningful there. */
 export const ChooseGoalScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
-  const { theme } = useTheme();
   const { draft, update } = useOnboardingDraft();
 
   return (
     <OnboardingStepLayout
-      variant="hero"
-      step={3}
-      totalSteps={11}
-      title="What's your primary goal?"
-      subtitle="This shapes your default calorie and macro targets — you can change it anytime."
-      onNext={() => navigation.navigate('PersonalInfo')}
+      step={7}
+      totalSteps={9}
+      title="What's your goal?"
+      subtitle="This shapes your calorie target — changeable anytime."
+      onNext={() => navigation.navigate(draft.goal === 'maintenance' ? 'FastingPreference' : 'GoalPace')}
       onBack={() => navigation.goBack()}
       nextDisabled={!draft.goal}
     >
-      <GoalHeroVisual goal={draft.goal} />
-      {GOALS.map((g) => (
-        <HeroOptionCard
+      {GOALS.map((g, index) => (
+        <GoalCard
           key={g.key}
+          goalKey={g.key}
           icon={g.icon}
-          title={g.label}
+          title={g.title}
+          outcome={g.outcome}
+          gradient={onboardingGoalColors[g.key].gradient}
+          accent={onboardingGoalColors[g.key].accent}
           selected={draft.goal === g.key}
-          accentColor={g.color}
+          index={index}
           onPress={() => update({ goal: g.key })}
-          style={{ marginBottom: theme.spacing.sm }}
         />
       ))}
     </OnboardingStepLayout>

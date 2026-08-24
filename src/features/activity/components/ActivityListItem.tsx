@@ -5,6 +5,7 @@ import { AppText } from '@/components/common/AppText';
 import { useTheme } from '@/hooks/useTheme';
 import { Activity, ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
 import { ActivityFigure } from './ActivityFigure';
+import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 
 function formatWhen(iso: string): string {
   const date = new Date(iso);
@@ -19,8 +20,19 @@ function formatWhen(iso: string): string {
 }
 
 const MetaPill: React.FC<{ label: string }> = ({ label }) => (
-  <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, marginRight: 6, marginTop: 4 }}>
-    <AppText variant="caption" color="rgba(255,255,255,0.65)">
+  <View
+    style={{
+      backgroundColor: dashboardColors.surfaceSecondary,
+      borderWidth: 1,
+      borderColor: dashboardColors.border,
+      borderRadius: 8,
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      marginRight: 6,
+      marginTop: 4,
+    }}
+  >
+    <AppText variant="caption" color={dashboardColors.textSecondary}>
       {label}
     </AppText>
   </View>
@@ -39,14 +51,16 @@ export const ActivityListItem: React.FC<{ activity: Activity; onPress: () => voi
   const distanceKm = activity.distanceMeters != null ? (activity.distanceMeters / 1000).toFixed(1) : null;
 
   return (
-    <HeroCard onPress={onPress} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
+    <HeroCard onPress={onPress} style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]} scaleOnPress>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View
           style={{
             width: 52,
             height: 52,
             borderRadius: 16,
-            backgroundColor: 'rgba(106,163,222,0.14)',
+            backgroundColor: dashboardColors.surfaceSecondary,
+            borderWidth: 1,
+            borderColor: dashboardColors.border,
             alignItems: 'center',
             justifyContent: 'center',
             marginRight: theme.spacing.sm,
@@ -55,10 +69,10 @@ export const ActivityListItem: React.FC<{ activity: Activity; onPress: () => voi
           <ActivityFigure type={activity.type} size={44} />
         </View>
         <View style={{ flex: 1 }}>
-          <AppText variant="headingSmall" color="#FFFFFF">
+          <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
             {ACTIVITY_TYPE_LABELS[activity.type]}
           </AppText>
-          <AppText variant="bodySmall" color="rgba(255,255,255,0.55)" style={{ marginTop: 1 }}>
+          <AppText variant="bodySmall" color={dashboardColors.textMuted} style={{ marginTop: 1 }}>
             {formatWhen(activity.startTimestamp)}
           </AppText>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>

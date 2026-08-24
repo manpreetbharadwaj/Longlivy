@@ -22,7 +22,7 @@ import { selectFavoriteFoods } from '@/features/nutrition/selectors';
 import { selectActiveFast } from '@/features/fasting/selectors';
 import { endFastThunk } from '@/features/fasting/fastingSlice';
 
-const NUTRITION_GRADIENT = ['#E7A868', '#B4652A'] as const;
+const NUTRITION_GRADIENT = ['#E0AC55', '#8F6A2E'] as const;
 
 export const AddFoodScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -93,7 +93,7 @@ export const AddFoodScreen: React.FC = () => {
       onBack={() => navigation.goBack()}
       rightElement={
         <Pressable onPress={toggleFavorite} accessibilityRole="button" accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'} hitSlop={8}>
-          <AppIcon name={isFavorite ? 'star' : 'star-outline'} size={22} color={isFavorite ? '#E7C069' : 'rgba(255,255,255,0.6)'} />
+          <AppIcon name={isFavorite ? 'star' : 'star-outline'} size={22} color={isFavorite ? '#E5BC72' : 'rgba(255,255,255,0.6)'} />
         </Pressable>
       }
     >
