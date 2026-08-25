@@ -32,6 +32,8 @@ export interface DemoUserProfile {
   weightChangePaceKgPerWeek?: number;
   /** The fasting rhythm chosen as a preference during onboarding — not an active plan or an in-progress fast, both of which live in the Fasting feature's own state. */
   fastingMethod?: FastingMethodId;
+  /** Nutrient ids the user chose to prioritize on MicronutrientSetupScreen — see `MICRONUTRIENTS` in `features/onboarding/data/micronutrients.ts` for the catalog. */
+  micronutrientFocus?: string[];
 }
 
 export const DEMO_USER: DemoUserProfile = {

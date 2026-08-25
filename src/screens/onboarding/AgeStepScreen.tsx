@@ -35,8 +35,8 @@ export const AgeStepScreen: React.FC = () => {
 
   return (
     <OnboardingStepLayout
-      step={2}
-      totalSteps={9}
+      step={3}
+      totalSteps={7}
       title="When's your birthday?"
       subtitle="Used to calibrate your baseline calculations."
       onNext={() => navigation.navigate('Height')}

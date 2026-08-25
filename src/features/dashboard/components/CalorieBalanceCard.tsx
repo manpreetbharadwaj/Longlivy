@@ -12,7 +12,7 @@ import { useAppSelector } from '@/store/hooks';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { motion } from '@/theme/motion';
 import { selectDailyEnergyBalance } from '@/features/calories/selectors';
-import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
+import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const CalorieBalanceCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -22,7 +22,7 @@ export const CalorieBalanceCard: React.FC = React.memo(() => {
   const animatedFraction = useAnimatedProgress(Math.min(fraction, 1));
 
   return (
-    <HeroCard style={[dashboardCardStyle, { marginBottom: theme.spacing.sm, overflow: 'hidden' }]}>
+    <HeroCard style={[dashboardCardElevated, { marginBottom: theme.spacing.sm, overflow: 'hidden' }]}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.sm }}>
         <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
           Energy balance

@@ -61,11 +61,11 @@ export const ActivityLevelStepScreen: React.FC = () => {
 
   return (
     <OnboardingStepLayout
-      step={5}
-      totalSteps={9}
+      step={6}
+      totalSteps={7}
       title="How active are you?"
       subtitle="Feeds your estimated daily energy use."
-      onNext={() => navigation.navigate('TrainingDetails')}
+      onNext={() => navigation.navigate('Micronutrients')}
       onBack={() => navigation.goBack()}
       nextDisabled={!draft.activityLevel}
     >

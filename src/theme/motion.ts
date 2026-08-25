@@ -3,6 +3,14 @@ import { Easing } from 'react-native-reanimated';
 /**
  * Shared animation timing so entrance/emphasis motion feels consistent
  * across the app instead of every screen picking its own numbers.
+ *
+ * Motion patterns — prefer these over hand-rolled Reanimated calls:
+ * - Mount-in fade/slide for a single element: `FadeSlideIn` (components/common).
+ * - A list/group of cards entering in sequence: `StaggerGroup` (components/common),
+ *   or `useStaggerEntrance` (hooks) when the element needs its own Animated.View
+ *   for other transforms (idle motion, press-scale) alongside the entrance.
+ * - A number counting up on mount: `AnimatedNumberText` (components/common).
+ * - A progress ring/bar filling in: `useAnimatedProgress` (hooks).
  */
 export const motion = {
   duration: {

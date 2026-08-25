@@ -3,7 +3,8 @@ import { View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NutritionStackParamList } from '@/navigation/types';
-import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { SectionHeroLayout } from '@/components/common/SectionHeroLayout';
+import { sectionEnvironments } from '@/theme/environments';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppProgressRing } from '@/components/common/AppProgressRing';
@@ -51,7 +52,7 @@ export const NutritionDashboardScreen: React.FC = () => {
   const mealFor = useCallback((type: MealType) => meals.find((m) => m.mealType === type), [meals]);
 
   return (
-    <TabHeroLayout title="Nutrition">
+    <SectionHeroLayout environment={sectionEnvironments.nutrition} title="Nutrition">
       <HeroCard style={[dashboardCardStyle, { alignItems: 'center', marginBottom: theme.spacing.md, overflow: 'hidden' }]}>
         <AppProgressRing progress={ringProgress} size={160} strokeWidth={12} color={progress.calories.exceeded ? dashboardColors.warning : '#E0AC55'} trackColor={dashboardColors.border} glow>
           <AnimatedNumberText value={Math.round(totals.calories)} variant="metricMedium" color={dashboardColors.textPrimary} />
@@ -150,7 +151,7 @@ export const NutritionDashboardScreen: React.FC = () => {
         <ListRow index={3} icon="flag-outline" label="Nutrition goals" onPress={() => navigation.navigate('NutritionGoalsScreen')} />
         <ListRow index={4} icon="time-outline" label="Nutrition history" onPress={() => navigation.navigate('NutritionHistory')} isLast />
       </View>
-    </TabHeroLayout>
+    </SectionHeroLayout>
   );
 };
 

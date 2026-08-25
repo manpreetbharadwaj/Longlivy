@@ -12,7 +12,7 @@ import { useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { selectCurrentWeight, selectWeightTrend } from '@/features/weight/selectors';
 import { homeIconTileStyle } from '../homeIconTileStyle';
-import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
+import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const WeightCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -41,7 +41,7 @@ export const WeightCard: React.FC = React.memo(() => {
   const settleStyle = useAnimatedStyle(() => ({ transform: [{ translateY: settle.value * 2.5 }] }));
 
   return (
-    <HeroCard style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]}>
+    <HeroCard style={[dashboardCardElevated, { marginBottom: theme.spacing.sm }]}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Animated.View style={settleStyle}>

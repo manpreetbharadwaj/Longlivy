@@ -42,7 +42,18 @@ export const GenderCard: React.FC<GenderCardProps> = React.memo(({ kind, label, 
               borderRadius: theme.radius.xl,
               borderWidth: 1.5,
               paddingVertical: theme.spacing.lg,
+              paddingHorizontal: theme.spacing.xxs,
+              // Fixed height (not content-driven) so this card matches its
+              // siblings exactly regardless of label length — "Diverse /
+              // Other" wraps to two lines while "Male"/"Female" don't, and
+              // without this the three cards in the row would render at
+              // visibly different heights. Tall enough for a two-line label
+              // at headingSmall's line height; justifyContent centers a
+              // shorter, one-line label within the same box instead of
+              // leaving it pinned to the top with dead space below.
+              minHeight: 160,
               alignItems: 'center',
+              justifyContent: 'center',
               opacity: pressed ? 0.88 : 1,
             },
             animatedStyle,
@@ -61,7 +72,7 @@ export const GenderCard: React.FC<GenderCardProps> = React.memo(({ kind, label, 
           >
             <GenderGlyph kind={kind} size={30} color={selected ? onboardingAccent : '#FFFFFF'} />
           </View>
-          <AppText variant="headingSmall" color={onboardingGlass.textPrimary}>
+          <AppText variant="headingSmall" color={onboardingGlass.textPrimary} align="center">
             {label}
           </AppText>
         </Animated.View>

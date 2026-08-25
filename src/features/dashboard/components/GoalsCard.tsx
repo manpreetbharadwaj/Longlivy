@@ -17,7 +17,7 @@ import { selectDailyNutritionTotals } from '@/features/nutrition/selectors';
 import { selectTodayActivityCalories } from '@/features/activity/selectors';
 import { selectTodayMeditationSeconds } from '@/features/meditation/selectors';
 import { calculateGoalProgress } from '@/features/nutrition/services/NutritionCalculationService';
-import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
+import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const GoalsCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -48,7 +48,7 @@ export const GoalsCard: React.FC = React.memo(() => {
   const dailyGoals = goals.filter((g) => g.period === 'day').slice(0, 3);
 
   return (
-    <HeroCard onPress={() => navigation.navigate('Goals')} style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]} scaleOnPress>
+    <HeroCard onPress={() => navigation.navigate('Goals')} style={[dashboardCardElevated, { marginBottom: theme.spacing.sm }]} scaleOnPress>
       <AppText variant="headingSmall" color={dashboardColors.textPrimary} style={{ marginBottom: theme.spacing.sm }}>
         Today's goals
       </AppText>

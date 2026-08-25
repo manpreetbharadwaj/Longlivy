@@ -3,17 +3,22 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 export type OnboardingStackParamList = {
   Welcome: undefined;
   Value: undefined;
+  /** The goal now sits right after the intro, before any personal-info collection starts — see OnboardingNavigator. Asked exactly once. */
+  Goal: undefined;
+  /** Step 1 of 7 — a focused transition beat, not a question: "we're about to personalize this for you". */
+  PersonalizeMe: undefined;
+  /** Step 2 of 7. */
   Gender: undefined;
-  /** Route name kept as "Age" for minimal navigation churn — the screen itself now collects date of birth, not a raw age (see AgeStepScreen). */
+  /** Step 3 of 7. Route name kept as "Age" for minimal navigation churn — the screen itself now collects date of birth, not a raw age (see AgeStepScreen). */
   Age: undefined;
+  /** Step 4 of 7. */
   Height: undefined;
+  /** Step 5 of 7. */
   Weight: undefined;
+  /** Step 6 of 7. */
   ActivityLevelStep: undefined;
-  TrainingDetails: undefined;
-  ChooseGoal: undefined;
-  /** Only ever pushed when `goal !== 'maintenance'` — ChooseGoalScreen routes straight past this to FastingPreference otherwise. */
-  GoalPace: undefined;
-  FastingPreference: undefined;
+  /** Step 7 of 7 — not a form, see MicronutrientSetupScreen. */
+  Micronutrients: undefined;
   CompleteSetup: undefined;
 };
 
@@ -38,6 +43,7 @@ export type HomeStackParamList = {
   Privacy: undefined;
   DataManagement: undefined;
   EnterWeight: undefined;
+  Feedback: undefined;
 };
 
 export type FastingStackParamList = {

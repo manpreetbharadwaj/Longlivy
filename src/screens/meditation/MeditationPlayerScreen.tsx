@@ -12,6 +12,8 @@ import { selectMeditationContent } from '@/features/meditation/selectors';
 import { startMeditationSessionThunk, recordSessionEventThunk, completeMeditationSessionThunk } from '@/features/meditation/meditationSlice';
 import { calculateActiveSecondsFromEvents } from '@/features/meditation/services/MeditationSessionCalculator';
 import { formatDurationHMS } from '@/features/fasting/services/FastingCalculator';
+import { resolveMeditationAudioSource } from '@/features/meditation/meditationAudio';
+import { useMeditationAudioSession } from '@/features/meditation/hooks/useMeditationAudioSession';
 import { MeditationHeroLayout } from './MeditationHeroLayout';
 
 export const MeditationPlayerScreen: React.FC = () => {
@@ -23,12 +25,14 @@ export const MeditationPlayerScreen: React.FC = () => {
   const meditation = content.find((m) => m.id === route.params.meditationId);
 
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [isRunning, setIsRunning] = useState(false);
-  const [displaySeconds, setDisplaySeconds] = useState(0);
   const startedRef = useRef(false);
+  const finishedRef = useRef(false);
 
   const title = meditation?.title ?? (route.params.type === 'free' ? 'Free meditation' : 'Meditation');
   const plannedSeconds = route.params.durationSeconds;
+  const audioSource = resolveMeditationAudioSource(meditation?.audioReference);
+  const audioSession = useMeditationAudioSession(audioSource, plannedSeconds);
+  const { elapsedSeconds, remainingSeconds, status: sessionStatus } = audioSession;
 
   useEffect(() => {
     if (startedRef.current) return;
@@ -43,37 +47,28 @@ export const MeditationPlayerScreen: React.FC = () => {
     ).then((result) => {
       if (startMeditationSessionThunk.fulfilled.match(result)) {
         setSessionId(result.payload.id);
-        setIsRunning(true);
       }
     });
+    audioSession.start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!isRunning) return;
-    const interval = setInterval(() => setDisplaySeconds((s) => Math.min(s + 1, plannedSeconds)), 1000);
-    return () => clearInterval(interval);
-  }, [isRunning, plannedSeconds]);
-
-  useEffect(() => {
-    if (displaySeconds >= plannedSeconds && plannedSeconds > 0) {
-      setIsRunning(false);
-    }
-  }, [displaySeconds, plannedSeconds]);
-
   const togglePause = useCallback(() => {
     if (!sessionId) return;
-    if (isRunning) {
+    if (sessionStatus === 'playing') {
       dispatch(recordSessionEventThunk({ sessionId, type: 'paused' }));
-      setIsRunning(false);
-    } else {
+      audioSession.pause();
+    } else if (sessionStatus === 'paused') {
       dispatch(recordSessionEventThunk({ sessionId, type: 'resumed' }));
-      setIsRunning(true);
+      audioSession.resume();
     }
-  }, [dispatch, isRunning, sessionId]);
+  }, [dispatch, sessionStatus, sessionId, audioSession]);
 
   const finish = useCallback(
     async (status: 'completed' | 'ended_prematurely') => {
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      audioSession.stop();
       if (!sessionId) {
         navigation.popToTop();
         return;
@@ -82,24 +77,31 @@ export const MeditationPlayerScreen: React.FC = () => {
       // Derive authoritative active/paused seconds from the event log rather
       // than trusting the client-side display timer alone.
       const events = [
-        { id: 'e1', sessionId, type: 'started' as const, timestamp: new Date(Date.now() - displaySeconds * 1000).toISOString() },
+        { id: 'e1', sessionId, type: 'started' as const, timestamp: new Date(Date.now() - elapsedSeconds * 1000).toISOString() },
         { id: 'e2', sessionId, type: status === 'completed' ? ('completed' as const) : ('stopped' as const), timestamp: new Date().toISOString() },
       ];
       const { activeSeconds, pausedSeconds } = calculateActiveSecondsFromEvents(events);
       await dispatch(
         completeMeditationSessionThunk({
           sessionId,
-          activeDurationSeconds: activeSeconds || displaySeconds,
+          activeDurationSeconds: activeSeconds || elapsedSeconds,
           pausedDurationSeconds: pausedSeconds,
           status,
         })
       );
       navigation.popToTop();
     },
-    [sessionId, displaySeconds, dispatch, navigation]
+    [sessionId, elapsedSeconds, dispatch, navigation, audioSession]
   );
 
-  const progress = plannedSeconds > 0 ? displaySeconds / plannedSeconds : 0;
+  // The session duration is authoritative — the instant the hook reports
+  // completion (audio already stopped), finish the session automatically
+  // rather than waiting for a manual "Finish" tap.
+  useEffect(() => {
+    if (sessionStatus === 'completed') finish('completed');
+  }, [sessionStatus, finish]);
+
+  const progress = plannedSeconds > 0 ? elapsedSeconds / plannedSeconds : 0;
 
   return (
     <MeditationHeroLayout scroll={false}>
@@ -109,22 +111,35 @@ export const MeditationPlayerScreen: React.FC = () => {
         </AppText>
         <AppProgressRing progress={progress} size={240} strokeWidth={16} color="#A78BC9" trackColor="rgba(255,255,255,0.12)" glow>
           <AppText variant="metricLarge" color="#FFFFFF">
-            {formatDurationHMS(displaySeconds * 1000).replace(/^00:/, '')}
+            {formatDurationHMS(remainingSeconds * 1000).replace(/^00:/, '')}
           </AppText>
           <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
             of {Math.round(plannedSeconds / 60)} min
           </AppText>
         </AppProgressRing>
+        {sessionStatus === 'loading' ? (
+          <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginTop: theme.spacing.md }}>
+            Preparing your meditation…
+          </AppText>
+        ) : audioSession.audioError ? (
+          <AppText variant="bodySmall" color="rgba(255,255,255,0.5)" style={{ marginTop: theme.spacing.md }}>
+            Audio unavailable — continuing without sound
+          </AppText>
+        ) : audioSession.hasAudio ? (
+          <AppText variant="bodySmall" color="rgba(255,255,255,0.4)" style={{ marginTop: theme.spacing.md }}>
+            {formatDurationHMS(audioSession.audioPositionSeconds * 1000).replace(/^00:/, '')} / {formatDurationHMS(audioSession.audioDurationSeconds * 1000).replace(/^00:/, '')}
+          </AppText>
+        ) : null}
       </View>
 
       <View style={{ flexDirection: 'row', marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
         <View style={{ flex: 1 }}>
-          <OutlineButton label={isRunning ? 'Pause' : 'Resume'} onPress={togglePause} />
+          <OutlineButton label={sessionStatus === 'paused' ? 'Resume' : 'Pause'} onPress={togglePause} />
         </View>
         <View style={{ flex: 1 }}>
           <AppGradientButton
             label="Finish"
-            onPress={() => finish(displaySeconds >= plannedSeconds ? 'completed' : 'ended_prematurely')}
+            onPress={() => finish(sessionStatus === 'completed' ? 'completed' : 'ended_prematurely')}
             colors={['#A78BC9', '#453569']}
           />
         </View>

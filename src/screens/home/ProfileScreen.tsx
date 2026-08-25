@@ -72,7 +72,8 @@ export const ProfileScreen: React.FC = () => {
         <ActionRow index={0} icon="person-outline" label="Edit profile" onPress={() => navigation.navigate('EditProfile')} />
         <ActionRow index={1} icon="settings-outline" label="Settings" onPress={() => navigation.navigate('Settings')} />
         <ActionRow index={2} icon="heart-outline" label="Health integrations" onPress={() => navigation.navigate('HealthIntegrations')} />
-        <ActionRow index={3} icon="shield-checkmark-outline" label="Privacy" onPress={() => navigation.navigate('Privacy')} isLast />
+        <ActionRow index={3} icon="chatbox-ellipses-outline" label="Send feedback" onPress={() => navigation.navigate('Feedback')} />
+        <ActionRow index={4} icon="shield-checkmark-outline" label="Privacy" onPress={() => navigation.navigate('Privacy')} isLast />
       </View>
 
       <Pressable

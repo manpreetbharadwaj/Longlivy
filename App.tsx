@@ -8,6 +8,7 @@ import { Provider as ReduxProvider } from 'react-redux';
 import { store } from '@/store/store';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AppPreferencesProvider } from '@/contexts/AppPreferencesContext';
+import { I18nProvider } from '@/localization';
 import { OnboardingProvider } from '@/features/onboarding/OnboardingContext';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { withErrorBoundary } from '@/components/hoc/withErrorBoundary';
@@ -56,9 +57,11 @@ export default function App() {
         <ReduxProvider store={store}>
           <ThemeProvider>
             <AppPreferencesProvider>
-              <OnboardingProvider>
-                <NavigationRoot />
-              </OnboardingProvider>
+              <I18nProvider>
+                <OnboardingProvider>
+                  <NavigationRoot />
+                </OnboardingProvider>
+              </I18nProvider>
             </AppPreferencesProvider>
           </ThemeProvider>
         </ReduxProvider>

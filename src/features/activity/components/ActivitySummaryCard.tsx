@@ -6,7 +6,7 @@ import { AppIcon, AppIconName } from '@/components/common/AppIcon';
 import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { CardShimmer } from '@/components/common/CardShimmer';
 import { useTheme } from '@/hooks/useTheme';
-import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
+import { dashboardColors, dashboardCardElevated } from '@/features/dashboard/dashboardTheme';
 
 interface Metric {
   icon: AppIconName;
@@ -32,7 +32,7 @@ export const ActivitySummaryCard: React.FC<{ activities: number; distanceKm: num
     ];
 
     return (
-      <HeroCard style={[dashboardCardStyle, { marginBottom: theme.spacing.md, overflow: 'hidden' }]}>
+      <HeroCard style={[dashboardCardElevated, { marginBottom: theme.spacing.md, overflow: 'hidden' }]}>
         <View style={{ flexDirection: 'row' }}>
           {metrics.map((m, i) => (
             <React.Fragment key={m.label}>

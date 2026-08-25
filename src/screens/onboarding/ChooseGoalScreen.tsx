@@ -16,18 +16,25 @@ const GOALS: { key: Goal; icon: AppIconName; title: string; outcome: string }[] 
   { key: 'muscle_gain', icon: 'trending-up-outline', title: 'Gain weight', outcome: 'A controlled surplus to support muscle, not just the scale.' },
 ];
 
-/** Not the last personalization step anymore — a chosen weight_loss/muscle_gain goal is followed by GoalPace (how fast), skipped entirely for maintenance since a pace isn't meaningful there. */
+/**
+ * The bridge from "understanding Long Livy" to "building my personal Long
+ * Livy profile" — deliberately the first thing asked, before any personal
+ * information, and deliberately not counted as one of the seven numbered
+ * personalization steps (see OnboardingStepLayout's `eyebrow`): everything
+ * from here on — the body profile, the nutrient focus — is built *around*
+ * this choice, so it has to come first. Asked exactly once; nothing later
+ * in onboarding asks it again.
+ */
 export const ChooseGoalScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const { draft, update } = useOnboardingDraft();
 
   return (
     <OnboardingStepLayout
-      step={7}
-      totalSteps={9}
-      title="What's your goal?"
-      subtitle="This shapes your calorie target — changeable anytime."
-      onNext={() => navigation.navigate(draft.goal === 'maintenance' ? 'FastingPreference' : 'GoalPace')}
+      eyebrow="YOUR GOAL"
+      title="What do you want to achieve?"
+      subtitle="Long Livy builds your entire plan around this — your targets, your body profile, everything that follows."
+      onNext={() => navigation.navigate('PersonalizeMe')}
       onBack={() => navigation.goBack()}
       nextDisabled={!draft.goal}
     >

@@ -1,7 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { SectionHeroLayout } from '@/components/common/SectionHeroLayout';
+import { sectionEnvironments } from '@/theme/environments';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppSegmentedControl } from '@/components/common/AppSegmentedControl';
@@ -38,7 +39,11 @@ export const StatisticsScreen: React.FC = () => {
   const weight = useAppSelector(selectWeightStatisticsForPeriod);
 
   return (
-    <TabHeroLayout title="Statistics" onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}>
+    <SectionHeroLayout
+      environment={sectionEnvironments.statistics}
+      title="Statistics"
+      onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
+    >
       <AppSegmentedControl variant="hero" segments={PERIODS} selectedKey={period} onChange={(k) => dispatch(setStatisticsPeriod(k as StatisticsPeriod))} />
 
       <SectionTitle>Fasting</SectionTitle>
@@ -108,7 +113,7 @@ export const StatisticsScreen: React.FC = () => {
       ) : (
         <NoData />
       )}
-    </TabHeroLayout>
+    </SectionHeroLayout>
   );
 };
 

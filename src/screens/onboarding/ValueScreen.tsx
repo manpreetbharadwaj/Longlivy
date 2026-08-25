@@ -255,7 +255,7 @@ export const ValueScreen: React.FC = () => {
           <View style={{ flex: 1 }} />
 
           <FadeSlideIn>
-            <AppGradientButton label="Personalize mine" onPress={() => navigation.navigate('Gender')} colors={onboardingCtaGradient} />
+            <AppGradientButton label="Continue" onPress={() => navigation.navigate('Goal')} colors={onboardingCtaGradient} />
           </FadeSlideIn>
         </View>
       </SafeAreaView>

@@ -12,6 +12,7 @@ import { HealthIntegrationsScreen } from '@/screens/home/HealthIntegrationsScree
 import { PrivacyScreen } from '@/screens/home/PrivacyScreen';
 import { DataManagementScreen } from '@/screens/home/DataManagementScreen';
 import { EnterWeightScreen } from '@/screens/home/EnterWeightScreen';
+import { FeedbackScreen } from '@/screens/home/FeedbackScreen';
 import { withErrorBoundary } from '@/components/hoc/withErrorBoundary';
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -31,5 +32,6 @@ export const HomeNavigator: React.FC = () => (
     <Stack.Screen name="Privacy" component={PrivacyScreen} />
     <Stack.Screen name="DataManagement" component={DataManagementScreen} />
     <Stack.Screen name="EnterWeight" component={EnterWeightScreen} />
+    <Stack.Screen name="Feedback" component={FeedbackScreen} />
   </Stack.Navigator>
 );

@@ -64,3 +64,22 @@ export const dashboardShadow: ViewStyle = {
 export const dashboardTypeOverrides: { heroNumber: TextStyle } = {
   heroNumber: { letterSpacing: -0.5 },
 };
+
+/** `dashboardCardStyle` with real depth (shadow) added — for cards that should visually sit above the rest of the stack, not just tonally differ. Same hardcoded-dark reasoning as `dashboardShadow`. */
+export const dashboardCardElevated: ViewStyle = {
+  ...dashboardCardStyle,
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.35,
+  shadowRadius: 12,
+  elevation: 4,
+};
+
+/** The Home command-center hero card — one step more prominent than `dashboardCardElevated`, for the single top-of-screen card that anchors the rest of the dashboard. */
+export const dashboardHeroCardStyle: ViewStyle = {
+  backgroundColor: dashboardColors.surfaceElevated,
+  borderWidth: 1.5,
+  borderColor: dashboardColors.borderStrong,
+  borderRadius: 24,
+  ...dashboardShadow,
+};

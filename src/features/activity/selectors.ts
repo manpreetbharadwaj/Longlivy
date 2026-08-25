@@ -12,6 +12,14 @@ export const selectTodayActivityCalories = createSelector(selectActivityHistory,
     .reduce((sum, a) => sum + (a.calories ?? 0), 0);
 });
 
+export const selectTodayActivityMinutes = createSelector(selectActivityHistory, (history) => {
+  const today = new Date().toDateString();
+  const totalMs = history
+    .filter((a) => new Date(a.startTimestamp).toDateString() === today)
+    .reduce((sum, a) => sum + a.activeDuration, 0);
+  return Math.round(totalMs / 60000);
+});
+
 export const selectActivityStats = createSelector(selectActivityHistory, (history) => ({
   totalActivities: history.length,
   totalDistanceMeters: history.reduce((s, a) => s + (a.distanceMeters ?? 0), 0),

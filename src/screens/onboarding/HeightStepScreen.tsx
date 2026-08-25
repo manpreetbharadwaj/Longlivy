@@ -19,8 +19,8 @@ export const HeightStepScreen: React.FC = () => {
 
   return (
     <OnboardingStepLayout
-      step={3}
-      totalSteps={9}
+      step={4}
+      totalSteps={7}
       title="How tall are you?"
       subtitle="Drag to set your height — watch your profile scale."
       onNext={() => navigation.navigate('Weight')}

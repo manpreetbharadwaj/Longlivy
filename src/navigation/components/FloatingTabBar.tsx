@@ -3,18 +3,20 @@ import { View } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@/hooks/useTheme';
 import { AppIconName } from '@/components/common/AppIcon';
+import { useTranslation } from '@/localization';
+import { TranslationKey } from '@/localization/types';
 import { MainTabParamList } from '../types';
 import { TabItem } from './TabItem';
 import { CenterActionButton } from './CenterActionButton';
 import { dashboardFloatingStyle } from '@/features/dashboard/dashboardTheme';
 
-const TAB_META: Record<keyof MainTabParamList, { active: AppIconName; inactive: AppIconName; label: string }> = {
-  HomeTab: { active: 'home', inactive: 'home-outline', label: 'Home' },
-  FastingTab: { active: 'timer', inactive: 'timer-outline', label: 'Fasting' },
-  NutritionTab: { active: 'restaurant', inactive: 'restaurant-outline', label: 'Nutrition' },
-  ActivityTab: { active: 'walk', inactive: 'walk-outline', label: 'Activity' },
-  MeditationTab: { active: 'leaf', inactive: 'leaf-outline', label: 'Meditation' },
-  StatisticsTab: { active: 'stats-chart', inactive: 'stats-chart-outline', label: 'Statistics' },
+const TAB_META: Record<keyof MainTabParamList, { active: AppIconName; inactive: AppIconName; labelKey: TranslationKey }> = {
+  HomeTab: { active: 'home', inactive: 'home-outline', labelKey: 'tabs.home' },
+  FastingTab: { active: 'timer', inactive: 'timer-outline', labelKey: 'tabs.fasting' },
+  NutritionTab: { active: 'restaurant', inactive: 'restaurant-outline', labelKey: 'tabs.nutrition' },
+  ActivityTab: { active: 'walk', inactive: 'walk-outline', labelKey: 'tabs.activity' },
+  MeditationTab: { active: 'leaf', inactive: 'leaf-outline', labelKey: 'tabs.meditation' },
+  StatisticsTab: { active: 'stats-chart', inactive: 'stats-chart-outline', labelKey: 'tabs.statistics' },
 };
 
 export const FLOATING_TAB_BAR_METRICS = {
@@ -69,9 +71,25 @@ export function getFloatingTabBarHeight(safeAreaBottom: number): number {
  */
 export const FloatingTabBar: React.FC<BottomTabBarProps> = ({ state, navigation, insets }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const routes = state.routes;
   const leftRoutes = routes.slice(0, 3);
   const rightRoutes = routes.slice(3, 6);
+  const homeRoute = routes.find((r) => r.name === 'HomeTab');
+  const isHomeFocused = state.routes[state.index]?.name === 'HomeTab';
+
+  // The Home tab icon (leftRoutes[0]) and the center button both lead to
+  // Home, deliberately — they're not redundant. The tab icon is a normal
+  // tab switch; the center button is a global "return to the command
+  // center" action that resets the Home stack to its root and scrolls it
+  // to top even when Home is already focused (matching how a real tab
+  // re-press behaves — see useScrollToTop in HomeDashboardScreen).
+  const goHome = () => {
+    navigation.navigate('HomeTab', { screen: 'HomeDashboard' });
+    if (homeRoute) {
+      navigation.emit({ type: 'tabPress', target: homeRoute.key, canPreventDefault: true });
+    }
+  };
 
   const renderTab = (route: (typeof routes)[number]) => {
     const index = routes.findIndex((r) => r.key === route.key);
@@ -85,7 +103,8 @@ export const FloatingTabBar: React.FC<BottomTabBarProps> = ({ state, navigation,
       }
     };
 
-    return <TabItem key={route.key} icon={meta.inactive} activeIcon={meta.active} label={meta.label} focused={focused} onPress={onPress} accessibilityLabel={meta.label} />;
+    const label = t(meta.labelKey);
+    return <TabItem key={route.key} icon={meta.inactive} activeIcon={meta.active} label={label} focused={focused} onPress={onPress} accessibilityLabel={label} />;
   };
 
   return (
@@ -116,12 +135,7 @@ export const FloatingTabBar: React.FC<BottomTabBarProps> = ({ state, navigation,
       </View>
 
       <View style={{ position: 'absolute', top: 0, left: '50%', marginLeft: -CENTER_SIZE / 2 }}>
-        <CenterActionButton
-          size={CENTER_SIZE}
-          icon="flash"
-          accessibilityLabel="Start fasting"
-          onPress={() => navigation.navigate('FastingTab', { screen: 'SelectFastingMethod' })}
-        />
+        <CenterActionButton size={CENTER_SIZE} icon="home" accessibilityLabel={t('nav.goHome')} active={isHomeFocused} onPress={goHome} />
       </View>
     </View>
   );

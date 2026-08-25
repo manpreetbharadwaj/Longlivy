@@ -15,7 +15,7 @@ import { useFastingTimer } from '@/features/fasting/hooks/useFastingTimer';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
-import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
+import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const FastingCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -29,7 +29,7 @@ export const FastingCard: React.FC = React.memo(() => {
   const goToFasting = () => navigation.navigate('FastingTab', { screen: 'FastingHome' });
 
   return (
-    <HeroCard onPress={goToFasting} style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]} scaleOnPress>
+    <HeroCard onPress={goToFasting} style={[dashboardCardElevated, { marginBottom: theme.spacing.sm }]} scaleOnPress>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <AppProgressRing progress={animatedProgress} size={72} strokeWidth={7} color={dashboardColors.accent} trackColor={dashboardColors.border}>
           <AppIcon name="timer-outline" size={22} color={dashboardColors.accent} />

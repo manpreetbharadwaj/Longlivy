@@ -61,6 +61,28 @@ export const activityHeroGradient = ['#08090B', '#0F1620', '#161F2C'] as const;
  */
 export const meditationHeroGradient = ['#09080B', '#151220', '#1E1830'] as const;
 
+/**
+ * A distinct dark atmosphere for the nutrition dashboard — same charcoal
+ * base as the other hero moods, with a warm amber undertone (pairs with
+ * `colors.ts`'s nutrition tone `#E0AC55`) so logging food reads as "fresh,
+ * fed" next to fasting's cooler "lab" read.
+ */
+export const nutritionHeroGradient = ['#0A0806', '#161009', '#211710'] as const;
+
+/**
+ * A distinct dark atmosphere for the statistics screen — same charcoal
+ * base, cool slate-teal undertone for an analytical, data-driven feel
+ * distinct from the other pillar moods.
+ */
+export const statisticsHeroGradient = ['#06080A', '#0C1417', '#122025'] as const;
+
+/**
+ * The Home dashboard's atmosphere — neutral deep charcoal, deliberately
+ * without a pillar hue since Home aggregates every section rather than
+ * belonging to one of them.
+ */
+export const homeHeroGradient = ['#05070B', '#0A0F17', '#111823'] as const;
+
 /** Energy-source colors for the fasting energy-mix visualization — shared between the visualization and its legend. */
 export const energySourceColors = {
   lastMeal: '#E0AC55',

@@ -10,12 +10,14 @@ import { AppSegmentedControl } from '@/components/common/AppSegmentedControl';
 import { AppSwitch } from '@/components/common/AppSwitch';
 import { useTheme } from '@/hooks/useTheme';
 import { ThemePreference } from '@/contexts/ThemeContext';
-import { useAppPreferences } from '@/contexts/AppPreferencesContext';
+import { useAppPreferences, AppLanguage } from '@/contexts/AppPreferencesContext';
+import { useTranslation } from '@/localization';
 
 export const SettingsScreen: React.FC = () => {
   const { theme, preference, setPreference } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
-  const { preferences, setUnitSystem, setLiveMomentsEnabled, setHapticsEnabled } = useAppPreferences();
+  const { preferences, setUnitSystem, setLanguage, setLiveMomentsEnabled, setHapticsEnabled } = useAppPreferences();
 
   return (
     <TabHeroLayout title="Settings" onBack={() => navigation.goBack()}>
@@ -46,6 +48,19 @@ export const SettingsScreen: React.FC = () => {
         />
       </HeroCard>
 
+      <SectionLabel>{t('settings.language.title')}</SectionLabel>
+      <HeroCard style={{ marginBottom: theme.spacing.md }}>
+        <AppSegmentedControl
+          variant="hero"
+          segments={[
+            { key: 'en', label: t('settings.language.english') },
+            { key: 'de', label: t('settings.language.german') },
+          ]}
+          selectedKey={preferences.language}
+          onChange={(k) => setLanguage(k as AppLanguage)}
+        />
+      </HeroCard>
+
       <SectionLabel>Fasting timeline "live moments"</SectionLabel>
       <HeroCard style={{ marginBottom: theme.spacing.md }}>
         <ToggleRow label="Show live moment cards" value={preferences.liveMomentsEnabled} onChange={setLiveMomentsEnabled} />
@@ -63,9 +78,16 @@ export const SettingsScreen: React.FC = () => {
           Privacy & data
         </AppText>
       </HeroCard>
-      <HeroCard onPress={() => navigation.navigate('DataManagement')} style={{ paddingVertical: theme.spacing.sm }}>
+      <HeroCard onPress={() => navigation.navigate('DataManagement')} style={{ marginBottom: theme.spacing.md, paddingVertical: theme.spacing.sm }}>
         <AppText variant="headingSmall" color="#FFFFFF" align="center">
           Data management
+        </AppText>
+      </HeroCard>
+
+      <SectionLabel>{t('settings.support.title')}</SectionLabel>
+      <HeroCard onPress={() => navigation.navigate('Feedback')} style={{ paddingVertical: theme.spacing.sm }}>
+        <AppText variant="headingSmall" color="#FFFFFF" align="center">
+          {t('settings.support.feedback')}
         </AppText>
       </HeroCard>
     </TabHeroLayout>

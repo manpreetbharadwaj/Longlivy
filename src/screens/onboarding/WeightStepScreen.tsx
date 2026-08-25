@@ -21,8 +21,8 @@ export const WeightStepScreen: React.FC = () => {
 
   return (
     <OnboardingStepLayout
-      step={4}
-      totalSteps={9}
+      step={5}
+      totalSteps={7}
       title="What's your weight?"
       subtitle="Drag to set your current weight."
       onNext={() => navigation.navigate('ActivityLevelStep')}

@@ -8,12 +8,14 @@ import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { OnboardingBackground } from '@/features/onboarding/components/OnboardingBackground';
 import { OnboardingProgressIndicator } from '@/features/onboarding/components/OnboardingProgressIndicator';
-import { onboardingCtaGradient, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
+import { onboardingAccent, onboardingCtaGradient, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
 
 interface OnboardingStepLayoutProps {
-  /** 1-indexed current step, shown as "Step X of totalSteps". */
-  step: number;
-  totalSteps: number;
+  /** 1-indexed current step, shown as "Step X of totalSteps". Omit (with `totalSteps`) for a screen that isn't part of the numbered personalization stack — pass `eyebrow` instead. */
+  step?: number;
+  totalSteps?: number;
+  /** Shown in place of the numbered progress line when `step`/`totalSteps` are omitted — a short label (e.g. "YOUR GOAL") for a screen that's a deliberate beat of its own rather than one of N steps. */
+  eyebrow?: string;
   title: string;
   subtitle?: string;
   children?: React.ReactNode;
@@ -26,15 +28,19 @@ interface OnboardingStepLayoutProps {
 }
 
 /**
- * Shared chrome for the six personalization steps (Gender → Age → Height →
- * Weight → Activity → Goal) — the onboarding-only glass/glow visual system,
- * a morphing progress line instead of segmented boxes, and a pinned CTA
- * footer so the primary action is always reachable regardless of content
- * height or keyboard state.
+ * Shared chrome for onboarding's personalization stack — the onboarding-only
+ * glass/glow visual system, a morphing progress line instead of segmented
+ * boxes, and a pinned CTA footer so the primary action is always reachable
+ * regardless of content height or keyboard state. Also used, via `eyebrow`,
+ * by the Goal screen — the transition beat between "understanding Long
+ * Livy" and the seven numbered steps (PersonalizeMe → Gender → Age → Height
+ * → Weight → ActivityLevelStep → Micronutrients) — so it shares the same
+ * chrome without being counted as one of them.
  */
 export const OnboardingStepLayout: React.FC<OnboardingStepLayoutProps> = ({
   step,
   totalSteps,
+  eyebrow,
   title,
   subtitle,
   children,
@@ -61,7 +67,15 @@ export const OnboardingStepLayout: React.FC<OnboardingStepLayoutProps> = ({
               )}
             </View>
 
-            <OnboardingProgressIndicator step={step} totalSteps={totalSteps} />
+            {step && totalSteps ? (
+              <OnboardingProgressIndicator step={step} totalSteps={totalSteps} />
+            ) : eyebrow ? (
+              <View style={{ marginBottom: theme.spacing.xl }}>
+                <AppText variant="caption" color={onboardingAccent} style={{ letterSpacing: 3 }}>
+                  {eyebrow}
+                </AppText>
+              </View>
+            ) : null}
 
             <FadeSlideIn>
               <AppText variant="displayMedium" color={onboardingGlass.textPrimary}>

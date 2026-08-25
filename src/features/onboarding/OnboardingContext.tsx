@@ -4,9 +4,18 @@ import { FastingMethodId } from '@/features/fasting/models';
 /**
  * Everything onboarding collects to personalize the experience and compute
  * an initial plan. Name/email/password/address are account-creation
- * fields, collected on the Register/Address screens instead; meditation
- * interest, nutrition focus and notification preference are all discovered
- * later, inside the feature that actually needs them.
+ * fields, collected on the Register/Address screens instead. Onboarding
+ * asks only what's needed to build the first plan and the goal-appropriate
+ * nutrient focus — training frequency/volume, weight-change pace, fasting
+ * method, meditation interest and notification preference are all
+ * discovered later, inside the feature that actually needs them (e.g.
+ * fasting method in the Fasting tab's SelectFastingMethodScreen).
+ * `trainingFrequency`/`trainingVolume`/`weightChangePaceKgPerWeek`/
+ * `fastingMethod` stay on this type — unused by any onboarding screen now,
+ * always `null` here — purely so CompleteSetupScreen's existing fallback
+ * defaults and `updateProfile` payload keep working unchanged.
+ * `activityLevel` *is* collected again (ActivityLevelStepScreen, Step 6 of
+ * 7 — reinstated after initially being dropped).
  */
 export interface OnboardingDraft {
   gender: 'female' | 'male' | 'diverse' | null;
@@ -17,15 +26,23 @@ export interface OnboardingDraft {
   heightCm: number | null;
   weightKg: number | null;
   activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active' | null;
-  /** Sessions per week of deliberate exercise — distinct from `activityLevel` (overall daily movement, feeds the calorie multiplier); this is specifically about structured training frequency. */
+  /** No longer collected during onboarding (see class doc). */
   trainingFrequency: number | null;
-  /** How much ground a typical training session covers — duration/intensity, not just how often. */
+  /** No longer collected during onboarding (see class doc). */
   trainingVolume: 'low' | 'moderate' | 'high' | null;
   goal: 'weight_loss' | 'maintenance' | 'muscle_gain' | null;
-  /** Only meaningful (and only asked) when `goal` isn't `'maintenance'` — how fast, not just which direction. */
+  /** No longer collected during onboarding (see class doc). */
   weightChangePaceKgPerWeek: number | null;
-  /** The user's preferred fasting rhythm, captured as a lightweight onboarding preference — not the same thing as actually starting a fast (that's `startFastThunk` in the Fasting feature) or configuring a full recurring plan (times, weekdays, timezone, notifications — that's `CreateFastingPlan`, reached later from the Fasting tab once the user is ready to schedule something, not asked of someone still creating their account). */
+  /** No longer collected during onboarding (see class doc). */
   fastingMethod: FastingMethodId | null;
+  /**
+   * Nutrient ids selected on MicronutrientSetupScreen. `null` until that
+   * screen is first reached — distinguishes "not visited yet" from "visited
+   * and deliberately cleared every suggestion", so its smart defaults are
+   * only ever computed once and back-navigation never recomputes over a
+   * user's actual choice.
+   */
+  micronutrients: string[] | null;
 }
 
 const DEFAULT_DRAFT: OnboardingDraft = {
@@ -40,6 +57,7 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   goal: null,
   weightChangePaceKgPerWeek: null,
   fastingMethod: null,
+  micronutrients: null,
 };
 
 interface OnboardingContextValue {

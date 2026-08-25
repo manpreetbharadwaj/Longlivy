@@ -8,6 +8,8 @@ interface AnimatedNumberTextProps {
   /** Final numeric value to count up (or down) to. */
   value: number;
   duration?: number;
+  /** Delay in ms before the count-up begins — pass `index * motion.staggerStepMs` to sync with a card's entrance animation. */
+  startDelay?: number;
   /** Formats the in-flight (already-rounded-by-caller-if-needed) value into display text. Defaults to a plain rounded integer. */
   formatter?: (n: number) => string;
   variant?: keyof TypographyTokens;
@@ -26,8 +28,8 @@ interface AnimatedNumberTextProps {
  * animation mechanism.
  */
 export const AnimatedNumberText: React.FC<AnimatedNumberTextProps> = React.memo(
-  ({ value, duration = 900, formatter, variant, color, weight, align, style }) => {
-    const animated = useAnimatedProgress(value, duration);
+  ({ value, duration = 900, startDelay = 0, formatter, variant, color, weight, align, style }) => {
+    const animated = useAnimatedProgress(value, duration, { delay: startDelay });
     const display = formatter ? formatter(animated) : `${Math.round(animated)}`;
     return (
       <AppText variant={variant} color={color} weight={weight} align={align} style={style}>

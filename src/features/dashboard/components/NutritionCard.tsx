@@ -14,7 +14,7 @@ import { useAppSelector } from '@/store/hooks';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { motion } from '@/theme/motion';
 import { selectNutritionProgress } from '@/features/nutrition/selectors';
-import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
+import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const NutritionCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -24,7 +24,7 @@ export const NutritionCard: React.FC = React.memo(() => {
   return (
     <HeroCard
       onPress={() => navigation.navigate('NutritionTab', { screen: 'NutritionDashboard' })}
-      style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]}
+      style={[dashboardCardElevated, { marginBottom: theme.spacing.sm }]}
       scaleOnPress
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.sm }}>

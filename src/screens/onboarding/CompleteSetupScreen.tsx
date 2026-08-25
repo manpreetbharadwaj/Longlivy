@@ -191,6 +191,7 @@ export const CompleteSetupScreen: React.FC = () => {
         trainingVolume: draft.trainingVolume ?? undefined,
         weightChangePaceKgPerWeek: pace ?? undefined,
         fastingMethod: draft.fastingMethod ?? undefined,
+        micronutrientFocus: draft.micronutrients ?? undefined,
       })
     );
     dispatch(setBodyProfile({ age, gender, heightCm, weightKg, activityLevel }));
@@ -252,7 +253,8 @@ export const CompleteSetupScreen: React.FC = () => {
               <View style={{ backgroundColor: onboardingGlass.fill, borderWidth: 1.5, borderColor: onboardingGlass.border, borderRadius: theme.radius.lg, padding: theme.spacing.md }}>
                 <StatRow label="Goal" value={GOAL_LABELS[goal]} />
                 <StatRow label="Activity level" value={ACTIVITY_LABELS[activityLevel]} />
-                <StatRow label="Height · Weight" value={`${heightCm} cm · ${weightKg} kg`} last />
+                <StatRow label="Height · Weight" value={`${heightCm} cm · ${weightKg} kg`} />
+                <StatRow label="Micronutrients" value={`${(draft.micronutrients ?? []).length} tracked`} last />
               </View>
             </FadeSlideIn>
           </ScrollView>

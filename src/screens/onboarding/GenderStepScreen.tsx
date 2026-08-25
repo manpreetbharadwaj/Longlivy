@@ -9,10 +9,12 @@ import { GenderCard } from '@/features/onboarding/components/GenderCard';
 import { HumanBodyVisualizer } from '@/features/onboarding/components/three/HumanBodyVisualizer';
 import { OnboardingStepLayout } from './OnboardingStepLayout';
 
+// Order is client-specified and load-bearing: Male, then Female, then
+// Diverse / Other — do not reorder.
 const OPTIONS = [
-  { key: 'female' as const, label: 'Female' },
   { key: 'male' as const, label: 'Male' },
-  { key: 'diverse' as const, label: 'Diverse' },
+  { key: 'female' as const, label: 'Female' },
+  { key: 'diverse' as const, label: 'Diverse / Other' },
 ];
 
 export const GenderStepScreen: React.FC = () => {
@@ -22,8 +24,8 @@ export const GenderStepScreen: React.FC = () => {
 
   return (
     <OnboardingStepLayout
-      step={1}
-      totalSteps={9}
+      step={2}
+      totalSteps={7}
       title="Let's start with you"
       subtitle="This calibrates your baseline calculations."
       onNext={() => navigation.navigate('Age')}

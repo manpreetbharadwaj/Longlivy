@@ -15,7 +15,7 @@ import { motion } from '@/theme/motion';
 import { selectActiveActivity, selectTodayActivityCalories } from '@/features/activity/selectors';
 import { ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
 import { homeIconTileStyle } from '../homeIconTileStyle';
-import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
+import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const ActivityCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -47,7 +47,7 @@ export const ActivityCard: React.FC = React.memo(() => {
   return (
     <HeroCard
       onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome' })}
-      style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]}
+      style={[dashboardCardElevated, { marginBottom: theme.spacing.sm }]}
       scaleOnPress
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>

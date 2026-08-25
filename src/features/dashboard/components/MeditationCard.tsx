@@ -15,7 +15,7 @@ import { useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { selectTodayMeditationSeconds, selectMeditationStreak } from '@/features/meditation/selectors';
 import { homeIconTileStyle } from '../homeIconTileStyle';
-import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
+import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const MeditationCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
@@ -46,7 +46,7 @@ export const MeditationCard: React.FC = React.memo(() => {
   return (
     <HeroCard
       onPress={() => navigation.navigate('MeditationTab', { screen: 'MeditationHome' })}
-      style={[dashboardCardStyle, { marginBottom: theme.spacing.sm }]}
+      style={[dashboardCardElevated, { marginBottom: theme.spacing.sm }]}
       scaleOnPress
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>

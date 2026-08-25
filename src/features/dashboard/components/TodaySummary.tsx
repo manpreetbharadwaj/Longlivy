@@ -11,33 +11,27 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { motion } from '@/theme/motion';
-import { selectTodayMeditationSeconds } from '@/features/meditation/selectors';
-import { selectTodayActivityCalories } from '@/features/activity/selectors';
-import { selectDailyNutritionTotals } from '@/features/nutrition/selectors';
-import { selectFastingStats } from '@/features/fasting/selectors';
-import { selectDailyEnergyBalance } from '@/features/calories/selectors';
-import { dashboardColors, dashboardCardStyle } from '../dashboardTheme';
+import { useTranslation } from '@/localization';
+import { selectDailySummary } from '../selectors';
+import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const TodaySummary: React.FC = React.memo(() => {
   const { theme } = useTheme();
-  const meditationSeconds = useAppSelector(selectTodayMeditationSeconds);
-  const activityCalories = useAppSelector(selectTodayActivityCalories);
-  const nutritionTotals = useAppSelector(selectDailyNutritionTotals);
-  const fastingStats = useAppSelector(selectFastingStats);
-  const balance = useAppSelector(selectDailyEnergyBalance);
+  const { t } = useTranslation();
+  const summary = useAppSelector(selectDailySummary);
 
-  const consumed = Math.round(nutritionTotals.calories);
-  const goalFraction = balance.calorieGoal > 0 ? balance.caloriesConsumed / balance.calorieGoal : 0;
+  const consumed = Math.round(summary.nutrition.calories);
+  const goalFraction = summary.energy.calorieGoal > 0 ? summary.energy.caloriesConsumed / summary.energy.calorieGoal : 0;
   const animatedFraction = useAnimatedProgress(Math.min(goalFraction, 1));
 
   return (
-    <HeroCard style={[dashboardCardStyle, { marginBottom: theme.spacing.sm, overflow: 'hidden' }]}>
+    <HeroCard style={[dashboardCardElevated, { marginBottom: theme.spacing.sm, overflow: 'hidden' }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
             <View style={{ width: 3, height: 14, borderRadius: 2, backgroundColor: dashboardColors.accent, marginRight: 6 }} />
             <AppText variant="label" color={dashboardColors.textSecondary}>
-              Today
+              {t('home.today.title')}
             </AppText>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
@@ -47,7 +41,7 @@ export const TodaySummary: React.FC = React.memo(() => {
             </AppText>
           </View>
           <AppText variant="bodySmall" color={dashboardColors.textMuted}>
-            Consumed today
+            {t('home.today.consumedToday')}
           </AppText>
         </View>
         <AppProgressRing progress={animatedFraction} size={64} strokeWidth={6} color={dashboardColors.accent} trackColor={dashboardColors.border} />
@@ -62,10 +56,10 @@ export const TodaySummary: React.FC = React.memo(() => {
           borderTopColor: dashboardColors.border,
         }}
       >
-        <MetricColumn index={0} icon="flame-outline" value={activityCalories} suffix=" kcal" label="Activity" />
-        <MetricColumn index={1} icon="leaf-outline" value={Math.round(meditationSeconds / 60)} suffix=" min" label="Meditation" divider />
-        <MetricColumn index={2} icon="ribbon-outline" value={fastingStats.currentStreak} suffix="d" label="Streak" divider />
-        <MetricColumn index={3} icon="restaurant-outline" value={consumed} suffix="" label="Net kcal" divider />
+        <MetricColumn index={0} icon="flame-outline" value={summary.activity.caloriesBurned} suffix=" kcal" label={t('home.today.activity')} />
+        <MetricColumn index={1} icon="leaf-outline" value={Math.round(summary.mindfulness.minutesToday)} suffix=" min" label={t('home.today.meditation')} divider />
+        <MetricColumn index={2} icon="ribbon-outline" value={summary.fasting.currentStreak} suffix="d" label={t('home.today.streak')} divider />
+        <MetricColumn index={3} icon="restaurant-outline" value={consumed} suffix="" label={t('home.today.netKcal')} divider />
       </View>
       <CardShimmer delay={400} />
     </HeroCard>
