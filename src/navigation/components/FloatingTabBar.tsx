@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@/hooks/useTheme';
-import { AppIconName } from '@/components/common/AppIcon';
+import { AppIconName, MaterialCommunityIconName } from '@/components/common/AppIcon';
 import { useTranslation } from '@/localization';
 import { TranslationKey } from '@/localization/types';
 import { MainTabParamList } from '../types';
@@ -10,12 +10,25 @@ import { TabItem } from './TabItem';
 import { CenterActionButton } from './CenterActionButton';
 import { dashboardFloatingStyle } from '@/features/dashboard/dashboardTheme';
 
-const TAB_META: Record<keyof MainTabParamList, { active: AppIconName; inactive: AppIconName; labelKey: TranslationKey }> = {
+const TAB_META: Record<
+  keyof MainTabParamList,
+  {
+    active: AppIconName | MaterialCommunityIconName;
+    inactive: AppIconName | MaterialCommunityIconName;
+    labelKey: TranslationKey;
+    family?: 'ionicons' | 'material-community';
+  }
+> = {
+  // Hidden from the bar's visible icon row (see visibleRoutes below) — kept
+  // here only because TAB_META must cover every registered tab route.
   HomeTab: { active: 'home', inactive: 'home-outline', labelKey: 'tabs.home' },
+  ProfileTab: { active: 'person-circle', inactive: 'person-circle-outline', labelKey: 'tabs.profile' },
   FastingTab: { active: 'timer', inactive: 'timer-outline', labelKey: 'tabs.fasting' },
   NutritionTab: { active: 'restaurant', inactive: 'restaurant-outline', labelKey: 'tabs.nutrition' },
   ActivityTab: { active: 'walk', inactive: 'walk-outline', labelKey: 'tabs.activity' },
-  MeditationTab: { active: 'leaf', inactive: 'leaf-outline', labelKey: 'tabs.meditation' },
+  // MaterialCommunityIcons has no separate outline glyph for this figure —
+  // active/inactive is still communicated via the usual color change.
+  MeditationTab: { active: 'meditation', inactive: 'meditation', labelKey: 'tabs.meditation', family: 'material-community' },
   StatisticsTab: { active: 'stats-chart', inactive: 'stats-chart-outline', labelKey: 'tabs.statistics' },
 };
 
@@ -67,14 +80,29 @@ export function getFloatingTabBarHeight(safeAreaBottom: number): number {
  * to add `getFloatingTabBarHeight(insets.bottom)` of bottom padding to its
  * own scrollable content so the last item never ends up underneath the
  * opaque pill — see useFloatingTabBarSpacing, applied in TabHeroLayout,
- * FastingHeroLayout, ActivityHeroLayout and MeditationHeroLayout.
+ * FastingHeroLayout, ActivityHeroLayout and every screen built directly on
+ * SectionHeroLayout (Home, the Meditation flow, etc.).
  */
-export const FloatingTabBar: React.FC<BottomTabBarProps> = ({ state, navigation, insets }) => {
+export const FloatingTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation, insets }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const routes = state.routes;
-  const leftRoutes = routes.slice(0, 3);
-  const rightRoutes = routes.slice(3, 6);
+
+  // A custom `tabBar` render prop (like this one) isn't auto-hidden by the
+  // default navigator the way its built-in bar is — it still receives
+  // `state` regardless of options. Honor the standard per-screen
+  // `tabBarStyle: { display: 'none' }` convention ourselves so immersive
+  // screens (an active meditation session) can hide the bar the normal
+  // React Navigation way.
+  const focusedRoute = state.routes[state.index];
+  const focusedTabBarStyle = descriptors[focusedRoute.key]?.options.tabBarStyle;
+  const isHidden = !!focusedTabBarStyle && typeof focusedTabBarStyle === 'object' && (focusedTabBarStyle as { display?: string }).display === 'none';
+  if (isHidden) return null;
+  // HomeTab is registered (the center button navigates to it) but stays out
+  // of the bar's own icon row — Profile occupies that leftmost slot instead.
+  const visibleRoutes = routes.filter((r) => r.name !== 'HomeTab');
+  const leftRoutes = visibleRoutes.slice(0, 3);
+  const rightRoutes = visibleRoutes.slice(3, 6);
   const homeRoute = routes.find((r) => r.name === 'HomeTab');
   const isHomeFocused = state.routes[state.index]?.name === 'HomeTab';
 
@@ -104,7 +132,18 @@ export const FloatingTabBar: React.FC<BottomTabBarProps> = ({ state, navigation,
     };
 
     const label = t(meta.labelKey);
-    return <TabItem key={route.key} icon={meta.inactive} activeIcon={meta.active} label={label} focused={focused} onPress={onPress} accessibilityLabel={label} />;
+    return (
+      <TabItem
+        key={route.key}
+        icon={meta.inactive}
+        activeIcon={meta.active}
+        iconFamily={meta.family}
+        label={label}
+        focused={focused}
+        onPress={onPress}
+        accessibilityLabel={label}
+      />
+    );
   };
 
   return (

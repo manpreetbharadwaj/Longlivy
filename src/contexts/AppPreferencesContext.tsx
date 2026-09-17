@@ -7,14 +7,29 @@ export type AppLanguage = 'en' | 'de';
 interface AppPreferences {
   unitSystem: UnitSystem;
   language: AppLanguage;
+  /**
+   * Whether the user has explicitly picked a language yet. `false` only on
+   * a truly fresh install — `RootNavigator` shows the first-launch
+   * `LanguageSelectScreen` while this is false. `setLanguage` (from that
+   * screen or from Settings) flips it to `true`.
+   */
+  languageSelected: boolean;
   liveMomentsEnabled: boolean;
   hapticsEnabled: boolean;
 }
 
 interface AppPreferencesContextValue {
   preferences: AppPreferences;
+  /** True once the persisted preferences have been read back in on this launch — gate first user-facing render on this to avoid a language flash. */
+  hydrated: boolean;
   setUnitSystem: (u: UnitSystem) => void;
-  setLanguage: (l: AppLanguage) => void;
+  /**
+   * Set the active language. By default this also marks the language as
+   * explicitly chosen (`languageSelected: true`), which dismisses the
+   * first-launch picker — pass `{ markSelected: false }` to only preview a
+   * language (the picker itself does this on tap, and confirms on Continue).
+   */
+  setLanguage: (l: AppLanguage, opts?: { markSelected?: boolean }) => void;
   setLiveMomentsEnabled: (v: boolean) => void;
   setHapticsEnabled: (v: boolean) => void;
 }
@@ -22,6 +37,7 @@ interface AppPreferencesContextValue {
 const DEFAULTS: AppPreferences = {
   unitSystem: 'metric',
   language: 'en',
+  languageSelected: false,
   liveMomentsEnabled: true,
   hapticsEnabled: true,
 };
@@ -32,17 +48,29 @@ const AppPreferencesContext = createContext<AppPreferencesContextValue | undefin
 
 export const AppPreferencesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [preferences, setPreferences] = useState<AppPreferences>(DEFAULTS);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
-      if (raw) {
-        try {
-          setPreferences({ ...DEFAULTS, ...JSON.parse(raw) });
-        } catch {
-          // ignore malformed local cache
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then((raw) => {
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as Partial<AppPreferences>;
+            setPreferences({
+              ...DEFAULTS,
+              ...parsed,
+              // Migration: installs from before this field always persisted a
+              // `language` (it's in DEFAULTS and always written), so treat any
+              // existing prefs blob as "already chosen" — only a first-ever
+              // launch (no blob at all) reaches the picker.
+              languageSelected: parsed.languageSelected ?? parsed.language != null,
+            });
+          } catch {
+            // ignore malformed local cache
+          }
         }
-      }
-    });
+      })
+      .finally(() => setHydrated(true));
   }, []);
 
   const persist = useCallback((next: AppPreferences) => {
@@ -55,7 +83,8 @@ export const AppPreferencesProvider: React.FC<{ children: React.ReactNode }> = (
     [preferences, persist]
   );
   const setLanguage = useCallback(
-    (language: AppLanguage) => persist({ ...preferences, language }),
+    (language: AppLanguage, opts?: { markSelected?: boolean }) =>
+      persist({ ...preferences, language, languageSelected: opts?.markSelected === false ? preferences.languageSelected : true }),
     [preferences, persist]
   );
   const setLiveMomentsEnabled = useCallback(
@@ -68,8 +97,8 @@ export const AppPreferencesProvider: React.FC<{ children: React.ReactNode }> = (
   );
 
   const value = useMemo(
-    () => ({ preferences, setUnitSystem, setLanguage, setLiveMomentsEnabled, setHapticsEnabled }),
-    [preferences, setUnitSystem, setLanguage, setLiveMomentsEnabled, setHapticsEnabled]
+    () => ({ preferences, hydrated, setUnitSystem, setLanguage, setLiveMomentsEnabled, setHapticsEnabled }),
+    [preferences, hydrated, setUnitSystem, setLanguage, setLiveMomentsEnabled, setHapticsEnabled]
   );
 
   return <AppPreferencesContext.Provider value={value}>{children}</AppPreferencesContext.Provider>;

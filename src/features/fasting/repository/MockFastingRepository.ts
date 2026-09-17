@@ -63,8 +63,21 @@ export class MockFastingRepository implements FastingRepository {
     startTimestamp: string;
     plannedEndTimestamp: string;
     fastingPlanId?: string | null;
-  }): Promise<FastingSession> {
+  }): Promise<{ session: FastingSession; alreadyActive: boolean }> {
     const db = await store.read();
+    // The existence check and the write happen against this same `db` read,
+    // with no `await` between them — never a second concurrently-active
+    // session for this user, even if two starts are triggered back to back.
+    // Previously this unconditionally prepended a new 'active' row: a
+    // double-tap (or any second start attempt) silently orphaned whatever
+    // session was already running, since `getActiveFast` only ever returns
+    // the newest one — the orphaned row never went away, and would resurface
+    // as "already active" the next time fasting data was loaded.
+    const existingActive = db.sessions.find((s) => s.userId === input.userId && s.status === 'active');
+    if (existingActive) {
+      return delay({ session: existingActive, alreadyActive: true });
+    }
+
     const now = new Date().toISOString();
     const session: FastingSession = {
       id: generateId('fast'),
@@ -88,7 +101,7 @@ export class MockFastingRepository implements FastingRepository {
     };
     db.sessions = [session, ...db.sessions];
     await store.write(db);
-    return delay(session);
+    return delay({ session, alreadyActive: false });
   }
 
   async endFastPrematurely(id: string): Promise<FastingSession> {

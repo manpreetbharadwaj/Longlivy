@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, View, ViewStyle, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
+import { useFloatingTabBarSpacing } from '@/navigation/components/useFloatingTabBarSpacing';
 
 interface AppScreenProps {
   children: React.ReactNode;
@@ -15,7 +16,12 @@ interface AppScreenProps {
 export const AppScreen: React.FC<AppScreenProps> = React.memo(
   ({ children, scroll = true, padded = true, style, refreshing, onRefresh }) => {
     const { theme } = useTheme();
-    const content = { padding: padded ? theme.spacing.md : 0, paddingBottom: theme.spacing.xxxl };
+    // Same reasoning as SectionHeroLayout: the floating tab bar is an
+    // absolutely-positioned overlay, not a docked bar that reserves layout
+    // space, so screens under it must add this manually or their last item
+    // ends up hidden behind the opaque pill.
+    const tabBarSpacing = useFloatingTabBarSpacing();
+    const content = { padding: padded ? theme.spacing.md : 0, paddingBottom: theme.spacing.xxxl + tabBarSpacing };
 
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top', 'left', 'right']}>

@@ -1,14 +1,16 @@
-import React from 'react';
-import { View, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Pressable, ScrollView, KeyboardAvoidingView, Platform, LayoutChangeEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppIcon } from '@/components/common/AppIcon';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
+import { motion } from '@/theme/motion';
 import { OnboardingBackground } from '@/features/onboarding/components/OnboardingBackground';
 import { OnboardingProgressIndicator } from '@/features/onboarding/components/OnboardingProgressIndicator';
-import { onboardingAccent, onboardingCtaGradient, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
+import { onboardingNeutral, onboardingCtaGradient, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
 
 interface OnboardingStepLayoutProps {
   /** 1-indexed current step, shown as "Step X of totalSteps". Omit (with `totalSteps`) for a screen that isn't part of the numbered personalization stack — pass `eyebrow` instead. */
@@ -18,7 +20,17 @@ interface OnboardingStepLayoutProps {
   eyebrow?: string;
   title: string;
   subtitle?: string;
-  children?: React.ReactNode;
+  /**
+   * Either plain content, or a render function receiving the actual pixel
+   * height available for it — the ScrollView's own measured frame, i.e.
+   * whatever's genuinely left after the header above and the Continue
+   * button below on THIS device. Screens with a flexible visual (a figure,
+   * an illustration) that must never force this region to scroll should use
+   * the function form rather than guessing a fixed size or leaning on a
+   * `flex: 1` child, which measures unreliably here — see
+   * `contentAreaHeight` below for why.
+   */
+  children?: React.ReactNode | ((contentAreaHeight: number) => React.ReactNode);
   onNext: () => void;
   onBack?: () => void;
   nextLabel?: string;
@@ -46,11 +58,32 @@ export const OnboardingStepLayout: React.FC<OnboardingStepLayoutProps> = ({
   children,
   onNext,
   onBack,
-  nextLabel = 'Continue',
+  nextLabel,
   nextDisabled,
   dimBackground,
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
+
+  // The ScrollView's own outer frame, measured directly rather than derived
+  // from a `flex: 1` child living inside its `contentContainerStyle`. Those
+  // two sound equivalent but aren't reliable in the same way: a `flex: 1`
+  // *content-container* child is sized by a "how much room is left, given
+  // what the rest of the content needs" negotiation that can settle on a
+  // generous first-pass guess (particularly on Android) and never fully
+  // correct itself once a real child renders into that guessed size — the
+  // guess and the child reinforce each other into a value taller than the
+  // ScrollView’s real bound, so content quietly overflows into a scroll.
+  // The ScrollView's own frame, by contrast, is an ordinary sibling in a
+  // plain (non-scrolling) flex column — a completely ordinary, reliable
+  // `onLayout` measurement — so it's the trustworthy number to hand
+  // screens that need to size a flexible visual against real leftover
+  // space.
+  const [contentAreaHeight, setContentAreaHeight] = useState(0);
+  const handleContentAreaLayout = useCallback((e: LayoutChangeEvent) => {
+    const { height } = e.nativeEvent.layout;
+    setContentAreaHeight((prev) => (prev === height ? prev : height));
+  }, []);
 
   return (
     <OnboardingBackground dim={dimBackground}>
@@ -59,7 +92,7 @@ export const OnboardingStepLayout: React.FC<OnboardingStepLayoutProps> = ({
           <View style={{ flex: 1, padding: theme.spacing.md }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }}>
               {onBack ? (
-                <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Go back" hitSlop={12} style={{ width: 32, height: 32, justifyContent: 'center' }}>
+                <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={t('common.back')} hitSlop={12} style={{ width: 32, height: 32, justifyContent: 'center' }}>
                   <AppIcon name="chevron-back" size={24} color={onboardingGlass.textPrimary} />
                 </Pressable>
               ) : (
@@ -68,16 +101,22 @@ export const OnboardingStepLayout: React.FC<OnboardingStepLayoutProps> = ({
             </View>
 
             {step && totalSteps ? (
-              <OnboardingProgressIndicator step={step} totalSteps={totalSteps} />
+              <FadeSlideIn fromY={10}>
+                <OnboardingProgressIndicator step={step} totalSteps={totalSteps} />
+              </FadeSlideIn>
             ) : eyebrow ? (
-              <View style={{ marginBottom: theme.spacing.xl }}>
-                <AppText variant="caption" color={onboardingAccent} style={{ letterSpacing: 3 }}>
+              <FadeSlideIn style={{ marginBottom: theme.spacing.xl }} fromY={10}>
+                <AppText variant="caption" color={onboardingNeutral} style={{ letterSpacing: 3 }}>
                   {eyebrow}
                 </AppText>
-              </View>
+              </FadeSlideIn>
             ) : null}
 
-            <FadeSlideIn>
+            {/* Title enters slightly after the eyebrow above it — a small,
+                consistent cascade (eyebrow -> title -> content) rather than
+                everything appearing in one flat fade, applied here once so
+                every onboarding step built on this shared layout gets it. */}
+            <FadeSlideIn delay={eyebrow ? motion.staggerStepMs * 2 : 0}>
               <AppText variant="displayMedium" color={onboardingGlass.textPrimary}>
                 {title}
               </AppText>
@@ -96,12 +135,18 @@ export const OnboardingStepLayout: React.FC<OnboardingStepLayoutProps> = ({
               centered/expanded like a plain flex:1 View, while taller content
               (e.g. a long ruler) scrolls instead of clipping behind the CTA.
             */}
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              {children}
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ flexGrow: 1 }}
+              onLayout={handleContentAreaLayout}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {typeof children === 'function' ? children(contentAreaHeight) : children}
             </ScrollView>
 
             <View style={{ marginTop: theme.spacing.lg, paddingBottom: theme.spacing.sm }}>
-              <AppGradientButton label={nextLabel} onPress={onNext} disabled={nextDisabled} colors={onboardingCtaGradient} />
+              <AppGradientButton label={nextLabel ?? t('common.continue')} onPress={onNext} disabled={nextDisabled} colors={onboardingCtaGradient} />
             </View>
           </View>
         </KeyboardAvoidingView>

@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import { SplashScreen } from '@/screens/SplashScreen';
+import { LanguageSelectScreen } from '@/screens/onboarding/LanguageSelectScreen';
 import { OnboardingNavigator } from './OnboardingNavigator';
 import { AuthNavigator } from './AuthNavigator';
 import { MainTabNavigator } from './MainTabNavigator';
+import { useAppPreferences } from '@/contexts/AppPreferencesContext';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { bootstrapSession } from '@/features/auth/authSlice';
 import { selectAuthBootstrapped, selectIsAuthenticated, selectOnboardingComplete } from '@/features/auth/selectors';
@@ -22,6 +24,7 @@ export const RootNavigator: React.FC = () => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const onboardingComplete = useAppSelector(selectOnboardingComplete);
   const hasAddress = useAppSelector(selectHasAddress);
+  const { hydrated: prefsHydrated, preferences } = useAppPreferences();
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
   useEffect(() => {
@@ -37,12 +40,18 @@ export const RootNavigator: React.FC = () => {
     return () => clearTimeout(timer);
   }, [dispatch]);
 
-  const showSplash = !bootstrapped || !profileHydrated || !minTimeElapsed;
+  // `prefsHydrated` joins the splash gate so the persisted language is in
+  // place before the first user-facing screen renders — no English→German
+  // flash. AsyncStorage resolves in ~10–50ms, well inside MIN_SPLASH_MS.
+  const showSplash = !bootstrapped || !profileHydrated || !prefsHydrated || !minTimeElapsed;
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {showSplash ? (
         <Stack.Screen name="Splash" component={SplashScreen} />
+      ) : !preferences.languageSelected ? (
+        // First launch only — pick a language before anything else.
+        <Stack.Screen name="Language" component={LanguageSelectScreen} />
       ) : !onboardingComplete ? (
         <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
       ) : !isAuthenticated || !hasAddress ? (

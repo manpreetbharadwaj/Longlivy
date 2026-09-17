@@ -88,7 +88,9 @@ export function buildDailySeries<T>(
   getIso: (item: T) => string,
   getValue: (item: T) => number,
   days: number,
-  now: Date = new Date()
+  now: Date = new Date(),
+  /** BCP-47 tag for the day-of-week labels (e.g. 'de-DE'). Omit for the platform default. */
+  locale?: string
 ): { label: string; value: number }[] {
   const buckets = new Map<string, number>();
   const cursor = new Date(now);
@@ -114,7 +116,7 @@ export function buildDailySeries<T>(
   }
 
   return dayKeys.map((key) => ({
-    label: new Date(key).toLocaleDateString(undefined, { weekday: 'narrow' }),
+    label: new Date(key).toLocaleDateString(locale, { weekday: 'narrow' }),
     value: Math.round((buckets.get(key) ?? 0) * 10) / 10,
   }));
 }

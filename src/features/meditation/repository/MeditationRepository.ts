@@ -1,4 +1,4 @@
-import { Meditation, MeditationSession, MeditationSessionEvent, MeditationTemplate, BreathingScheme, SessionEventType } from '../models';
+import { Meditation, MeditationSession, MeditationSessionEvent, MeditationTemplate, MeditationReminder, BreathingScheme, SessionEventType } from '../models';
 
 export interface MeditationRepository {
   getPublishedContent(): Promise<Meditation[]>;
@@ -8,6 +8,10 @@ export interface MeditationRepository {
   getTemplates(userId: string): Promise<MeditationTemplate[]>;
   saveTemplate(template: MeditationTemplate): Promise<MeditationTemplate>;
   deleteTemplate(id: string): Promise<void>;
+
+  getReminders(userId: string): Promise<MeditationReminder[]>;
+  saveReminder(reminder: MeditationReminder): Promise<MeditationReminder>;
+  deleteReminder(id: string): Promise<void>;
 
   startSession(input: {
     userId: string;

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -24,7 +24,7 @@ const CATEGORY_SEGMENTS = [
   { key: 'individual', label: 'Individual' },
 ];
 
-const FASTING_GRADIENT = ['#1BA7D1', '#0E7A9E'] as const;
+const FASTING_GRADIENT = ['#5C7A94', '#3D5266'] as const;
 
 export const SelectFastingMethodScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -34,6 +34,12 @@ export const SelectFastingMethodScreen: React.FC = () => {
   const [customHours, setCustomHours] = useState('16');
   const [selectedMethod, setSelectedMethod] = useState<FastingMethodId | null>(null);
   const actionStatus = useAppSelector(selectFastingActionStatus);
+  // Synchronous guard against a second tap starting a second request before
+  // Redux's `actionStatus` (which drives the button's own `loading` state)
+  // has had a chance to re-render — a ref updates immediately, a re-render
+  // doesn't, so this is what actually makes the handler non-reentrant rather
+  // than just visually discouraging a fast double-tap.
+  const isStartingRef = useRef(false);
 
   const methods = useMemo(() => FASTING_METHODS.filter((m) => m.category === category), [category]);
 
@@ -50,9 +56,24 @@ export const SelectFastingMethodScreen: React.FC = () => {
   const selectMethod = useCallback((methodId: FastingMethodId) => setSelectedMethod((prev) => (prev === methodId ? null : methodId)), []);
 
   const confirmStart = useCallback(async () => {
-    if (!selectedMethod) return;
-    await dispatch(startFastThunk({ method: selectedMethod, customHours: selectedMethod === 'individual' ? Number(customHours) || 16 : undefined }));
-    navigation.replace('FastingStarted');
+    if (!selectedMethod || isStartingRef.current) return;
+    isStartingRef.current = true;
+    try {
+      const { alreadyActive } = await dispatch(
+        startFastThunk({ method: selectedMethod, customHours: selectedMethod === 'individual' ? Number(customHours) || 16 : undefined })
+      ).unwrap();
+      // A fast was already running (e.g. one this same account started
+      // elsewhere) — this call never created a second one, so there is
+      // nothing to "celebrate": go straight to the existing fast instead of
+      // the fresh-start moment screen, which would misleadingly imply one
+      // had just begun.
+      navigation.replace(alreadyActive ? 'ActiveFast' : 'FastingStarted');
+    } catch {
+      // Rejected — actionStatus/error already reflect it via the slice;
+      // stay on this screen rather than navigating on a failed start.
+    } finally {
+      isStartingRef.current = false;
+    }
   }, [dispatch, navigation, selectedMethod, customHours]);
 
   const selectedDefinition = FASTING_METHODS.find((m) => m.id === selectedMethod);

@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { HomeStackParamList } from '@/navigation/types';
+import { ProfileStackParamList } from '@/navigation/types';
 import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
@@ -16,32 +16,32 @@ import { useTranslation } from '@/localization';
 export const SettingsScreen: React.FC = () => {
   const { theme, preference, setPreference } = useTheme();
   const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const { preferences, setUnitSystem, setLanguage, setLiveMomentsEnabled, setHapticsEnabled } = useAppPreferences();
 
   return (
-    <TabHeroLayout title="Settings" onBack={() => navigation.goBack()}>
-      <SectionLabel>Appearance</SectionLabel>
+    <TabHeroLayout title={t('settings.title')} onBack={() => navigation.goBack()}>
+      <SectionLabel>{t('settings.appearance')}</SectionLabel>
       <HeroCard style={{ marginBottom: theme.spacing.md }}>
         <AppSegmentedControl
           variant="hero"
           segments={[
-            { key: 'light', label: 'Light' },
-            { key: 'dark', label: 'Dark' },
-            { key: 'system', label: 'System' },
+            { key: 'light', label: t('settings.theme.light') },
+            { key: 'dark', label: t('settings.theme.dark') },
+            { key: 'system', label: t('settings.theme.system') },
           ]}
           selectedKey={preference}
           onChange={(k) => setPreference(k as ThemePreference)}
         />
       </HeroCard>
 
-      <SectionLabel>Units</SectionLabel>
+      <SectionLabel>{t('settings.units.title')}</SectionLabel>
       <HeroCard style={{ marginBottom: theme.spacing.md }}>
         <AppSegmentedControl
           variant="hero"
           segments={[
-            { key: 'metric', label: 'Metric' },
-            { key: 'imperial', label: 'Imperial' },
+            { key: 'metric', label: t('settings.units.metric') },
+            { key: 'imperial', label: t('settings.units.imperial') },
           ]}
           selectedKey={preferences.unitSystem}
           onChange={(k) => setUnitSystem(k as 'metric' | 'imperial')}
@@ -61,26 +61,26 @@ export const SettingsScreen: React.FC = () => {
         />
       </HeroCard>
 
-      <SectionLabel>Fasting timeline "live moments"</SectionLabel>
+      <SectionLabel>{t('settings.liveMoments.title')}</SectionLabel>
       <HeroCard style={{ marginBottom: theme.spacing.md }}>
-        <ToggleRow label="Show live moment cards" value={preferences.liveMomentsEnabled} onChange={setLiveMomentsEnabled} />
-        <ToggleRow label="Haptic feedback" value={preferences.hapticsEnabled} onChange={setHapticsEnabled} last />
+        <ToggleRow label={t('settings.liveMoments.showCards')} value={preferences.liveMomentsEnabled} onChange={setLiveMomentsEnabled} />
+        <ToggleRow label={t('settings.liveMoments.haptics')} value={preferences.hapticsEnabled} onChange={setHapticsEnabled} last />
       </HeroCard>
 
-      <SectionLabel>Data</SectionLabel>
+      <SectionLabel>{t('settings.data.title')}</SectionLabel>
       <HeroCard onPress={() => navigation.navigate('HealthIntegrations')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
         <AppText variant="headingSmall" color="#FFFFFF" align="center">
-          Health integrations
+          {t('settings.data.healthIntegrations')}
         </AppText>
       </HeroCard>
       <HeroCard onPress={() => navigation.navigate('Privacy')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
         <AppText variant="headingSmall" color="#FFFFFF" align="center">
-          Privacy & data
+          {t('settings.data.privacy')}
         </AppText>
       </HeroCard>
       <HeroCard onPress={() => navigation.navigate('DataManagement')} style={{ marginBottom: theme.spacing.md, paddingVertical: theme.spacing.sm }}>
         <AppText variant="headingSmall" color="#FFFFFF" align="center">
-          Data management
+          {t('settings.data.dataManagement')}
         </AppText>
       </HeroCard>
 

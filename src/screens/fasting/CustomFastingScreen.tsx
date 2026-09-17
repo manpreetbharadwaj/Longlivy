@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FastingStackParamList } from '@/navigation/types';
@@ -16,10 +16,26 @@ export const CustomFastingScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<FastingStackParamList>>();
   const dispatch = useAppDispatch();
   const [hours, setHours] = useState('16');
+  // See the same guard on SelectFastingMethodScreen's `confirmStart` — a ref
+  // updates synchronously, so it (unlike Redux state + a re-render) actually
+  // blocks a second tap from dispatching a second start before the first
+  // one resolves.
+  const isStartingRef = useRef(false);
 
   const start = useCallback(async () => {
-    await dispatch(startFastThunk({ method: 'individual', customHours: Number(hours) || 16 }));
-    navigation.replace('ActiveFast');
+    if (isStartingRef.current) return;
+    isStartingRef.current = true;
+    try {
+      // Already-active sessions never get a duplicate created for them (see
+      // MockFastingRepository.startFast) — either way, the existing/new fast
+      // is what the timeline screen should show.
+      await dispatch(startFastThunk({ method: 'individual', customHours: Number(hours) || 16 })).unwrap();
+      navigation.replace('ActiveFast');
+    } catch {
+      // Rejected — stay on this screen rather than navigating on a failed start.
+    } finally {
+      isStartingRef.current = false;
+    }
   }, [dispatch, hours, navigation]);
 
   return (

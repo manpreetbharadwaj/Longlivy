@@ -7,6 +7,7 @@ import Animated, { useSharedValue, useAnimatedProps, withTiming } from 'react-na
 import { OnboardingStackParamList } from '@/navigation/types';
 import { AppText } from '@/components/common/AppText';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { motion } from '@/theme/motion';
 import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
 import { MICRONUTRIENTS, MICRONUTRIENT_CATEGORIES, recommendMicronutrients } from '@/features/onboarding/data/micronutrients';
@@ -61,6 +62,7 @@ const CoverageRing: React.FC<{ selected: number; total: number }> = ({ selected,
 export const MicronutrientSetupScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { draft, update } = useOnboardingDraft();
 
   useEffect(() => {
@@ -85,24 +87,24 @@ export const MicronutrientSetupScreen: React.FC = () => {
     <OnboardingStepLayout
       step={7}
       totalSteps={7}
-      title="Micronutrient Setup"
-      subtitle="We've pre-selected what matters most for your goal — tap any to adjust."
+      title={t('onboarding.micronutrients.title')}
+      subtitle={t('onboarding.micronutrients.subtitle')}
       onNext={() => navigation.navigate('CompleteSetup')}
       onBack={() => navigation.goBack()}
-      nextLabel="Build my plan"
+      nextLabel={t('onboarding.micronutrients.next')}
       dimBackground
     >
       <View style={{ alignItems: 'center', marginBottom: theme.spacing.lg }}>
         <CoverageRing selected={selectedIds.length} total={MICRONUTRIENTS.length} />
         <AppText variant="caption" color={onboardingGlass.textTertiary} style={{ marginTop: theme.spacing.xs }}>
-          of {MICRONUTRIENTS.length} nutrients tracked
+          {t('onboarding.micronutrients.trackedOf', { count: MICRONUTRIENTS.length })}
         </AppText>
       </View>
 
       {MICRONUTRIENT_CATEGORIES.map((cat) => (
         <View key={cat.key} style={{ marginBottom: theme.spacing.md }}>
           <AppText variant="label" color={onboardingGlass.textTertiary} style={{ letterSpacing: 1, marginBottom: theme.spacing.xs }}>
-            {cat.label.toUpperCase()}
+            {t(`onboarding.micronutrients.categories.${cat.key}`).toUpperCase()}
           </AppText>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
             {MICRONUTRIENTS.filter((n) => n.category === cat.key).map((n) => (

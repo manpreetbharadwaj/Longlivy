@@ -1,4 +1,6 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
+import type { ActivityType } from '@/features/activity/models';
+import type { MeditationTopic, UnguidedSoundCategory } from '@/features/meditation/models';
 
 export type OnboardingStackParamList = {
   Welcome: undefined;
@@ -36,13 +38,17 @@ export type HomeStackParamList = {
   History: undefined;
   Goals: undefined;
   Notifications: undefined;
+  EnterWeight: undefined;
+};
+
+export type ProfileStackParamList = {
   Profile: undefined;
   EditProfile: undefined;
   Settings: undefined;
   HealthIntegrations: undefined;
+  NoiseDevice: undefined;
   Privacy: undefined;
   DataManagement: undefined;
-  EnterWeight: undefined;
   Feedback: undefined;
 };
 
@@ -85,7 +91,8 @@ export type NutritionStackParamList = {
 export type ActivityStackParamList = {
   ActivityHome: undefined;
   SelectActivity: undefined;
-  ActiveActivity: undefined;
+  /** `pendingType` means "run the pre-start countdown for this type first" — no Activity record exists yet. Omit to view/resume an already-active session. */
+  ActiveActivity: { pendingType: ActivityType } | undefined;
   ActivitySummary: { activityId: string };
   ActivityHistory: undefined;
   ActivityDetails: { activityId: string };
@@ -94,9 +101,16 @@ export type ActivityStackParamList = {
 
 export type MeditationStackParamList = {
   MeditationHome: undefined;
-  MeditationCategories: undefined;
+  /**
+   * Canonical discovery entry point — every field is optional so Home can link
+   * in from Morning/Sleep/Quick 5 Min/Guided/Unguided (or anywhere else) with
+   * just the filter(s) it knows, instead of a rigid multi-screen funnel.
+   * `mode`/`durationSeconds`/`soundCategory` are typed now but not yet
+   * consumed by the screen — reserved for the fuller Unguided browsing pass.
+   */
+  MeditationCategories: { mode?: 'guided' | 'free'; topic?: MeditationTopic; durationSeconds?: number; soundCategory?: UnguidedSoundCategory } | undefined;
   MeditationDetails: { meditationId: string };
-  MeditationPlayer: { meditationId: string | null; type: 'guided' | 'free' | 'breathing' | 'individual'; durationSeconds: number };
+  MeditationPlayer: { meditationId: string | null; type: 'guided' | 'free' | 'breathing'; durationSeconds: number };
   BreathingExercise: { schemeId: string };
   MeditationFavorites: undefined;
   MeditationTemplates: undefined;
@@ -112,6 +126,7 @@ export type StatisticsStackParamList = {
 
 export type MainTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList>;
+  ProfileTab: NavigatorScreenParams<ProfileStackParamList>;
   FastingTab: NavigatorScreenParams<FastingStackParamList>;
   NutritionTab: NavigatorScreenParams<NutritionStackParamList>;
   ActivityTab: NavigatorScreenParams<ActivityStackParamList>;
@@ -121,6 +136,8 @@ export type MainTabParamList = {
 
 export type RootStackParamList = {
   Splash: undefined;
+  /** First-launch language gate — shown before Onboarding when no language has been chosen yet. */
+  Language: undefined;
   Onboarding: NavigatorScreenParams<OnboardingStackParamList>;
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Main: NavigatorScreenParams<MainTabParamList>;

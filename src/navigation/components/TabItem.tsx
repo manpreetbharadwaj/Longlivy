@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
 import { Pressable } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
-import { AppIcon, AppIconName } from '@/components/common/AppIcon';
+import { AppIcon, AppIconName, MaterialCommunityIconName } from '@/components/common/AppIcon';
 import { AppText } from '@/components/common/AppText';
 import { motion } from '@/theme/motion';
 import { dashboardColors } from '@/features/dashboard/dashboardTheme';
 
 interface TabItemProps {
-  icon: AppIconName;
-  activeIcon: AppIconName;
+  icon: AppIconName | MaterialCommunityIconName;
+  activeIcon: AppIconName | MaterialCommunityIconName;
+  iconFamily?: 'ionicons' | 'material-community';
   label: string;
   focused: boolean;
   onPress: () => void;
@@ -18,11 +19,12 @@ interface TabItemProps {
 /**
  * A single tab — icon plus a small label underneath, with a soft rounded
  * "bubble" behind the icon on the selected tab (the icon rising slightly
- * and tinting cyan) so the selected state stays unmistakable even with a
- * label now doing double duty on identification. Every press gets a small
- * scale-down regardless of whether it changes the selection.
+ * and tinting the app's muted steel accent) so the selected state stays
+ * unmistakable even with a label now doing double duty on identification.
+ * Every press gets a small scale-down regardless of whether it changes the
+ * selection.
  */
-export const TabItem: React.FC<TabItemProps> = React.memo(({ icon, activeIcon, label, focused, onPress, accessibilityLabel }) => {
+export const TabItem: React.FC<TabItemProps> = React.memo(({ icon, activeIcon, iconFamily, label, focused, onPress, accessibilityLabel }) => {
   const pressScale = useSharedValue(1);
   const focusProgress = useSharedValue(focused ? 1 : 0);
 
@@ -56,12 +58,12 @@ export const TabItem: React.FC<TabItemProps> = React.memo(({ icon, activeIcon, l
     >
       <Animated.View
         style={[
-          { position: 'absolute', top: 4, width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(25,184,242,0.14)' },
+          { position: 'absolute', top: 4, width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(92,122,148,0.16)' },
           bubbleStyle,
         ]}
       />
       <Animated.View style={[{ alignItems: 'center', maxWidth: '100%' }, iconWrapStyle]}>
-        <AppIcon name={focused ? activeIcon : icon} size={20} color={color} />
+        <AppIcon name={focused ? activeIcon : icon} family={iconFamily} size={20} color={color} />
         <AppText
           variant="caption"
           color={color}

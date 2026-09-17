@@ -1,5 +1,6 @@
 import { MeditationRepository } from './MeditationRepository';
-import { Meditation, MeditationSession, MeditationSessionEvent, MeditationTemplate, BreathingScheme, SessionEventType } from '../models';
+import { Meditation, MeditationSession, MeditationSessionEvent, MeditationTemplate, MeditationReminder, BreathingScheme, SessionEventType } from '../models';
+import { normalizeLegacyMeditationTopic } from '../meditationTaxonomy';
 import { LocalStore } from '@/services/storage/LocalStore';
 import { generateId } from '@/utils/id';
 import { MEDITATION_CONTENT_SEED, BREATHING_SCHEMES_SEED, MEDITATION_SESSION_SEED } from '@/mock/meditationSeed';
@@ -10,6 +11,13 @@ interface MeditationDb {
   sessions: MeditationSession[];
   templates: MeditationTemplate[];
   favorites: Record<string, string[]>;
+  // Optional because any install that persisted its meditation db before
+  // Phase 6 has a real, already-written AsyncStorage blob with no
+  // `reminders` key at all — LocalStore returns exactly what was last
+  // written, never a fresh reseed, so this field must be read defensively
+  // (`db.reminders ?? []`) rather than assumed present (Section 37: no
+  // migration may require clearing storage or lose existing user data).
+  reminders?: MeditationReminder[];
 }
 
 const store = new LocalStore<MeditationDb>('@longlivy/meditation_db', {
@@ -18,6 +26,7 @@ const store = new LocalStore<MeditationDb>('@longlivy/meditation_db', {
   sessions: MEDITATION_SESSION_SEED,
   templates: [],
   favorites: {},
+  reminders: [],
 });
 
 function delay<T>(value: T, ms = 150): Promise<T> {
@@ -27,7 +36,15 @@ function delay<T>(value: T, ms = 150): Promise<T> {
 export class MockMeditationRepository implements MeditationRepository {
   async getPublishedContent(): Promise<Meditation[]> {
     const db = await store.read();
-    return delay(db.content.filter((m) => m.status === 'published'));
+    // Defensive, idempotent normalization for installs whose AsyncStorage
+    // blob still holds pre-taxonomy category strings written before this
+    // migration (LocalStore persists whatever was last written, not a fresh
+    // reseed on every read) — a value that's already canonical passes
+    // through unchanged, so this is safe on every read regardless of when
+    // the install last wrote its meditation db.
+    return delay(
+      db.content.filter((m) => m.status === 'published').map((m) => ({ ...m, category: normalizeLegacyMeditationTopic(m.category, m.id) }))
+    );
   }
 
   async getBreathingSchemes(): Promise<BreathingScheme[]> {
@@ -142,6 +159,28 @@ export class MockMeditationRepository implements MeditationRepository {
         .filter((s) => s.userId === userId && s.status !== 'started' && s.status !== 'paused')
         .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
     );
+  }
+
+  async getReminders(userId: string): Promise<MeditationReminder[]> {
+    const db = await store.read();
+    return delay((db.reminders ?? []).filter((r) => r.userId === userId));
+  }
+
+  async saveReminder(reminder: MeditationReminder): Promise<MeditationReminder> {
+    const db = await store.read();
+    const reminders = db.reminders ?? [];
+    const idx = reminders.findIndex((r) => r.id === reminder.id);
+    if (idx === -1) reminders.push(reminder);
+    else reminders[idx] = reminder;
+    db.reminders = reminders;
+    await store.write(db);
+    return delay(reminder);
+  }
+
+  async deleteReminder(id: string): Promise<void> {
+    const db = await store.read();
+    db.reminders = (db.reminders ?? []).filter((r) => r.id !== id);
+    await store.write(db);
   }
 }
 

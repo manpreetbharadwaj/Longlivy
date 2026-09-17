@@ -3,21 +3,25 @@ import { FlatList, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MeditationStackParamList } from '@/navigation/types';
-import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { SectionHeroLayout } from '@/components/common/SectionHeroLayout';
+import { sectionEnvironments } from '@/theme/environments';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppSelector } from '@/store/hooks';
 import { selectFavoriteMeditations } from '@/features/meditation/selectors';
+import { getMeditationTopicLabel } from '@/features/meditation/meditationTaxonomy';
 
 export const MeditationFavoritesScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<MeditationStackParamList>>();
   const favorites = useAppSelector(selectFavoriteMeditations);
 
   return (
-    <TabHeroLayout title="Favorites" onBack={() => navigation.goBack()} scroll={false}>
+    <SectionHeroLayout environment={sectionEnvironments.meditation} title={t('meditation.favoritesScreen.title')} onBack={() => navigation.goBack()} scroll={false}>
       <FlatList
         data={favorites}
         keyExtractor={(item) => item.id}
@@ -33,7 +37,7 @@ export const MeditationFavoritesScreen: React.FC = () => {
               {item.title}
             </AppText>
             <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
-              {Math.round(item.durationSeconds / 60)} min · {item.category}
+              {Math.round(item.durationSeconds / 60)} min · {getMeditationTopicLabel(item.category, t)}
             </AppText>
           </HeroCard>
         )}
@@ -53,11 +57,11 @@ export const MeditationFavoritesScreen: React.FC = () => {
               <AppIcon name="star-outline" size={30} color="rgba(255,255,255,0.5)" />
             </View>
             <AppText variant="headingSmall" color="#FFFFFF" align="center">
-              No favorites yet
+              {t('meditation.favoritesScreen.empty')}
             </AppText>
           </View>
         }
       />
-    </TabHeroLayout>
+    </SectionHeroLayout>
   );
 };

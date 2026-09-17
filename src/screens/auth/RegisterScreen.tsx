@@ -8,6 +8,7 @@ import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { registerThunk } from '@/features/auth/authSlice';
 import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
@@ -18,6 +19,7 @@ import { AuthHeroLayout } from './AuthHeroLayout';
 export const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const status = useAppSelector(selectAuthStatus);
   const error = useAppSelector(selectAuthError);
@@ -55,30 +57,30 @@ export const RegisterScreen: React.FC = () => {
     <AuthHeroLayout onBack={() => navigation.goBack()}>
       <View style={{ marginBottom: theme.spacing.lg }}>
         <AppText variant="displayMedium" color="#FFFFFF">
-          Create your account
+          {t('auth.register.title')}
         </AppText>
       </View>
 
       <FadeSlideIn>
         <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
           <View style={{ flex: 1 }}>
-            <HeroTextField label="First name" value={firstName} onChangeText={setFirstName} />
+            <HeroTextField label={t('auth.register.firstName')} value={firstName} onChangeText={setFirstName} />
           </View>
           <View style={{ flex: 1 }}>
-            <HeroTextField label="Last name" value={lastName} onChangeText={setLastName} />
+            <HeroTextField label={t('auth.register.lastName')} value={lastName} onChangeText={setLastName} />
           </View>
         </View>
-        <HeroTextField label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" style={{ marginBottom: theme.spacing.sm }} />
-        <HeroTextField label="Password" value={password} onChangeText={setPassword} isPassword style={{ marginBottom: theme.spacing.sm }} />
+        <HeroTextField label={t('auth.register.email')} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" style={{ marginBottom: theme.spacing.sm }} />
+        <HeroTextField label={t('auth.register.password')} value={password} onChangeText={setPassword} isPassword style={{ marginBottom: theme.spacing.sm }} />
         {error ? (
-          <AppText variant="bodySmall" color="#E5695C" style={{ marginBottom: theme.spacing.sm }}>
+          <AppText variant="bodySmall" color="#C97268" style={{ marginBottom: theme.spacing.sm }}>
             {error}
           </AppText>
         ) : null}
-        <AppGradientButton label="Create account" onPress={handleRegister} disabled={!valid} loading={status === 'loading'} />
+        <AppGradientButton label={t('auth.register.submit')} onPress={handleRegister} disabled={!valid} loading={status === 'loading'} />
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={{ alignSelf: 'center', marginTop: theme.spacing.md }}>
           <AppText variant="bodyMedium" color="rgba(255,255,255,0.7)">
-            Already have an account? <AppText variant="bodyMedium" color="#1BA7D1">Log in</AppText>
+            {t('auth.register.haveAccount')} <AppText variant="bodyMedium" color="#5C7A94">{t('auth.register.logIn')}</AppText>
           </AppText>
         </Pressable>
       </FadeSlideIn>

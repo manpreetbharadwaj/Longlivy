@@ -1,6 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '@/store/store';
-import { MIN_STREAK_ACTIVE_SECONDS } from './models';
+import { Meditation, MeditationTopic, MeditationType, UnguidedSoundCategory, MIN_STREAK_ACTIVE_SECONDS } from './models';
 
 export const selectMeditationContent = (state: RootState) => state.meditation.content;
 export const selectBreathingSchemes = (state: RootState) => state.meditation.breathingSchemes;
@@ -8,6 +8,39 @@ export const selectMeditationFavorites = (state: RootState) => state.meditation.
 export const selectMeditationTemplates = (state: RootState) => state.meditation.templates;
 export const selectActiveMeditationSession = (state: RootState) => state.meditation.activeSession;
 export const selectMeditationHistory = (state: RootState) => state.meditation.history;
+export const selectMeditationReminders = (state: RootState) => state.meditation.reminders;
+
+/** Catalog rows that are actually playable — excludes 'coming_soon' metadata-only rows (e.g. thin topics like Energy that have no real audio yet). */
+export const selectAvailableMeditations = createSelector(selectMeditationContent, (content) => content.filter((m) => m.availability !== 'coming_soon'));
+
+export interface MeditationFilters {
+  mode?: MeditationType;
+  topic?: MeditationTopic;
+  durationSeconds?: number;
+  soundCategory?: UnguidedSoundCategory;
+  /** Discovery shows Coming Soon rows by default (badged, non-playable) — pass false to hide them entirely. */
+  includeComingSoon?: boolean;
+}
+
+/**
+ * Centralized AND-combination filter for Meditation discovery — a plain
+ * function rather than a `createSelector` memoized selector, since its
+ * filter argument is a fresh object per call site/render rather than a
+ * stable piece of Redux state; callers memoize the result themselves (e.g.
+ * via `useMemo`) the same way screens already did before this helper existed.
+ * `soundCategory` only ever excludes 'free' rows — a guided/breathing row is
+ * never filtered out merely for lacking a sound category.
+ */
+export function selectMeditationsByFilters(content: Meditation[], filters: MeditationFilters): Meditation[] {
+  return content.filter((m) => {
+    if (filters.mode && m.type !== filters.mode) return false;
+    if (filters.topic && m.category !== filters.topic) return false;
+    if (filters.durationSeconds != null && m.durationSeconds !== filters.durationSeconds) return false;
+    if (filters.soundCategory && m.type === 'free' && m.soundCategory !== filters.soundCategory) return false;
+    if (filters.includeComingSoon === false && m.availability === 'coming_soon') return false;
+    return true;
+  });
+}
 
 export const selectFavoriteMeditations = createSelector(
   selectMeditationContent,

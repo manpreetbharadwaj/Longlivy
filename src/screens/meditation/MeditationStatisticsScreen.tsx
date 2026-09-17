@@ -1,32 +1,35 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { SectionHeroLayout } from '@/components/common/SectionHeroLayout';
+import { sectionEnvironments } from '@/theme/environments';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppSelector } from '@/store/hooks';
 import { selectMeditationStats, selectMeditationStreak } from '@/features/meditation/selectors';
 
 export const MeditationStatisticsScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const stats = useAppSelector(selectMeditationStats);
   const streak = useAppSelector(selectMeditationStreak);
 
   const tiles = [
-    { label: 'Total sessions', value: `${stats.totalSessions}` },
-    { label: 'Total time', value: `${Math.round(stats.totalActiveSeconds / 60)} min` },
-    { label: 'Average duration', value: `${Math.round(stats.averageSeconds / 60)} min` },
-    { label: 'Longest session', value: `${Math.round(stats.longestSessionSeconds / 60)} min` },
-    { label: 'Current streak', value: `${streak}d` },
+    { label: t('meditation.statisticsScreen.totalSessions'), value: `${stats.totalSessions}` },
+    { label: t('meditation.statisticsScreen.totalTime'), value: `${Math.round(stats.totalActiveSeconds / 60)} min` },
+    { label: t('meditation.statisticsScreen.averageDuration'), value: `${Math.round(stats.averageSeconds / 60)} min` },
+    { label: t('meditation.statisticsScreen.longestSession'), value: `${Math.round(stats.longestSessionSeconds / 60)} min` },
+    { label: t('meditation.statisticsScreen.currentStreak'), value: `${streak}d` },
   ];
 
   return (
-    <TabHeroLayout title="Meditation statistics" onBack={() => navigation.goBack()}>
+    <SectionHeroLayout environment={sectionEnvironments.meditation} title={t('meditation.statisticsScreen.title')} onBack={() => navigation.goBack()}>
       {stats.totalSessions === 0 ? (
         <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.xl }}>
-          No data available yet.
+          {t('meditation.statisticsScreen.noData')}
         </AppText>
       ) : (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -theme.spacing.xxs }}>
@@ -44,6 +47,6 @@ export const MeditationStatisticsScreen: React.FC = () => {
           ))}
         </View>
       )}
-    </TabHeroLayout>
+    </SectionHeroLayout>
   );
 };

@@ -8,17 +8,20 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedStyle, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { MeditationStackParamList, MainTabParamList } from '@/navigation/types';
-import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { SectionHeroLayout } from '@/components/common/SectionHeroLayout';
+import { sectionEnvironments } from '@/theme/environments';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon, AppIconName } from '@/components/common/AppIcon';
 import { GlowOrb } from '@/components/common/GlowOrb';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { motion } from '@/theme/motion';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadMeditationData } from '@/features/meditation/meditationSlice';
 import { selectTodayMeditationSeconds, selectMeditationStreak } from '@/features/meditation/selectors';
 import { selectUserProfile } from '@/features/profile/selectors';
+import { UserAvatar } from '@/features/profile/components/UserAvatar';
 import { selectUnreadNotificationCount } from '@/features/notifications/selectors';
 import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 
@@ -26,6 +29,7 @@ type Nav = CompositeNavigationProp<NativeStackNavigationProp<MeditationStackPara
 
 export const MeditationHomeScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const dispatch = useAppDispatch();
   const todaySeconds = useAppSelector(selectTodayMeditationSeconds);
@@ -38,16 +42,16 @@ export const MeditationHomeScreen: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <TabHeroLayout>
+    <SectionHeroLayout environment={sectionEnvironments.meditation}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing.lg }}>
         <AppText variant="headingLarge" weight="700" color={dashboardColors.textPrimary}>
-          Meditation
+          {t('meditation.title')}
         </AppText>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Pressable
             onPress={() => navigation.navigate('HomeTab', { screen: 'Notifications' })}
             accessibilityRole="button"
-            accessibilityLabel="Notifications"
+            accessibilityLabel={t('notifications.title')}
             style={{ marginRight: theme.spacing.sm }}
           >
             <View>
@@ -74,23 +78,8 @@ export const MeditationHomeScreen: React.FC = () => {
               ) : null}
             </View>
           </Pressable>
-          <Pressable onPress={() => navigation.navigate('HomeTab', { screen: 'Profile' })} accessibilityRole="button" accessibilityLabel="Profile">
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: dashboardColors.surfaceElevated,
-                borderWidth: 1.5,
-                borderColor: dashboardColors.accent,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <AppText variant="headingSmall" color={dashboardColors.accent}>
-                {profile.firstName.charAt(0)}
-              </AppText>
-            </View>
+          <Pressable onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })} accessibilityRole="button" accessibilityLabel={t('profile.title')}>
+            <UserAvatar size={40} avatarId={profile.avatarId} name={profile.firstName} />
           </Pressable>
         </View>
       </View>
@@ -98,69 +87,87 @@ export const MeditationHomeScreen: React.FC = () => {
       <MeditationHero />
 
       <AppText variant="headingLarge" weight="700" color={dashboardColors.textPrimary} align="center" style={{ marginTop: theme.spacing.lg, marginBottom: 4 }}>
-        Find your calm
+        {t('meditation.findYourCalm')}
       </AppText>
       <AppText variant="bodyMedium" color={dashboardColors.textSecondary} align="center">
-        Meditation for a better you
+        {t('meditation.subtitle')}
       </AppText>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: theme.spacing.md }}>
-        <StatItem icon="time-outline" value={`${Math.round(todaySeconds / 60)} min`} label="Today" />
+        <StatItem icon="time-outline" value={`${Math.round(todaySeconds / 60)} ${t('units.minShort')}`} label={t('meditation.today')} />
         <View style={{ width: 1, height: 28, backgroundColor: dashboardColors.border, marginHorizontal: theme.spacing.lg }} />
-        <StatItem icon="flame-outline" value={`${streak} day`} label="Streak" />
+        <StatItem icon="flame-outline" value={`${streak} ${t('meditation.dayShort')}`} label={t('meditation.streak')} />
       </View>
 
       <StartMeditationButton onPress={() => navigation.navigate('MeditationCategories')} />
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: theme.spacing.xl, marginBottom: theme.spacing.sm }}>
         <AppText variant="headingMedium" color={dashboardColors.textPrimary}>
-          Quick sessions
+          {t('meditation.quickSessions')}
         </AppText>
-        <Pressable onPress={() => navigation.navigate('MeditationCategories')} accessibilityRole="button" accessibilityLabel="View all quick sessions">
+        <Pressable onPress={() => navigation.navigate('MeditationCategories')} accessibilityRole="button" accessibilityLabel={t('meditation.viewAllQuickSessions')}>
           <AppText variant="bodySmall" color={dashboardColors.accent}>
-            View all
+            {t('meditation.viewAll')}
           </AppText>
         </Pressable>
       </View>
 
+      {/*
+        Phase 2C/3 discovery-routing closeout: "Guided" is a genuine browse
+        shortcut (it never played anything itself), so it now opens discovery
+        with an explicit { mode: 'guided' } instead of relying on the
+        screen's own default. "Short" (3 min) and "Unguided"/"Free" (10 min)
+        are the "genuine direct quick-session cards" the spec says to
+        preserve — both start a real ad-hoc session immediately, not a
+        browse intent, so neither is rewired to open discovery. "Breathing"
+        keeps using its own dedicated navigation, untouched. There is no
+        Morning- or Sleep-specific card on this screen to wire — adding one
+        would be a Home redesign, out of scope here.
+      */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: theme.spacing.md }}>
         <QuickSessionCard
           index={0}
           icon="hourglass-outline"
-          title="Short"
-          subtitle="3 min"
+          title={t('meditation.quick.short')}
+          subtitle={t('meditation.quick.shortSub')}
           onPress={() => navigation.navigate('MeditationPlayer', { meditationId: null, type: 'free', durationSeconds: 180 })}
         />
-        <QuickSessionCard index={1} icon="headset-outline" title="Guided" subtitle="Sessions" onPress={() => navigation.navigate('MeditationCategories')} />
+        <QuickSessionCard
+          index={1}
+          icon="headset-outline"
+          title={t('meditation.quick.guided')}
+          subtitle={t('meditation.quick.guidedSub')}
+          onPress={() => navigation.navigate('MeditationCategories', { mode: 'guided' })}
+        />
         <QuickSessionCard
           index={2}
           icon="pulse-outline"
-          title="Breathing"
-          subtitle="Exercises"
+          title={t('meditation.quick.breathing')}
+          subtitle={t('meditation.quick.breathingSub')}
           onPress={() => navigation.navigate('BreathingExercise', { schemeId: 'breath_box' })}
         />
         <QuickSessionCard
           index={3}
           icon="leaf-outline"
-          title="Free"
-          subtitle="Meditate"
+          title={t('meditation.quick.free')}
+          subtitle={t('meditation.quick.freeSub')}
           isLast
           onPress={() => navigation.navigate('MeditationPlayer', { meditationId: null, type: 'free', durationSeconds: 600 })}
         />
       </ScrollView>
 
       <View style={{ marginTop: theme.spacing.xl }}>
-        <MenuRow index={0} icon="bookmark-outline" title="My templates" subtitle="Your saved meditations" onPress={() => navigation.navigate('MeditationTemplates')} />
-        <MenuRow index={1} icon="flag-outline" title="Goals" subtitle="Track your progress" onPress={() => navigation.navigate('MeditationGoalsScreen')} />
-        <MenuRow index={2} icon="time-outline" title="History" subtitle="Your past sessions" onPress={() => navigation.navigate('MeditationHistory')} />
-        <MenuRow index={3} icon="stats-chart-outline" title="Statistics" subtitle="Insights and trends" onPress={() => navigation.navigate('MeditationStatistics')} />
-        <MenuRow index={4} icon="notifications-outline" title="Reminders" subtitle="Stay consistent" onPress={() => navigation.navigate('MeditationReminders')} isLast />
+        <MenuRow index={0} icon="bookmark-outline" title={t('meditation.menu.templates')} subtitle={t('meditation.menu.templatesSub')} onPress={() => navigation.navigate('MeditationTemplates')} />
+        <MenuRow index={1} icon="flag-outline" title={t('meditation.menu.goals')} subtitle={t('meditation.menu.goalsSub')} onPress={() => navigation.navigate('MeditationGoalsScreen')} />
+        <MenuRow index={2} icon="time-outline" title={t('meditation.menu.history')} subtitle={t('meditation.menu.historySub')} onPress={() => navigation.navigate('MeditationHistory')} />
+        <MenuRow index={3} icon="stats-chart-outline" title={t('meditation.menu.statistics')} subtitle={t('meditation.menu.statisticsSub')} onPress={() => navigation.navigate('MeditationStatistics')} />
+        <MenuRow index={4} icon="notifications-outline" title={t('meditation.menu.reminders')} subtitle={t('meditation.menu.remindersSub')} onPress={() => navigation.navigate('MeditationReminders')} isLast />
       </View>
-    </TabHeroLayout>
+    </SectionHeroLayout>
   );
 };
 
-/** The cyan lotus visual — concentric rings + a soft glow behind a centered flower glyph, with a very slow breathing scale so it reads as alive without being distracting. No purple, no interaction. */
+/** The hero visual — concentric rings + a soft pulsing glow behind a centered seated-figure glyph, with a very slow breathing scale so it reads as alive without being distracting. */
 const MeditationHero: React.FC = React.memo(() => {
   const breathe = useSharedValue(0);
   useEffect(() => {
@@ -180,7 +187,7 @@ const MeditationHero: React.FC = React.memo(() => {
         <Circle cx={size / 2} cy={size / 2} r={size / 2 - 34} stroke={dashboardColors.accent} strokeOpacity={0.4} strokeWidth={1.5} fill="none" />
       </Svg>
       <Animated.View style={breatheStyle}>
-        <AppIcon name="flower-outline" size={64} color={dashboardColors.accent} />
+        <AppIcon name="meditation" family="material-community" size={64} color={dashboardColors.accent} />
       </Animated.View>
     </View>
   );
@@ -204,6 +211,7 @@ StatItem.displayName = 'StatItem';
 
 const StartMeditationButton: React.FC<{ onPress: () => void }> = React.memo(({ onPress }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
@@ -217,7 +225,7 @@ const StartMeditationButton: React.FC<{ onPress: () => void }> = React.memo(({ o
         scale.value = withTiming(1, { duration: motion.duration.fast });
       }}
       accessibilityRole="button"
-      accessibilityLabel="Start meditation"
+      accessibilityLabel={t('meditation.startMeditation')}
       style={{ marginTop: theme.spacing.xl }}
     >
       <Animated.View style={animatedStyle}>
@@ -235,7 +243,7 @@ const StartMeditationButton: React.FC<{ onPress: () => void }> = React.memo(({ o
         >
           <AppIcon name="play" size={18} color="#FFFFFF" />
           <AppText variant="headingSmall" color="#FFFFFF" style={{ marginLeft: 8 }}>
-            Start meditation
+            {t('meditation.startMeditation')}
           </AppText>
         </LinearGradient>
       </Animated.View>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollViewProps } from 'react-native';
+import { ScrollViewProps, ImageSourcePropType } from 'react-native';
 import { SectionHeroLayout } from '@/components/common/SectionHeroLayout';
 import { sectionEnvironments } from '@/theme/environments';
 
@@ -9,6 +9,9 @@ interface ActivityHeroLayoutProps {
   onBack?: () => void;
   scroll?: boolean;
   contentContainerStyle?: ScrollViewProps['contentContainerStyle'];
+  /** Forwarded to `SectionHeroLayout` — an activity-type photo behind the atmosphere gradient, for the "Activity Mode" full-screen moment. */
+  backgroundImageSource?: ImageSourcePropType;
+  backgroundImageGradientOpacity?: number;
 }
 
 /**

@@ -21,20 +21,22 @@ import { AppIcon, AppIconName } from '@/components/common/AppIcon';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { motion } from '@/theme/motion';
 import { OnboardingBackground } from '@/features/onboarding/components/OnboardingBackground';
-import { onboardingPillarColors, onboardingCtaGradient, onboardingGlass, onboardingPanelGradient, onboardingAccent } from '@/features/onboarding/theme/onboardingTheme';
+import { onboardingPillarColors, onboardingCtaGradient, onboardingGlass, onboardingPanelGradient, onboardingAccent, PillarKey } from '@/features/onboarding/theme/onboardingTheme';
+import { PillarVisual } from '@/features/onboarding/components/PillarVisual';
+import { GlowOrb } from '@/components/common/GlowOrb';
 
-type PillarKey = keyof typeof onboardingPillarColors;
-
-const PILLARS: { key: PillarKey; icon: AppIconName; title: string; desc: string }[] = [
-  { key: 'fasting', icon: 'timer-outline', title: 'Fasting', desc: 'A timeline that explains what your body is doing — not just a countdown.' },
-  { key: 'nutrition', icon: 'restaurant-outline', title: 'Nutrition', desc: 'Log meals in seconds — by photo, barcode or voice.' },
-  { key: 'activity', icon: 'walk-outline', title: 'Activity', desc: 'Every workout shifts your daily energy balance in real time.' },
-  { key: 'meditation', icon: 'leaf-outline', title: 'Mind', desc: 'A calm space, built into the same system as the rest of you.' },
+// Title + description resolved at render via `t('onboarding.value.pillars.<key>')`.
+const PILLARS: { key: PillarKey; icon: AppIconName }[] = [
+  { key: 'fasting', icon: 'timer-outline' },
+  { key: 'nutrition', icon: 'restaurant-outline' },
+  { key: 'activity', icon: 'walk-outline' },
+  { key: 'meditation', icon: 'leaf-outline' },
 ];
 
-const CARD_HEIGHT = 330;
+const CARD_HEIGHT = 400;
 const STACK_Y_STEP = 16;
 const STACK_SCALE_STEP = 0.055;
 const VISIBLE_DEPTH = 3;
@@ -53,6 +55,7 @@ const DeckCard: React.FC<{
   onSwiped: () => void;
 }> = ({ pillar, stackPosition, cardWidth, isTop, onSwiped }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const color = onboardingPillarColors[pillar.key];
 
   // Settled stack transform — animates whenever this card's slot changes
@@ -142,38 +145,68 @@ const DeckCard: React.FC<{
     >
       <GestureDetector gesture={pan}>
         <Animated.View style={[{ flex: 1, borderRadius: theme.radius.xl, overflow: 'hidden', borderWidth: 1.5 }, glowStyle]}>
-          <LinearGradient
-            colors={onboardingPanelGradient}
-            style={isTop ? { flex: 1, padding: theme.spacing.xl, justifyContent: 'flex-end' } : { flex: 1, alignItems: 'center', justifyContent: 'center' }}
-          >
-            <View
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: 20,
-                backgroundColor: `${color}33`,
-                borderWidth: 1.5,
-                borderColor: color,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: isTop ? theme.spacing.lg : 0,
-              }}
-            >
-              <AppIcon name={pillar.icon} size={28} color={color} />
-            </View>
-            {/* Cards behind the top one only show their color/icon — a legible title+description
-                bottom-anchored on every stacked card would overlap, since they're the same size
-                offset by only a few px (that's what makes them read as a physical stack). */}
+          <LinearGradient colors={onboardingPanelGradient} style={{ flex: 1 }}>
             {isTop ? (
+              // The full showcase composition — hero visual on top, large title +
+              // short message beneath it — only mounted for the top card. Cards
+              // behind it stay a quiet icon watermark (see the `else` branch):
+              // a legible composition bottom-anchored on every stacked card would
+              // overlap, since they're the same size offset by only a few px
+              // (that's what makes them read as a physical stack).
               <>
-                <AppText variant="headingLarge" color={onboardingGlass.textPrimary}>
-                  {pillar.title}
-                </AppText>
-                <AppText variant="bodyMedium" color={onboardingGlass.textSecondary} style={{ marginTop: theme.spacing.xxs }}>
-                  {pillar.desc}
-                </AppText>
+                {/* A soft accent glow behind the hero visual — the one place each
+                    card's own color is allowed to be prominent, kept as a real
+                    radial falloff (GlowOrb, same primitive every other "hero"
+                    atmosphere in the app uses) rather than a flat translucent
+                    disc with a hard edge, so it reads as soft depth rather than
+                    a colored sticker behind the visual. Re-mounts (and
+                    re-fades-in) every time this pillar becomes the top card,
+                    along with everything else below. */}
+                <FadeSlideIn
+                  style={{ position: 'absolute', top: -30, alignSelf: 'center', width: cardWidth * 0.6, height: cardWidth * 0.6 }}
+                  fromY={0}
+                  fromScale={0.8}
+                >
+                  <GlowOrb size={cardWidth * 0.6} color={color} opacity={0.22} pulse style={{ top: 0, left: 0 }} />
+                </FadeSlideIn>
+
+                <View style={{ flex: 1, paddingTop: theme.spacing.xl }}>
+                  <FadeSlideIn fromScale={0.92} style={{ flex: 1.05, alignItems: 'center', justifyContent: 'center' }}>
+                    <PillarVisual pillarKey={pillar.key} color={color} />
+                  </FadeSlideIn>
+
+                  <View style={{ paddingHorizontal: theme.spacing.xl, paddingBottom: theme.spacing.xl }}>
+                    <FadeSlideIn delay={motion.staggerStepMs * 2}>
+                      <AppText variant="displayLarge" weight="800" color={onboardingGlass.textPrimary} style={{ letterSpacing: 1 }}>
+                        {t(`onboarding.value.pillars.${pillar.key}.title`).toUpperCase()}
+                      </AppText>
+                    </FadeSlideIn>
+                    <FadeSlideIn delay={motion.staggerStepMs * 4}>
+                      <AppText variant="bodyMedium" color={onboardingGlass.textSecondary} style={{ marginTop: theme.spacing.xxs }}>
+                        {t(`onboarding.value.pillars.${pillar.key}.desc`)}
+                      </AppText>
+                    </FadeSlideIn>
+                  </View>
+                </View>
               </>
-            ) : null}
+            ) : (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 20,
+                    backgroundColor: `${color}33`,
+                    borderWidth: 1.5,
+                    borderColor: color,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AppIcon name={pillar.icon} size={28} color={color} />
+                </View>
+              </View>
+            )}
           </LinearGradient>
         </Animated.View>
       </GestureDetector>
@@ -193,6 +226,7 @@ const DeckCard: React.FC<{
 export const ValueScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const cardWidth = width - theme.spacing.md * 2;
   const [activeIndex, setActiveIndex] = useState(0);
@@ -205,16 +239,16 @@ export const ValueScreen: React.FC = () => {
     <OnboardingBackground>
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right', 'bottom']}>
         <View style={{ flex: 1, padding: theme.spacing.md }}>
-          <Pressable onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Go back" hitSlop={12} style={{ width: 32, height: 32, justifyContent: 'center', marginBottom: theme.spacing.md }}>
+          <Pressable onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={t('common.back')} hitSlop={12} style={{ width: 32, height: 32, justifyContent: 'center', marginBottom: theme.spacing.md }}>
             <AppIcon name="chevron-back" size={24} color={onboardingGlass.textPrimary} />
           </Pressable>
 
           <FadeSlideIn>
             <AppText variant="displayMedium" color={onboardingGlass.textPrimary}>
-              One system, four signals
+              {t('onboarding.value.title')}
             </AppText>
             <AppText variant="bodyLarge" color={onboardingGlass.textSecondary} style={{ marginTop: theme.spacing.xxs, marginBottom: theme.spacing.lg }}>
-              Drag a card away to see the next.
+              {t('onboarding.value.subtitle')}
             </AppText>
           </FadeSlideIn>
 
@@ -238,7 +272,7 @@ export const ValueScreen: React.FC = () => {
               brand accent instead of plain white so it ties back to the CTA below it. */}
           <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: theme.spacing.lg }}>
             {PILLARS.map((p, i) => (
-              <Pressable key={p.key} onPress={() => setActiveIndex(i)} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Show ${p.title}`}>
+              <Pressable key={p.key} onPress={() => setActiveIndex(i)} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('onboarding.value.showPillar', { name: t(`onboarding.value.pillars.${p.key}.title`) })}>
                 <View
                   style={{
                     width: i === activeIndex ? 22 : 7,
@@ -255,7 +289,7 @@ export const ValueScreen: React.FC = () => {
           <View style={{ flex: 1 }} />
 
           <FadeSlideIn>
-            <AppGradientButton label="Continue" onPress={() => navigation.navigate('Goal')} colors={onboardingCtaGradient} />
+            <AppGradientButton label={t('common.continue')} onPress={() => navigation.navigate('Goal')} colors={onboardingCtaGradient} />
           </FadeSlideIn>
         </View>
       </SafeAreaView>

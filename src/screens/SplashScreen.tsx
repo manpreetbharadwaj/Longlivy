@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { AppText } from '@/components/common/AppText';
 import { onboardingGradient, onboardingCtaGradient, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
 
@@ -17,6 +18,7 @@ import { onboardingGradient, onboardingCtaGradient, onboardingGlass } from '@/fe
  */
 export const SplashScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -48,7 +50,7 @@ export const SplashScreen: React.FC = () => {
           Longlivy
         </AppText>
         <AppText variant="bodyMedium" color={onboardingGlass.textSecondary} style={{ marginTop: 4 }}>
-          Fasting · Nutrition · Activity · Meditation
+          {t('splash.tagline')}
         </AppText>
       </Animated.View>
     </View>

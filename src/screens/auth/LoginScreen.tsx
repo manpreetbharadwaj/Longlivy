@@ -9,6 +9,7 @@ import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginThunk } from '@/features/auth/authSlice';
 import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
@@ -23,6 +24,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const status = useAppSelector(selectAuthStatus);
   const error = useAppSelector(selectAuthError);
@@ -54,40 +56,40 @@ export const LoginScreen: React.FC = () => {
     let hasError = false;
 
     if (!trimmedEmail || !EMAIL_PATTERN.test(trimmedEmail)) {
-      setEmailError('Please enter a valid email address.');
+      setEmailError(t('auth.login.emailInvalid'));
       hasError = true;
     }
     if (!password) {
-      setPasswordError('Please enter your password.');
+      setPasswordError(t('auth.login.passwordRequired'));
       hasError = true;
     }
     if (hasError) return;
 
     dispatch(loginThunk({ email: trimmedEmail, password }));
-  }, [dispatch, email, password]);
+  }, [dispatch, email, password, t]);
 
   return (
     <AuthHeroLayout>
       <View style={{ alignItems: 'center', marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl }}>
         <View style={{ width: 56, height: 56, borderRadius: 18, overflow: 'hidden', marginBottom: theme.spacing.md }}>
-          <LinearGradient colors={['#0E7A9E', '#0E7A9E']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <LinearGradient colors={['#3D5266', '#3D5266']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <AppText variant="headingLarge" color="#FFFFFF" weight="800">
               L
             </AppText>
           </LinearGradient>
         </View>
         <AppText variant="displayMedium" color="#FFFFFF" align="center">
-          Welcome back
+          {t('auth.login.title')}
         </AppText>
         <AppText variant="bodyMedium" color="rgba(255,255,255,0.65)" align="center" style={{ marginTop: theme.spacing.xxs }}>
-          Log in to continue your Longlivy routine.
+          {t('auth.login.subtitle')}
         </AppText>
       </View>
 
       <FadeSlideIn>
         <HeroTextField
-          label="Email"
-          placeholder="Enter your email"
+          label={t('auth.login.email')}
+          placeholder={t('auth.login.emailPlaceholder')}
           value={email}
           onChangeText={changeEmail}
           autoCapitalize="none"
@@ -96,52 +98,52 @@ export const LoginScreen: React.FC = () => {
           style={{ marginBottom: emailError ? theme.spacing.xxs : theme.spacing.sm }}
         />
         {emailError ? (
-          <AppText variant="bodySmall" color="#E5695C" style={{ marginBottom: theme.spacing.sm }}>
+          <AppText variant="bodySmall" color="#C97268" style={{ marginBottom: theme.spacing.sm }}>
             {emailError}
           </AppText>
         ) : null}
 
         <HeroTextField
-          label="Password"
-          placeholder="Enter your password"
+          label={t('auth.login.password')}
+          placeholder={t('auth.login.passwordPlaceholder')}
           value={password}
           onChangeText={changePassword}
           isPassword
           style={{ marginBottom: passwordError ? theme.spacing.xxs : theme.spacing.xxs }}
         />
         {passwordError ? (
-          <AppText variant="bodySmall" color="#E5695C" style={{ marginTop: theme.spacing.xxs }}>
+          <AppText variant="bodySmall" color="#C97268" style={{ marginTop: theme.spacing.xxs }}>
             {passwordError}
           </AppText>
         ) : null}
 
         {error ? (
-          <AppText variant="bodySmall" color="#E5695C" style={{ marginTop: theme.spacing.xs }}>
+          <AppText variant="bodySmall" color="#C97268" style={{ marginTop: theme.spacing.xs }}>
             {error}
           </AppText>
         ) : null}
 
         <Pressable onPress={() => navigation.navigate('ForgotPassword')} hitSlop={8} style={{ alignSelf: 'flex-end', marginTop: theme.spacing.xs, marginBottom: theme.spacing.md }}>
           <AppText variant="label" color="rgba(255,255,255,0.7)">
-            Forgot password?
+            {t('auth.login.forgotPassword')}
           </AppText>
         </Pressable>
 
-        <AppGradientButton label="Log in" onPress={handleLogin} loading={status === 'loading'} />
+        <AppGradientButton label={t('auth.login.submit')} onPress={handleLogin} loading={status === 'loading'} />
 
         <View style={{ marginTop: theme.spacing.md, flexDirection: 'row', justifyContent: 'center' }}>
           <AppText variant="bodyMedium" color="rgba(255,255,255,0.65)">
-            New to Longlivy?{' '}
+            {t('auth.login.newToLonglivy')}{' '}
           </AppText>
           <Pressable onPress={() => navigation.navigate('Register')} hitSlop={8}>
-            <AppText variant="bodyMedium" color="#1BA7D1">
-              Create an account
+            <AppText variant="bodyMedium" color="#5C7A94">
+              {t('auth.login.createAccount')}
             </AppText>
           </Pressable>
         </View>
 
         <AppText variant="caption" color="rgba(255,255,255,0.4)" align="center" style={{ marginTop: theme.spacing.lg }}>
-          Authentication is mocked locally for this prototype.
+          {t('auth.mockNotice')}
         </AppText>
       </FadeSlideIn>
     </AuthHeroLayout>

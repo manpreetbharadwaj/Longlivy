@@ -20,6 +20,17 @@ export const MEDITATION_AUDIO_SOURCES = {
   serenity_flow: require('../../../assets/sounds/leberch-meditation-meditation-music-580539.mp3'),
   full_presence: require('../../../assets/sounds/leberch-meditation-578429.mp3'),
   ocean_of_calm: require('../../../assets/sounds/verclub_music-meditation-music-550885.mp3'),
+  // Also registered in meditationAmbientAudio.ts under the same keys — these
+  // are the same physical files (Metro dedupes the asset, not duplicated in
+  // the bundle). Registering here too lets a genuinely "ambient-only"
+  // Unguided Meditation row (e.g. "Rain at Night") use one of these as its
+  // real PRIMARY content through the exact same resolution path every other
+  // Unguided row already uses, rather than inventing a second playback mode
+  // for "no primary track" sessions (Phase 5 Section 29-31).
+  ambient_rain_soft: require('../../../assets/sounds/ambient_rain_soft.mp3'),
+  ambient_ocean_swells: require('../../../assets/sounds/ambient_ocean_swells.mp3'),
+  ambient_forest_spring: require('../../../assets/sounds/ambient_forest_spring.mp3'),
+  ambient_neutral_pad: require('../../../assets/sounds/ambient_neutral_pad.mp3'),
 } as const satisfies Record<string, AudioSource>;
 
 export type MeditationAudioKey = keyof typeof MEDITATION_AUDIO_SOURCES;

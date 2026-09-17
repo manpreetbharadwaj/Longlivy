@@ -48,10 +48,12 @@ export function useMeditationAudioSession(audioSource: AudioSource | null, sessi
     audioModeConfigured = true;
     // Background/lock-screen continuation additionally requires native config
     // (iOS `UIBackgroundModes: audio`, Android foreground-service permissions)
-    // that only takes effect after `expo prebuild` regenerates ios/ and
-    // android/ — the `expo-audio` config plugin in app.json already requests
-    // it, it just hasn't been applied to the checked-in native projects yet.
-    // Foreground playback works regardless of that step.
+    // — confirmed present in the checked-in native projects (ios/Longlivy/Info.plist
+    // has `UIBackgroundModes: [audio]`; android/.../AndroidManifest.xml has the
+    // FOREGROUND_SERVICE_MEDIA_PLAYBACK permission + AudioControlsService),
+    // matching the `expo-audio` config plugin's default `enableBackgroundPlayback`.
+    // Configuration verified by inspection; actual on-device background/lock-screen
+    // continuation has not been empirically tested (Phase 4).
     setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => {});
   }, []);
 

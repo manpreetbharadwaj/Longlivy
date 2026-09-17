@@ -1,10 +1,14 @@
 import React, { useCallback, useState } from 'react';
 import { Modal, Platform, Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useTheme } from '@/hooks/useTheme';
+import { darkColors } from '@/theme/colors';
 import { AppText } from './AppText';
 import { AppIcon } from './AppIcon';
 import { AppButton } from './AppButton';
+import { FadeSlideIn } from './FadeSlideIn';
+import { WheelDatePicker } from './WheelDatePicker';
 
 interface AppDateFieldProps {
   label: string;
@@ -31,12 +35,38 @@ function formatValue(value: Date, mode: 'date' | 'time'): string {
  */
 export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mode, value, onChange, maximumDate, minimumDate, variant = 'default' }) => {
   const { theme } = useTheme();
-  const [iosModalVisible, setIosModalVisible] = useState(false);
+  const insets = useSafeAreaInsets();
+  const [modalVisible, setModalVisible] = useState(false);
   const [draftValue, setDraftValue] = useState(value);
   const hero = variant === 'hero';
+  // Date fields get Longlivy's own wheel picker (identical look and
+  // interaction on both platforms — see WheelDatePicker); time fields stay
+  // on the platform-native picker (a spinner sheet on iOS, the system
+  // dialog on Android) unchanged — this task is scoped to date-of-birth
+  // specifically, and other screens already depend on the native time
+  // picker's current behavior.
+  const useWheelPicker = mode === 'date';
+  // `theme.colors` follows the *system's* light/dark setting, but a `hero`
+  // field always sits on a hardcoded-dark background (onboarding's own
+  // atmosphere) regardless of that setting — so its picker sheet needs to
+  // stay dark too, or it renders as a light sheet popping up over a dark
+  // screen. Non-hero fields keep following the live theme as before.
+  const modalColors = hero ? darkColors : theme.colors;
+  // RN's `Modal` renders as its own top-level native window rather than
+  // reusing the screen's own `SafeAreaView` — on Android, with this
+  // project's edge-to-edge configuration, that window draws *behind* the
+  // system navigation bar, so the sheet's fixed padding alone left the
+  // Cancel/Confirm row partially covered by it (gesture pill or 3-button
+  // bar, whichever the device has). `useSafeAreaInsets()` still reports
+  // this window's real bottom inset correctly (it queries the native
+  // window directly, not inherited context), so adding it as extra bottom
+  // padding — instead of a guessed fixed value — clears whatever the
+  // actual nav bar height is on that specific device. iOS already handles
+  // this correctly on its own, so this is scoped to Android only.
+  const sheetBottomPadding = Platform.OS === 'android' ? theme.spacing.md + insets.bottom : theme.spacing.md;
 
   const openPicker = useCallback(() => {
-    if (Platform.OS === 'android') {
+    if (!useWheelPicker && Platform.OS === 'android') {
       DateTimePickerAndroid.open({
         value,
         mode,
@@ -48,13 +78,13 @@ export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mo
       });
     } else {
       setDraftValue(value);
-      setIosModalVisible(true);
+      setModalVisible(true);
     }
-  }, [value, mode, maximumDate, minimumDate, onChange]);
+  }, [value, mode, maximumDate, minimumDate, onChange, useWheelPicker]);
 
-  const confirmIos = useCallback(() => {
+  const confirmModal = useCallback(() => {
     onChange(draftValue);
-    setIosModalVisible(false);
+    setModalVisible(false);
   }, [draftValue, onChange]);
 
   return (
@@ -84,28 +114,45 @@ export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mo
         <AppIcon name={mode === 'date' ? 'calendar-outline' : 'time-outline'} size={18} color={hero ? 'rgba(255,255,255,0.55)' : theme.colors.textTertiary} />
       </Pressable>
 
-      {Platform.OS !== 'android' ? (
-        <Modal visible={iosModalVisible} transparent animationType="slide" onRequestClose={() => setIosModalVisible(false)}>
-          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: theme.colors.overlay }}>
-            <View style={{ backgroundColor: theme.colors.surface, borderTopLeftRadius: theme.radius.xl, borderTopRightRadius: theme.radius.xl, padding: theme.spacing.md }}>
-              <AppText variant="headingSmall" align="center" style={{ marginBottom: theme.spacing.sm }}>
-                {label}
-              </AppText>
-              <DateTimePicker
-                value={draftValue}
-                mode={mode}
-                display="spinner"
-                maximumDate={maximumDate}
-                minimumDate={minimumDate}
-                onChange={(_event: DateTimePickerEvent, selected?: Date) => {
-                  if (selected) setDraftValue(selected);
+      {useWheelPicker || Platform.OS !== 'android' ? (
+        <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
+          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: modalColors.overlay }}>
+            <FadeSlideIn fromY={24} fromScale={0.98}>
+              <View
+                style={{
+                  backgroundColor: modalColors.surface,
+                  borderTopLeftRadius: theme.radius.xl,
+                  borderTopRightRadius: theme.radius.xl,
+                  borderWidth: 1,
+                  borderBottomWidth: 0,
+                  borderColor: modalColors.border,
+                  padding: theme.spacing.md,
+                  paddingBottom: sheetBottomPadding,
                 }}
-              />
-              <View style={{ flexDirection: 'row', marginTop: theme.spacing.sm }}>
-                <AppButton label="Cancel" variant="outline" onPress={() => setIosModalVisible(false)} style={{ flex: 1, marginRight: theme.spacing.xs }} />
-                <AppButton label="Done" onPress={confirmIos} style={{ flex: 1 }} />
+              >
+                <AppText variant="headingSmall" align="center" color={modalColors.textPrimary} style={{ marginBottom: theme.spacing.sm }}>
+                  {label}
+                </AppText>
+                {useWheelPicker ? (
+                  <WheelDatePicker value={draftValue} maximumDate={maximumDate} minimumDate={minimumDate} onChange={setDraftValue} colors={modalColors} />
+                ) : (
+                  <DateTimePicker
+                    value={draftValue}
+                    mode={mode}
+                    display="spinner"
+                    maximumDate={maximumDate}
+                    minimumDate={minimumDate}
+                    onChange={(_event: DateTimePickerEvent, selected?: Date) => {
+                      if (selected) setDraftValue(selected);
+                    }}
+                  />
+                )}
+                <View style={{ flexDirection: 'row', marginTop: theme.spacing.sm }}>
+                  <AppButton label="Cancel" variant="outline" onPress={() => setModalVisible(false)} style={{ flex: 1, marginRight: theme.spacing.xs }} />
+                  <AppButton label={useWheelPicker ? 'Confirm' : 'Done'} onPress={confirmModal} style={{ flex: 1 }} />
+                </View>
               </View>
-            </View>
+            </FadeSlideIn>
           </View>
         </Modal>
       ) : null}

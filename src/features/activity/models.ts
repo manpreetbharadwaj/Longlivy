@@ -45,3 +45,15 @@ export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
 };
 
 export const GPS_BASED_TYPES: ActivityType[] = ['running', 'walking', 'cycling', 'hiking', 'jogging'];
+
+/**
+ * The activity types a user can actively pick when starting/logging a new
+ * activity. 'jogging' is intentionally excluded — it read as a near-duplicate
+ * of 'running' in the picker UI, so it's merged into "Running" going forward.
+ * 'jogging' stays a fully valid `ActivityType` (still in the union, still in
+ * `ACTIVITY_TYPE_LABELS`, still supported by the calorie calculator and
+ * activity images) purely so existing persisted `Activity` records with
+ * `type: 'jogging'` keep rendering, calculating, and filtering correctly —
+ * only new selection is retired, not the historical data or the type itself.
+ */
+export const SELECTABLE_ACTIVITY_TYPES: ActivityType[] = (Object.keys(ACTIVITY_TYPE_LABELS) as ActivityType[]).filter((t) => t !== 'jogging');

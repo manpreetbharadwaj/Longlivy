@@ -6,6 +6,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay } fro
 import { OnboardingStackParamList } from '@/navigation/types';
 import { HeroOptionCard } from '@/components/common/HeroOptionCard';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useOnboardingDraft, OnboardingDraft } from '@/features/onboarding/OnboardingContext';
 import { motion } from '@/theme/motion';
 import { onboardingAccent } from '@/features/onboarding/theme/onboardingTheme';
@@ -13,16 +14,11 @@ import { OnboardingStepLayout } from './OnboardingStepLayout';
 
 type Level = NonNullable<OnboardingDraft['activityLevel']>;
 
-// Labels match the client-specified five-tier wording; internal keys stay
-// aligned with BodyProfile/CalorieCalculationEngine's existing enum so the
-// activity-multiplier logic downstream is untouched.
-const LEVELS: { key: Level; label: string; desc: string }[] = [
-  { key: 'sedentary', label: 'Sedentary', desc: 'Little to no exercise, desk job.' },
-  { key: 'light', label: 'Lightly active', desc: 'Light exercise 1–3 days a week.' },
-  { key: 'moderate', label: 'Moderately active', desc: 'Moderate exercise 3–5 days a week.' },
-  { key: 'active', label: 'Very active', desc: 'Hard exercise 6–7 days a week.' },
-  { key: 'very_active', label: 'Extremely active', desc: 'Physical job or twice-daily training.' },
-];
+// Internal keys stay aligned with BodyProfile/CalorieCalculationEngine's
+// existing enum so the activity-multiplier logic downstream is untouched.
+// Label + description are resolved at render via `t('enums.activityLevel.*')`
+// and `t('onboarding.activityLevel.options.*')`.
+const LEVEL_KEYS: Level[] = ['sedentary', 'light', 'moderate', 'active', 'very_active'];
 
 const BAR_MIN = 14;
 const BAR_STEP = 13;
@@ -44,11 +40,11 @@ const EnergyBar: React.FC<{ index: number; active: boolean }> = ({ index, active
 
 /** A 5-bar "energy meter" that fills progressively taller as a higher activity level is selected — communicated visually, not just by label. */
 const ActivityHeroVisual: React.FC<{ level: Level | null }> = ({ level }) => {
-  const selectedIndex = level ? LEVELS.findIndex((l) => l.key === level) : -1;
+  const selectedIndex = level ? LEVEL_KEYS.indexOf(level) : -1;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', height: BAR_MIN + 4 * BAR_STEP + 8, marginBottom: 8 }}>
-      {LEVELS.map((l, i) => (
-        <EnergyBar key={l.key} index={i} active={i <= selectedIndex} />
+      {LEVEL_KEYS.map((key, i) => (
+        <EnergyBar key={key} index={i} active={i <= selectedIndex} />
       ))}
     </View>
   );
@@ -57,27 +53,28 @@ const ActivityHeroVisual: React.FC<{ level: Level | null }> = ({ level }) => {
 export const ActivityLevelStepScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { draft, update } = useOnboardingDraft();
 
   return (
     <OnboardingStepLayout
       step={6}
       totalSteps={7}
-      title="How active are you?"
-      subtitle="Feeds your estimated daily energy use."
+      title={t('onboarding.activityLevel.title')}
+      subtitle={t('onboarding.activityLevel.subtitle')}
       onNext={() => navigation.navigate('Micronutrients')}
       onBack={() => navigation.goBack()}
       nextDisabled={!draft.activityLevel}
     >
       <ActivityHeroVisual level={draft.activityLevel} />
-      {LEVELS.map((l) => (
+      {LEVEL_KEYS.map((key) => (
         <HeroOptionCard
-          key={l.key}
-          title={l.label}
-          description={l.desc}
-          selected={draft.activityLevel === l.key}
+          key={key}
+          title={t(`enums.activityLevel.${key}`)}
+          description={t(`onboarding.activityLevel.options.${key}.desc`)}
+          selected={draft.activityLevel === key}
           accentColor={onboardingAccent}
-          onPress={() => update({ activityLevel: l.key })}
+          onPress={() => update({ activityLevel: key })}
           style={{ marginBottom: theme.spacing.sm }}
         />
       ))}

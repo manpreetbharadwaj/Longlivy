@@ -17,7 +17,7 @@ export class FastingService {
     return this.repository.getHistory(userId);
   }
 
-  async startFast(userId: string, methodId: FastingMethodId, customHours?: number): Promise<FastingSession> {
+  async startFast(userId: string, methodId: FastingMethodId, customHours?: number): Promise<{ session: FastingSession; alreadyActive: boolean }> {
     const method = FASTING_METHODS.find((m) => m.id === methodId);
     if (!method) throw new Error(`Unknown fasting method: ${methodId}`);
 

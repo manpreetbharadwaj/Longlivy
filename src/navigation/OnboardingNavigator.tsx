@@ -16,8 +16,8 @@ import { CompleteSetupScreen } from '@/screens/onboarding/CompleteSetupScreen';
 const Stack = createNativeStackNavigator<OnboardingStackParamList>();
 
 /**
- * Welcome (what is Long Livy) → Value (application introduction) → Goal
- * (the transition beat — "understanding Long Livy" becomes "building my
+ * Welcome (what is Longlivy) → Value (application introduction) → Goal
+ * (the transition beat — "understanding Longlivy" becomes "building my
  * personal profile"; asked exactly once, before any personal info) → the
  * seven numbered personalization steps (PersonalizeMe → Gender → Age[DOB] →
  * Height → Weight → ActivityLevelStep → Micronutrients) → CompleteSetup

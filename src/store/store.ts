@@ -15,6 +15,9 @@ import healthIntegrationReducer from '@/features/health/healthIntegrationSlice';
 import historyReducer from '@/features/history/historySlice';
 import dashboardReducer from '@/features/dashboard/dashboardSlice';
 import syncReducer from '@/features/sync/syncSlice';
+import noiseReducer from '@/features/noise/noiseSlice';
+import healthConnectReducer from '@/features/healthConnect/healthConnectSlice';
+import healthKitReducer from '@/features/healthKit/healthKitSlice';
 
 export const store = configureStore({
   reducer: {
@@ -33,6 +36,9 @@ export const store = configureStore({
     history: historyReducer,
     dashboard: dashboardReducer,
     sync: syncReducer,
+    noise: noiseReducer,
+    healthConnect: healthConnectReducer,
+    healthKit: healthKitReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

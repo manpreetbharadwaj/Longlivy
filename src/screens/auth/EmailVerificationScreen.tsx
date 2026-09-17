@@ -5,12 +5,14 @@ import { AppText } from '@/components/common/AppText';
 import { AppButton } from '@/components/common/AppButton';
 import { AppIconTile } from '@/components/common/AppIconTile';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { authRepository } from '@/features/auth/repository';
 import { useAppSelector } from '@/store/hooks';
 import { selectAuthSession } from '@/features/auth/selectors';
 
 export const EmailVerificationScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const session = useAppSelector(selectAuthSession);
   const [verified, setVerified] = useState(session?.user.emailVerified ?? false);
 
@@ -25,14 +27,14 @@ export const EmailVerificationScreen: React.FC = () => {
         <AppIconTile name={verified ? 'checkmark-circle' : 'mail-outline'} shape="circle" color={verified ? theme.colors.success : theme.colors.primary} size={72} iconSize={32} />
       </View>
       <AppText variant="headingLarge" align="center" style={{ marginTop: theme.spacing.md }}>
-        {verified ? 'Email verified' : 'Verify your email'}
+        {verified ? t('auth.emailVerification.verifiedTitle') : t('auth.emailVerification.title')}
       </AppText>
       <AppText variant="bodyMedium" color={theme.colors.textSecondary} align="center" style={{ marginTop: theme.spacing.xs, marginBottom: theme.spacing.lg }}>
         {verified
-          ? 'Your account is fully set up.'
-          : `We sent a verification link to ${session?.user.email ?? 'your email'}.`}
+          ? t('auth.emailVerification.verifiedBody')
+          : t('auth.emailVerification.sentTo', { email: session?.user.email ?? t('auth.emailVerification.yourEmail') })}
       </AppText>
-      {!verified ? <AppButton label="I've verified my email" onPress={verify} fullWidth={false} style={{ alignSelf: 'center' }} /> : null}
+      {!verified ? <AppButton label={t('auth.emailVerification.verifiedButton')} onPress={verify} fullWidth={false} style={{ alignSelf: 'center' }} /> : null}
     </AppScreen>
   );
 };

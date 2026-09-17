@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { AppIcon, AppIconName } from './AppIcon';
+import { AppIcon, AppIconName, MaterialCommunityIconName } from './AppIcon';
 
 interface AppIconTileProps {
-  name: AppIconName;
+  name: AppIconName | MaterialCommunityIconName;
+  family?: 'ionicons' | 'material-community';
   color?: string;
   size?: number;
   iconSize?: number;
@@ -18,7 +19,7 @@ interface AppIconTileProps {
  * empty states. Keeps icon presentation consistent instead of every screen
  * rolling its own background/size math.
  */
-export const AppIconTile: React.FC<AppIconTileProps> = React.memo(({ name, color, size = 40, iconSize, shape = 'rounded', style }) => {
+export const AppIconTile: React.FC<AppIconTileProps> = React.memo(({ name, family, color, size = 40, iconSize, shape = 'rounded', style }) => {
   const { theme } = useTheme();
   const tint = color ?? theme.colors.primary;
 
@@ -36,7 +37,7 @@ export const AppIconTile: React.FC<AppIconTileProps> = React.memo(({ name, color
         style,
       ]}
     >
-      <AppIcon name={name} size={iconSize ?? Math.round(size * 0.5)} color={tint} />
+      <AppIcon name={name} family={family} size={iconSize ?? Math.round(size * 0.5)} color={tint} />
     </View>
   );
 });

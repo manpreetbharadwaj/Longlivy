@@ -34,6 +34,15 @@ export interface DemoUserProfile {
   fastingMethod?: FastingMethodId;
   /** Nutrient ids the user chose to prioritize on MicronutrientSetupScreen — see `MICRONUTRIENTS` in `features/onboarding/data/micronutrients.ts` for the catalog. */
   micronutrientFocus?: string[];
+  /**
+   * Chosen profile avatar — a stable id, never an asset path, so it
+   * survives rebuilds. `'initial'` or absent renders the first-letter
+   * fallback; an `avatar_*` id maps to a bundled vector in
+   * `features/profile/avatars`. An unknown id also falls back to the
+   * initial, so retiring a preset in a later build is safe. Persisted via
+   * `updateProfile` like every other field here.
+   */
+  avatarId?: string;
 }
 
 export const DEMO_USER: DemoUserProfile = {

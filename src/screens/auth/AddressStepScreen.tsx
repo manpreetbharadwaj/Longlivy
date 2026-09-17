@@ -5,6 +5,7 @@ import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppDispatch } from '@/store/hooks';
 import { updateProfile } from '@/features/profile/profileSlice';
 import { AuthHeroLayout } from './AuthHeroLayout';
@@ -24,6 +25,7 @@ import { AuthHeroLayout } from './AuthHeroLayout';
  */
 export const AddressStepScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [address, setAddress] = useState('');
 
@@ -35,16 +37,16 @@ export const AddressStepScreen: React.FC = () => {
     <AuthHeroLayout>
       <View style={{ marginBottom: theme.spacing.lg }}>
         <AppText variant="displayMedium" color="#FFFFFF">
-          Where should we ship to?
+          {t('auth.address.title')}
         </AppText>
         <AppText variant="bodyMedium" color="rgba(255,255,255,0.7)" style={{ marginTop: theme.spacing.xs }}>
-          Used for the Longlivy webshop — orders and deliveries.
+          {t('auth.address.subtitle')}
         </AppText>
       </View>
 
       <FadeSlideIn>
         <HeroTextField
-          label="Street address, city, postal code"
+          label={t('auth.address.label')}
           value={address}
           onChangeText={setAddress}
           multiline
@@ -56,7 +58,7 @@ export const AddressStepScreen: React.FC = () => {
           // centered against that taller box.
           style={{ height: 88, textAlignVertical: 'top', paddingTop: 12, marginBottom: theme.spacing.lg }}
         />
-        <AppGradientButton label="Continue" onPress={finish} disabled={!address.trim()} />
+        <AppGradientButton label={t('auth.address.submit')} onPress={finish} disabled={!address.trim()} />
       </FadeSlideIn>
     </AuthHeroLayout>
   );

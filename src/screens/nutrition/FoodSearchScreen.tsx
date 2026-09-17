@@ -57,7 +57,7 @@ export const FoodSearchScreen: React.FC = () => {
       <View style={{ marginBottom: theme.spacing.sm }}>
         <HeroTextField placeholder="Search foods, brands, categories…" value={query} onChangeText={setQuery} autoFocus />
         <Pressable onPress={() => navigation.navigate('MyFoods')} accessibilityRole="button" style={{ marginTop: theme.spacing.xs, alignSelf: 'flex-start' }}>
-          <AppText variant="bodySmall" color="#1BA7D1">
+          <AppText variant="bodySmall" color="#5C7A94">
             Create own food instead
           </AppText>
         </Pressable>

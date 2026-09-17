@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppIcon } from '@/components/common/AppIcon';
 import { GlowOrb } from '@/components/common/GlowOrb';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { heroGradient } from '@/theme/gradients';
 
 interface AuthHeroLayoutProps {
@@ -21,16 +22,17 @@ interface AuthHeroLayoutProps {
  */
 export const AuthHeroLayout: React.FC<AuthHeroLayoutProps> = ({ children, onBack }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={{ flex: 1, backgroundColor: heroGradient[0] }}>
       <StatusBar barStyle="light-content" />
       <LinearGradient colors={heroGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-      <GlowOrb size={340} color="#0E7A9E" opacity={0.28} pulse style={{ top: -110, right: -90 }} />
+      <GlowOrb size={340} color="#3D5266" opacity={0.28} pulse style={{ top: -110, right: -90 }} />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl, flexGrow: 1 }}>
           {onBack ? (
-            <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Go back" hitSlop={12} style={{ width: 32, height: 32, justifyContent: 'center', marginBottom: theme.spacing.sm }}>
+            <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={t('common.back')} hitSlop={12} style={{ width: 32, height: 32, justifyContent: 'center', marginBottom: theme.spacing.sm }}>
               <AppIcon name="chevron-back" size={24} color="#FFFFFF" />
             </Pressable>
           ) : null}

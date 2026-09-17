@@ -3,11 +3,11 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityStackParamList } from '@/navigation/types';
-import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { loadActivityData } from '@/features/activity/activitySlice';
@@ -19,9 +19,11 @@ import { LogManuallyButton } from '@/features/activity/components/LogManuallyBut
 import { ActivityListItem } from '@/features/activity/components/ActivityListItem';
 import { ActivityEmptyState } from '@/features/activity/components/ActivityEmptyState';
 import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
+import { ActivityHeroLayout } from './ActivityHeroLayout';
 
 export const ActivityHomeScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
   const dispatch = useAppDispatch();
   const active = useAppSelector(selectActiveActivity);
@@ -35,7 +37,7 @@ export const ActivityHomeScreen: React.FC = () => {
   const recent = history.slice(0, 5);
 
   return (
-    <TabHeroLayout title="Activity">
+    <ActivityHeroLayout title={t('activity.title')}>
       {/* 1. Start Activity — the screen's primary action */}
       <FadeSlideIn delay={0 * motion.staggerStepMs}>
         {active ? (
@@ -44,10 +46,10 @@ export const ActivityHomeScreen: React.FC = () => {
               <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: dashboardColors.success, marginRight: theme.spacing.xs }} />
               <View style={{ flex: 1 }}>
                 <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
-                  {ACTIVITY_TYPE_LABELS[active.type]} in progress
+                  {t('activity.inProgress', { type: ACTIVITY_TYPE_LABELS[active.type] })}
                 </AppText>
                 <AppText variant="bodyMedium" color={dashboardColors.textSecondary}>
-                  Tap to resume tracking
+                  {t('activity.tapToResume')}
                 </AppText>
               </View>
             </View>
@@ -74,7 +76,7 @@ export const ActivityHomeScreen: React.FC = () => {
       {/* 4. Recent activity */}
       <FadeSlideIn delay={3 * motion.staggerStepMs}>
         <AppText variant="headingSmall" color={dashboardColors.textPrimary} style={{ marginBottom: theme.spacing.sm }}>
-          Recent activities
+          {t('activity.recentActivities')}
         </AppText>
       </FadeSlideIn>
 
@@ -93,10 +95,10 @@ export const ActivityHomeScreen: React.FC = () => {
       <FadeSlideIn delay={4 * motion.staggerStepMs + recent.length * motion.staggerStepMs}>
         <HeroCard onPress={() => navigation.navigate('ActivityHistory')} style={[dashboardCardStyle, { paddingVertical: theme.spacing.sm }]} scaleOnPress>
           <AppText variant="headingSmall" color={dashboardColors.textSecondary} align="center">
-            View full history
+            {t('activity.viewFullHistory')}
           </AppText>
         </HeroCard>
       </FadeSlideIn>
-    </TabHeroLayout>
+    </ActivityHeroLayout>
   );
 };

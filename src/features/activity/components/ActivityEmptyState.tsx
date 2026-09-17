@@ -4,28 +4,30 @@ import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { GlowOrb } from '@/components/common/GlowOrb';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { ActivityFigure } from './ActivityFigure';
 import { dashboardColors } from '@/features/dashboard/dashboardTheme';
 
 /** Shown instead of a blank list when there's no activity history yet. */
 export const ActivityEmptyState: React.FC<{ onStart: () => void }> = React.memo(({ onStart }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   return (
     <View style={{ alignItems: 'center', paddingVertical: theme.spacing.lg }}>
       <View style={{ width: 96, height: 96, alignItems: 'center', justifyContent: 'center', marginBottom: theme.spacing.sm }}>
-        <GlowOrb size={96} color="#5B9BD5" opacity={0.3} pulse />
+        <GlowOrb size={96} color="#6E8FAE" opacity={0.18} pulse />
         <ActivityFigure type="walking" size={56} />
       </View>
       <AppText variant="headingSmall" color={dashboardColors.textPrimary} align="center">
-        No activities yet
+        {t('activity.emptyTitle')}
       </AppText>
       <AppText variant="bodyMedium" color={dashboardColors.textSecondary} align="center" style={{ marginTop: theme.spacing.xxs, marginBottom: theme.spacing.md }}>
-        Start your first activity to see it here.
+        {t('activity.emptyMessage')}
       </AppText>
       <Pressable
         onPress={onStart}
         accessibilityRole="button"
-        accessibilityLabel="Start activity"
+        accessibilityLabel={t('activity.startActivity')}
         style={({ pressed }) => ({
           flexDirection: 'row',
           alignItems: 'center',
@@ -39,7 +41,7 @@ export const ActivityEmptyState: React.FC<{ onStart: () => void }> = React.memo(
       >
         <AppIcon name="add-circle-outline" size={16} color={dashboardColors.accent} />
         <AppText variant="label" color={dashboardColors.accent} style={{ marginLeft: 6 }}>
-          Start activity
+          {t('activity.startActivity')}
         </AppText>
       </Pressable>
     </View>

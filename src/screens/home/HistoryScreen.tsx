@@ -9,18 +9,19 @@ import { AppEmptyState } from '@/components/common/AppEmptyState';
 import { AppIconTile } from '@/components/common/AppIconTile';
 import { AppIconName } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation, useDateLocale } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUnifiedHistory, selectHistoryActiveFilters } from '@/features/history/selectors';
 import { toggleHistoryFilter } from '@/features/history/historySlice';
 import { HistoryCategory, HistoryItem } from '@/features/history/models';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const CATEGORIES: { key: HistoryCategory; label: string; icon: AppIconName }[] = [
-  { key: 'fasting', label: 'Fasting', icon: 'timer-outline' },
-  { key: 'nutrition', label: 'Nutrition', icon: 'restaurant-outline' },
-  { key: 'activity', label: 'Activity', icon: 'walk-outline' },
-  { key: 'weight', label: 'Weight', icon: 'scale-outline' },
-  { key: 'meditation', label: 'Meditation', icon: 'leaf-outline' },
+const CATEGORIES: { key: HistoryCategory; icon: AppIconName }[] = [
+  { key: 'fasting', icon: 'timer-outline' },
+  { key: 'nutrition', icon: 'restaurant-outline' },
+  { key: 'activity', icon: 'walk-outline' },
+  { key: 'weight', icon: 'scale-outline' },
+  { key: 'meditation', icon: 'leaf-outline' },
 ];
 
 const ICON: Record<HistoryCategory, AppIconName> = {
@@ -33,6 +34,8 @@ const ICON: Record<HistoryCategory, AppIconName> = {
 
 export const HistoryScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const items = useAppSelector(selectUnifiedHistory);
@@ -50,17 +53,17 @@ export const HistoryScreen: React.FC = () => {
             </AppText>
           </View>
           <AppText variant="caption" color={theme.colors.textTertiary}>
-            {new Date(item.timestamp).toLocaleDateString()}
+            {new Date(item.timestamp).toLocaleDateString(dateLocale)}
           </AppText>
         </View>
       </AppCard>
     ),
-    [theme]
+    [theme, dateLocale]
   );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
-      <AppHeader title="History" onBack={() => navigation.goBack()} />
+      <AppHeader title={t('history.title')} onBack={() => navigation.goBack()} />
       <View style={{ paddingHorizontal: theme.spacing.md, marginBottom: theme.spacing.sm }}>
         <FlatList
           horizontal
@@ -68,7 +71,7 @@ export const HistoryScreen: React.FC = () => {
           data={CATEGORIES}
           keyExtractor={(c) => c.key}
           renderItem={({ item }) => (
-            <AppChip icon={item.icon} label={item.label} selected={activeFilters.includes(item.key)} onPress={() => dispatch(toggleHistoryFilter(item.key))} />
+            <AppChip icon={item.icon} label={t(`history.filters.${item.key}`)} selected={activeFilters.includes(item.key)} onPress={() => dispatch(toggleHistoryFilter(item.key))} />
           )}
         />
       </View>
@@ -77,7 +80,7 @@ export const HistoryScreen: React.FC = () => {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={{ padding: theme.spacing.md, paddingTop: 0, flexGrow: 1 }}
-        ListEmptyComponent={<AppEmptyState title="No history yet" message="Activity across all Longlivy modules will show up here." />}
+        ListEmptyComponent={<AppEmptyState title={t('history.emptyTitle')} message={t('history.emptyMessage')} />}
       />
     </SafeAreaView>
   );

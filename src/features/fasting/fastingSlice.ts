@@ -12,6 +12,17 @@ interface FastingState {
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   actionStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
+  /**
+   * Bumped by every action that actually changes `activeFast` (start/end/
+   * extend/cancel). `loadFastingData` is a plain read that can be in flight
+   * for a while (this screen and the dashboard both trigger it on mount) —
+   * it records this value when it *starts* reading and only applies its
+   * `active` result if nothing else has changed `activeFast` in the
+   * meantime. Without this, a slow, stale load can resolve after (say) an
+   * end-fast action and silently overwrite the `null` it just set, making
+   * an already-ended fast reappear as active with no user action at all.
+   */
+  mutationSeq: number;
 }
 
 const initialState: FastingState = {
@@ -20,14 +31,25 @@ const initialState: FastingState = {
   status: 'idle',
   actionStatus: 'idle',
   error: null,
+  mutationSeq: 0,
 };
 
-export const loadFastingData = createAsyncThunk('fasting/loadFastingData', async () => {
+// Narrow, local view of the state this slice's thunks need via `getState()`
+// — avoids importing the app-wide `RootState` here, which would create a
+// circular import (store.ts -> this slice -> store.ts).
+type FastingThunkApi = { state: { fasting: FastingState } };
+
+export const loadFastingData = createAsyncThunk<
+  { active: FastingSession | null; history: FastingSession[]; seqAtStart: number },
+  void,
+  FastingThunkApi
+>('fasting/loadFastingData', async (_, { getState }) => {
+  const seqAtStart = getState().fasting.mutationSeq;
   const [active, history] = await Promise.all([
     fastingService.getActiveFast(DEMO_USER_ID),
     fastingService.getHistory(DEMO_USER_ID),
   ]);
-  return { active, history };
+  return { active, history, seqAtStart };
 });
 
 export const startFastThunk = createAsyncThunk(
@@ -59,10 +81,14 @@ const fastingSlice = createSlice({
       .addCase(loadFastingData.pending, (state) => {
         state.status = 'loading';
       })
-      .addCase(loadFastingData.fulfilled, (state, action: PayloadAction<{ active: FastingSession | null; history: FastingSession[] }>) => {
+      .addCase(loadFastingData.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.activeFast = action.payload.active;
         state.history = action.payload.history;
+        // See `mutationSeq`'s doc comment: only apply `active` if nothing
+        // else changed the active-fast state while this load was reading.
+        if (action.payload.seqAtStart === state.mutationSeq) {
+          state.activeFast = action.payload.active;
+        }
       })
       .addCase(loadFastingData.rejected, (state, action) => {
         state.status = 'failed';
@@ -71,9 +97,10 @@ const fastingSlice = createSlice({
       .addCase(startFastThunk.pending, (state) => {
         state.actionStatus = 'loading';
       })
-      .addCase(startFastThunk.fulfilled, (state, action) => {
+      .addCase(startFastThunk.fulfilled, (state, action: PayloadAction<{ session: FastingSession; alreadyActive: boolean }>) => {
         state.actionStatus = 'succeeded';
-        state.activeFast = action.payload;
+        state.activeFast = action.payload.session;
+        state.mutationSeq += 1;
       })
       .addCase(startFastThunk.rejected, (state, action) => {
         state.actionStatus = 'failed';
@@ -82,13 +109,16 @@ const fastingSlice = createSlice({
       .addCase(endFastThunk.fulfilled, (state, action) => {
         state.activeFast = null;
         state.history = [action.payload, ...state.history];
+        state.mutationSeq += 1;
       })
       .addCase(extendFastThunk.fulfilled, (state, action) => {
         state.activeFast = action.payload;
+        state.mutationSeq += 1;
       })
       .addCase(cancelFastThunk.fulfilled, (state, action) => {
         state.activeFast = null;
         state.history = [action.payload, ...state.history];
+        state.mutationSeq += 1;
       });
   },
 });

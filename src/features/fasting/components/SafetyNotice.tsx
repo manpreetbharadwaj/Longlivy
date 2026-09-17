@@ -22,10 +22,10 @@ export const SafetyNotice: React.FC = React.memo(() => {
     >
       <View style={{ flexDirection: 'row' }}>
         <View style={{ marginRight: theme.spacing.xs, marginTop: 2 }}>
-          <AppIcon name="information-circle" size={20} color="#E0A94E" />
+          <AppIcon name="information-circle" size={20} color="#D9954B" />
         </View>
         <View style={{ flex: 1 }}>
-          <AppText variant="headingSmall" color="#E0A94E">
+          <AppText variant="headingSmall" color="#D9954B">
             Before you start a longer fast
           </AppText>
           <AppText variant="bodySmall" color="rgba(255,255,255,0.65)" style={{ marginTop: theme.spacing.xxs }}>

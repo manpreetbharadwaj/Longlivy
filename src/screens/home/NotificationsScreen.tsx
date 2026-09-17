@@ -6,6 +6,7 @@ import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation, useDateLocale } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectNotifications } from '@/features/notifications/selectors';
 import { markAllNotificationsRead, markNotificationRead } from '@/features/notifications/notificationSlice';
@@ -13,6 +14,8 @@ import { AppNotification } from '@/features/notifications/models';
 
 export const NotificationsScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const notifications = useAppSelector(selectNotifications);
@@ -22,7 +25,7 @@ export const NotificationsScreen: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <TabHeroLayout title="Notifications" onBack={() => navigation.goBack()} scroll={false}>
+    <TabHeroLayout title={t('notifications.title')} onBack={() => navigation.goBack()} scroll={false}>
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id}
@@ -36,7 +39,7 @@ export const NotificationsScreen: React.FC = () => {
                 {item.title}
               </AppText>
               <AppText variant="caption" color="rgba(255,255,255,0.5)">
-                {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(item.timestamp).toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })}
               </AppText>
             </View>
             <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginTop: 2 }}>
@@ -60,7 +63,7 @@ export const NotificationsScreen: React.FC = () => {
               <AppIcon name="notifications-outline" size={30} color="rgba(255,255,255,0.5)" />
             </View>
             <AppText variant="headingSmall" color="#FFFFFF" align="center">
-              No notifications
+              {t('notifications.empty')}
             </AppText>
           </View>
         }

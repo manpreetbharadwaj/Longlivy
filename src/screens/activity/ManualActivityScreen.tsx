@@ -9,7 +9,7 @@ import { AppText } from '@/components/common/AppText';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch } from '@/store/hooks';
 import { activityRepository } from '@/features/activity/repository/MockActivityRepository';
-import { ActivityType, ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
+import { ActivityType, ACTIVITY_TYPE_LABELS, SELECTABLE_ACTIVITY_TYPES } from '@/features/activity/models';
 import { estimateActivityCalories } from '@/features/activity/services/ActivityCalculator';
 import { DEMO_USER } from '@/mock/demoUser';
 import { loadActivityData } from '@/features/activity/activitySlice';
@@ -56,7 +56,7 @@ export const ManualActivityScreen: React.FC = () => {
         Activity type
       </AppText>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: theme.spacing.xs, marginBottom: theme.spacing.md }}>
-        {(Object.keys(ACTIVITY_TYPE_LABELS) as ActivityType[]).map((t) => (
+        {SELECTABLE_ACTIVITY_TYPES.map((t) => (
           <HeroChip key={t} label={ACTIVITY_TYPE_LABELS[t]} selected={type === t} onPress={() => setType(t)} />
         ))}
       </View>
@@ -68,7 +68,7 @@ export const ManualActivityScreen: React.FC = () => {
         keyboardType="numeric"
         style={{ marginBottom: theme.spacing.md }}
       />
-      <AppGradientButton label="Save activity" onPress={save} loading={saving} colors={['#5B9BD5', '#2C5C87']} />
+      <AppGradientButton label="Save activity" onPress={save} loading={saving} colors={['#6E8FAE', '#3D5266']} />
     </TabHeroLayout>
   );
 };

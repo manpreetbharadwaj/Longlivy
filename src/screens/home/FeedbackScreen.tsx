@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedStyle, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { HomeStackParamList } from '@/navigation/types';
+import { ProfileStackParamList } from '@/navigation/types';
 import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
@@ -34,7 +34,7 @@ type SubmitStatus = 'idle' | 'submitting' | 'success';
 export const FeedbackScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const [category, setCategory] = useState<FeedbackCategory>('improvement');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<SubmitStatus>('idle');

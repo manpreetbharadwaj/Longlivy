@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { Pressable, View } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, interpolateColor } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, interpolate, interpolateColor } from 'react-native-reanimated';
 import { AppText } from '@/components/common/AppText';
 import { useTheme } from '@/hooks/useTheme';
 import { motion } from '@/theme/motion';
 import { GenderGlyph } from './GenderGlyph';
-import { onboardingAccent, onboardingGlass } from '../theme/onboardingTheme';
+import { onboardingGlass, onboardingGenderColors } from '../theme/onboardingTheme';
 
 interface GenderCardProps {
   kind: 'female' | 'male' | 'diverse';
@@ -19,6 +19,7 @@ export const GenderCard: React.FC<GenderCardProps> = React.memo(({ kind, label, 
   const { theme } = useTheme();
   const progress = useSharedValue(selected ? 1 : 0);
   const scale = useSharedValue(1);
+  const accent = onboardingGenderColors[kind];
 
   useEffect(() => {
     progress.value = withTiming(selected ? 1 : 0, { duration: motion.duration.base, easing: motion.easing.standard });
@@ -33,25 +34,37 @@ export const GenderCard: React.FC<GenderCardProps> = React.memo(({ kind, label, 
     transform: [{ scale: scale.value }],
   }));
 
+  // Only the icon well carries the gender's own accent — a subtle tint
+  // behind the glyph that deepens slightly on selection, and a small scale
+  // bump on the glyph itself. The card surface (borderColor/backgroundColor
+  // above) stays on the same neutral selected/unselected treatment every
+  // other onboarding card uses, so color identity reads as "this icon
+  // belongs to this option" rather than "this card is now blue/pink/purple".
+  const iconWellStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(progress.value, [0, 1], [`${accent}14`, `${accent}26`]),
+    transform: [{ scale: interpolate(progress.value, [0, 1], [1, 1.08]) }],
+  }));
+
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected }} style={{ flex: 1 }}>
       {({ pressed }) => (
         <Animated.View
           style={[
             {
-              borderRadius: theme.radius.xl,
+              borderRadius: theme.radius.lg,
               borderWidth: 1.5,
-              paddingVertical: theme.spacing.lg,
+              paddingVertical: theme.spacing.sm,
               paddingHorizontal: theme.spacing.xxs,
               // Fixed height (not content-driven) so this card matches its
               // siblings exactly regardless of label length — "Diverse /
               // Other" wraps to two lines while "Male"/"Female" don't, and
               // without this the three cards in the row would render at
-              // visibly different heights. Tall enough for a two-line label
-              // at headingSmall's line height; justifyContent centers a
-              // shorter, one-line label within the same box instead of
-              // leaving it pinned to the top with dead space below.
-              minHeight: 160,
+              // visibly different heights. Trimmed down from the original
+              // 160 — tall enough for a two-line label at headingSmall's
+              // line height plus the smaller icon well, no more — so the
+              // gender row leaves more of the viewport to the character
+              // visual below it.
+              minHeight: 122,
               alignItems: 'center',
               justifyContent: 'center',
               opacity: pressed ? 0.88 : 1,
@@ -59,19 +72,21 @@ export const GenderCard: React.FC<GenderCardProps> = React.memo(({ kind, label, 
             animatedStyle,
           ]}
         >
-          <View
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 32,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'rgba(255,255,255,0.08)',
-              marginBottom: theme.spacing.sm,
-            }}
+          <Animated.View
+            style={[
+              {
+                width: 48,
+                height: 48,
+                borderRadius: 24,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: theme.spacing.xs,
+              },
+              iconWellStyle,
+            ]}
           >
-            <GenderGlyph kind={kind} size={30} color={selected ? onboardingAccent : '#FFFFFF'} />
-          </View>
+            <GenderGlyph kind={kind} size={22} color={selected ? accent : `${accent}99`} />
+          </Animated.View>
           <AppText variant="headingSmall" color={onboardingGlass.textPrimary} align="center">
             {label}
           </AppText>

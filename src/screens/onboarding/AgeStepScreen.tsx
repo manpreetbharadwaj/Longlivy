@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OnboardingStackParamList } from '@/navigation/types';
 import { AppDateField } from '@/components/common/AppDateField';
+import { useTranslation } from '@/localization';
 import { useOnboardingDraft, ageFromDateOfBirth } from '@/features/onboarding/OnboardingContext';
 import { HumanBodyVisualizer } from '@/features/onboarding/components/three/HumanBodyVisualizer';
 import { OnboardingStepLayout } from './OnboardingStepLayout';
@@ -29,6 +30,7 @@ const MIN_DOB = new Date(now.getFullYear() - MAX_AGE, now.getMonth(), now.getDat
  */
 export const AgeStepScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
+  const { t } = useTranslation();
   const { draft, update } = useOnboardingDraft();
   const dob = draft.dateOfBirth ? new Date(draft.dateOfBirth) : DEFAULT_DOB;
   const age = draft.age ?? ageFromDateOfBirth(toIsoDate(dob));
@@ -37,8 +39,8 @@ export const AgeStepScreen: React.FC = () => {
     <OnboardingStepLayout
       step={3}
       totalSteps={7}
-      title="When's your birthday?"
-      subtitle="Used to calibrate your baseline calculations."
+      title={t('onboarding.age.title')}
+      subtitle={t('onboarding.age.subtitle')}
       onNext={() => navigation.navigate('Height')}
       onBack={() => navigation.goBack()}
       dimBackground
@@ -48,7 +50,7 @@ export const AgeStepScreen: React.FC = () => {
         <HumanBodyVisualizer gender={draft.gender ?? 'diverse'} age={age} heightCm={draft.heightCm ?? 170} weightKg={draft.weightKg ?? 70} width={180} height={240} />
       </View>
       <AppDateField
-        label="Date of birth"
+        label={t('onboarding.age.label')}
         mode="date"
         variant="hero"
         value={dob}

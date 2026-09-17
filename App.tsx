@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { Provider as ReduxProvider } from 'react-redux';
+import * as Notifications from 'expo-notifications';
 
 import { store } from '@/store/store';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
@@ -11,12 +12,34 @@ import { AppPreferencesProvider } from '@/contexts/AppPreferencesContext';
 import { I18nProvider } from '@/localization';
 import { OnboardingProvider } from '@/features/onboarding/OnboardingContext';
 import { RootNavigator } from '@/navigation/RootNavigator';
+import { navigationRef, navigateToMeditationHome } from '@/navigation/navigationRef';
 import { withErrorBoundary } from '@/components/hoc/withErrorBoundary';
+
+/**
+ * Minimum useful behavior for a tapped Meditation reminder (Phase 6 Section
+ * 19): open Meditation Home. Covers both a warm tap (app already running)
+ * and a cold start from the notification (the initial response is checked
+ * once on mount) — not a deep link into a specific session, which the
+ * current navigation architecture doesn't support without meaningfully more
+ * work; documented as a limitation rather than built here.
+ */
+function useMeditationReminderNotificationTap(): void {
+  useEffect(() => {
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) navigateToMeditationHome();
+    });
+    const subscription = Notifications.addNotificationResponseReceivedListener(() => {
+      navigateToMeditationHome();
+    });
+    return () => subscription.remove();
+  }, []);
+}
 
 const RootNavigatorSafe = withErrorBoundary(RootNavigator, 'Longlivy');
 
 const NavigationRoot: React.FC = () => {
   const { theme } = useTheme();
+  useMeditationReminderNotificationTap();
 
   // React Navigation's own screen wrapper (`Background`, from
   // @react-navigation/elements) paints every screen — and the space around
@@ -43,7 +66,7 @@ const NavigationRoot: React.FC = () => {
   };
 
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer ref={navigationRef} theme={navigationTheme}>
       <StatusBar style={theme.mode === 'dark' ? 'light' : 'dark'} />
       <RootNavigatorSafe />
     </NavigationContainer>

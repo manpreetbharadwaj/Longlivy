@@ -3,13 +3,16 @@ import { FlatList, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MeditationStackParamList } from '@/navigation/types';
-import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { SectionHeroLayout } from '@/components/common/SectionHeroLayout';
+import { sectionEnvironments } from '@/theme/environments';
 import { HeroCard } from '@/components/common/HeroCard';
 import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
+import { ctaGradient } from '@/theme/gradients';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectMeditationTemplates } from '@/features/meditation/selectors';
 import { saveMeditationTemplateThunk } from '@/features/meditation/meditationSlice';
@@ -18,6 +21,7 @@ import { DEMO_USER_ID } from '@/mock/demoUser';
 
 export const MeditationTemplatesScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<MeditationStackParamList>>();
   const dispatch = useAppDispatch();
   const templates = useAppSelector(selectMeditationTemplates);
@@ -41,14 +45,20 @@ export const MeditationTemplatesScreen: React.FC = () => {
   }, [dispatch, name, minutes]);
 
   return (
-    <TabHeroLayout title="My templates" onBack={() => navigation.goBack()} scroll={false}>
+    <SectionHeroLayout environment={sectionEnvironments.meditation} title={t('meditation.templatesScreen.title')} onBack={() => navigation.goBack()} scroll={false}>
       <HeroCard style={{ marginBottom: theme.spacing.md }}>
         <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
-          New template
+          {t('meditation.templatesScreen.newTemplate')}
         </AppText>
-        <HeroTextField label="Name" value={name} onChangeText={setName} style={{ marginBottom: theme.spacing.sm }} />
-        <HeroTextField label="Duration (minutes)" value={minutes} onChangeText={setMinutes} keyboardType="numeric" style={{ marginBottom: theme.spacing.sm }} />
-        <AppGradientButton label="Save template" onPress={create} disabled={!name.trim()} colors={['#A78BC9', '#453569']} />
+        <HeroTextField label={t('meditation.templatesScreen.name')} value={name} onChangeText={setName} style={{ marginBottom: theme.spacing.sm }} />
+        <HeroTextField
+          label={t('meditation.templatesScreen.durationMinutes')}
+          value={minutes}
+          onChangeText={setMinutes}
+          keyboardType="numeric"
+          style={{ marginBottom: theme.spacing.sm }}
+        />
+        <AppGradientButton label={t('meditation.templatesScreen.saveTemplate')} onPress={create} disabled={!name.trim()} colors={ctaGradient} />
       </HeroCard>
       <FlatList
         data={templates}
@@ -86,14 +96,14 @@ export const MeditationTemplatesScreen: React.FC = () => {
               <AppIcon name="bookmark-outline" size={30} color="rgba(255,255,255,0.5)" />
             </View>
             <AppText variant="headingSmall" color="#FFFFFF" align="center">
-              No templates yet
+              {t('meditation.templatesScreen.empty')}
             </AppText>
             <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.xxs }}>
-              Save a personal meditation configuration to reuse it in one tap.
+              {t('meditation.templatesScreen.emptyBody')}
             </AppText>
           </View>
         }
       />
-    </TabHeroLayout>
+    </SectionHeroLayout>
   );
 };

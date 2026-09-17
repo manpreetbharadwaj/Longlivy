@@ -30,7 +30,7 @@ const UNSELECTED_BG = 'rgba(255,255,255,0.07)';
  * not a replacement.
  */
 export const HeroOptionCard: React.FC<HeroOptionCardProps> = React.memo(
-  ({ icon, title, description, selected, onPress, layout = 'row', accentColor = '#1BA7D1', style }) => {
+  ({ icon, title, description, selected, onPress, layout = 'row', accentColor = '#5C7A94', style }) => {
     const { theme } = useTheme();
     const progress = useSharedValue(selected ? 1 : 0);
     const pulse = useSharedValue(1);

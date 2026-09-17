@@ -30,7 +30,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
     key: 'fed',
     label: 'Fed state',
     rangeLabel: '0–3h',
-    color: '#E0AC55',
+    color: '#C9974E',
     milestones: [
       { hours: 0, title: 'Fasting started', description: 'Your eating window has closed for this session.' },
       { hours: 1.5, title: 'Digesting your last meal', description: 'Nutrients from your last meal are still being absorbed into your bloodstream.' },
@@ -50,7 +50,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
     key: 'glycogen',
     label: 'Glycogen phase',
     rangeLabel: '~8–16h',
-    color: '#5B9BD5',
+    color: '#6E8FAE',
     milestones: [
       { hours: 10, title: 'Insulin continues to decline', description: 'Lower insulin levels are generally associated with increased fat breakdown.' },
       {
@@ -64,7 +64,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
     key: 'fat-adapted',
     label: 'Fat-adapted phase',
     rangeLabel: '~16–24h',
-    color: '#0E7A9E',
+    color: '#3D5266',
     milestones: [
       { hours: 18, title: 'Fat metabolism increases', description: 'Fat becomes an increasingly important energy source for many people in this window.' },
       {
@@ -78,7 +78,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
     key: 'extended',
     label: 'Extended fasting',
     rangeLabel: '24h+',
-    color: '#A78BC9',
+    color: '#8B7FA8',
     milestones: [
       { hours: 24, title: 'One full day', description: "You've completed a full 24 hours without food." },
       {

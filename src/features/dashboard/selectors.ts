@@ -60,7 +60,7 @@ export const selectDailySummary = createSelector(
         value: Math.round(balance.caloriesConsumed),
         target: balance.calorieGoal,
         fraction: clampFraction(balance.calorieGoal > 0 ? balance.caloriesConsumed / balance.calorieGoal : 0),
-        color: '#E0AC55',
+        color: '#C9974E',
       },
       {
         key: 'activity',
@@ -68,7 +68,7 @@ export const selectDailySummary = createSelector(
         value: activityMinutes,
         target: activityTargetMinutes,
         fraction: clampFraction(activityTargetMinutes > 0 ? activityMinutes / activityTargetMinutes : 0),
-        color: '#5B9BD5',
+        color: '#6E8FAE',
       },
       {
         key: 'mindfulness',
@@ -76,7 +76,7 @@ export const selectDailySummary = createSelector(
         value: Math.round(meditationMinutesToday),
         target: mindfulnessTargetMinutes,
         fraction: clampFraction(mindfulnessTargetMinutes > 0 ? meditationMinutesToday / mindfulnessTargetMinutes : 0),
-        color: '#A78BC9',
+        color: '#7A9B76',
       },
     ];
 

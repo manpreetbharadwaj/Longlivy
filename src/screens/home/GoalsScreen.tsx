@@ -8,12 +8,14 @@ import { AppText } from '@/components/common/AppText';
 import { AppSwitch } from '@/components/common/AppSwitch';
 import { AppInput } from '@/components/common/AppInput';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectAllGoals } from '@/features/goals/selectors';
 import { toggleGoal, upsertGoal } from '@/features/goals/goalsSlice';
 
 export const GoalsScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const goals = useAppSelector(selectAllGoals);
@@ -28,7 +30,7 @@ export const GoalsScreen: React.FC = () => {
 
   return (
     <>
-      <AppHeader title="All goals" onBack={() => navigation.goBack()} />
+      <AppHeader title={t('history.allGoals')} onBack={() => navigation.goBack()} />
       <AppScreen>
         {goals.map((goal) => (
           <AppCard key={goal.id} style={{ marginBottom: theme.spacing.sm }}>

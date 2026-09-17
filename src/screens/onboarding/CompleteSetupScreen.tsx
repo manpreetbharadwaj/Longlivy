@@ -19,6 +19,7 @@ import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { HeroLegendDot } from '@/components/common/HeroLegendDot';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useOnboardingDraft, ageToDateOfBirth } from '@/features/onboarding/OnboardingContext';
 import { useAppDispatch } from '@/store/hooks';
 import { completeOnboardingThunk } from '@/features/auth/authSlice';
@@ -31,10 +32,7 @@ import { onboardingAccent, onboardingData, onboardingCtaGradient, onboardingGlas
 
 const engine = new CalorieCalculationEngine();
 
-const GOAL_LABELS: Record<string, string> = { weight_loss: 'Lose weight', maintenance: 'Maintain weight', muscle_gain: 'Gain weight' };
-const ACTIVITY_LABELS: Record<string, string> = { sedentary: 'Sedentary', light: 'Lightly active', moderate: 'Moderately active', active: 'Very active', very_active: 'Extremely active' };
-
-const STATUSES = ['Analyzing your profile…', 'Calculating your baseline…', 'Personalizing your plan…'];
+const STATUS_KEYS = ['analyzing', 'calculating', 'personalizing'] as const;
 const STATUS_STEP_MS = 650;
 
 /** Concentric scanning rings during the calibration beat — a shorter, busier cousin of Welcome's SignalMark, since this one has ~2s to say "working", not to be admired. */
@@ -96,12 +94,13 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 // output of onboarding, not a question asked during it. Fully adjustable
 // later in Nutrition Goals.
 const MACRO_SPLIT = { carb: 0.4, protein: 0.3, fat: 0.3 };
-const CARB_COLOR = '#5B9BD5';
-const PROTEIN_COLOR = '#E0AC55';
+const CARB_COLOR = '#6E8FAE';
+const PROTEIN_COLOR = '#C9974E';
 const FAT_COLOR = onboardingAccent;
 
 /** Nutrition-baseline ring, drawn in once the summary reveals. */
 const NutritionBaselineRing: React.FC = () => {
+  const { t } = useTranslation();
   const carb = useSharedValue(0);
   const protein = useSharedValue(0);
   const fat = useSharedValue(0);
@@ -125,9 +124,9 @@ const NutritionBaselineRing: React.FC = () => {
         <AnimatedCircle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RADIUS} stroke={FAT_COLOR} strokeWidth={STROKE} strokeLinecap="round" fill="none" animatedProps={fatProps} />
       </Svg>
       <View style={{ flexDirection: 'row', marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <HeroLegendDot color={CARB_COLOR} label="Carbs" />
-        <HeroLegendDot color={PROTEIN_COLOR} label="Protein" />
-        <HeroLegendDot color={FAT_COLOR} label="Fat" />
+        <HeroLegendDot color={CARB_COLOR} label={t('onboarding.complete.carbs')} />
+        <HeroLegendDot color={PROTEIN_COLOR} label={t('onboarding.complete.protein')} />
+        <HeroLegendDot color={FAT_COLOR} label={t('onboarding.complete.fat')} />
       </View>
     </View>
   );
@@ -153,14 +152,15 @@ const StatRow: React.FC<{ label: string; value: string; last?: boolean }> = ({ l
  */
 export const CompleteSetupScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const { draft } = useOnboardingDraft();
   const dispatch = useAppDispatch();
   const [phase, setPhase] = useState<'calibrating' | 'summary'>('calibrating');
   const [statusIndex, setStatusIndex] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => setStatusIndex((i) => Math.min(i + 1, STATUSES.length - 1)), STATUS_STEP_MS);
-    const timeout = setTimeout(() => setPhase('summary'), STATUS_STEP_MS * STATUSES.length + 250);
+    const interval = setInterval(() => setStatusIndex((i) => Math.min(i + 1, STATUS_KEYS.length - 1)), STATUS_STEP_MS);
+    const timeout = setTimeout(() => setPhase('summary'), STATUS_STEP_MS * STATUS_KEYS.length + 250);
     return () => {
       clearInterval(interval);
       clearTimeout(timeout);
@@ -217,7 +217,7 @@ export const CompleteSetupScreen: React.FC = () => {
               <CalibratingVisual />
             </View>
             <AppText variant="headingMedium" color={onboardingGlass.textPrimary} align="center">
-              {STATUSES[statusIndex]}
+              {t(`onboarding.complete.statuses.${STATUS_KEYS[statusIndex]}`)}
             </AppText>
           </View>
         ) : (
@@ -226,10 +226,10 @@ export const CompleteSetupScreen: React.FC = () => {
               <View style={{ alignItems: 'center' }}>
                 <ArrivalCheck />
                 <AppText variant="displayMedium" align="center" color={onboardingGlass.textPrimary} style={{ marginBottom: 4 }}>
-                  Your plan is ready
+                  {t('onboarding.complete.readyTitle')}
                 </AppText>
                 <AppText variant="bodyMedium" align="center" color={onboardingGlass.textSecondary} style={{ marginBottom: theme.spacing.lg, maxWidth: 280 }}>
-                  Built from your profile — every number below adjusts as you go.
+                  {t('onboarding.complete.readySubtitle')}
                 </AppText>
               </View>
             </FadeSlideIn>
@@ -238,7 +238,7 @@ export const CompleteSetupScreen: React.FC = () => {
               <View style={{ alignItems: 'center', marginBottom: theme.spacing.lg }}>
                 <AnimatedNumberText value={calorieGoal} variant="metricHero" color={onboardingGlass.textPrimary} formatter={(n) => `${Math.round(n)}`} />
                 <AppText variant="label" color={onboardingData} style={{ letterSpacing: 1, marginTop: 2 }}>
-                  DAILY CALORIE TARGET
+                  {t('onboarding.complete.dailyCalorieTarget').toUpperCase()}
                 </AppText>
               </View>
             </FadeSlideIn>
@@ -251,10 +251,10 @@ export const CompleteSetupScreen: React.FC = () => {
 
             <FadeSlideIn delay={motion.staggerStepMs * 4}>
               <View style={{ backgroundColor: onboardingGlass.fill, borderWidth: 1.5, borderColor: onboardingGlass.border, borderRadius: theme.radius.lg, padding: theme.spacing.md }}>
-                <StatRow label="Goal" value={GOAL_LABELS[goal]} />
-                <StatRow label="Activity level" value={ACTIVITY_LABELS[activityLevel]} />
-                <StatRow label="Height · Weight" value={`${heightCm} cm · ${weightKg} kg`} />
-                <StatRow label="Micronutrients" value={`${(draft.micronutrients ?? []).length} tracked`} last />
+                <StatRow label={t('onboarding.complete.goal')} value={t(`enums.goalAction.${goal}`)} />
+                <StatRow label={t('onboarding.complete.activityLevel')} value={t(`enums.activityLevel.${activityLevel}`)} />
+                <StatRow label={t('onboarding.complete.heightWeight')} value={`${heightCm} ${t('units.cm')} · ${weightKg} ${t('units.kg')}`} />
+                <StatRow label={t('onboarding.complete.micronutrients')} value={t('units.tracked', { count: (draft.micronutrients ?? []).length })} last />
               </View>
             </FadeSlideIn>
           </ScrollView>
@@ -262,7 +262,7 @@ export const CompleteSetupScreen: React.FC = () => {
 
         {phase === 'summary' ? (
           <FadeSlideIn delay={motion.staggerStepMs * 6} style={{ padding: theme.spacing.md }}>
-            <AppGradientButton label="Enter Longlivy" onPress={finish} colors={onboardingCtaGradient} />
+            <AppGradientButton label={t('onboarding.complete.enter')} onPress={finish} colors={onboardingCtaGradient} />
           </FadeSlideIn>
         ) : null}
       </SafeAreaView>

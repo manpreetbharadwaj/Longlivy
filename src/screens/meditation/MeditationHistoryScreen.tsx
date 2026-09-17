@@ -1,22 +1,25 @@
 import React from 'react';
 import { FlatList, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { TabHeroLayout } from '@/components/common/TabHeroLayout';
+import { SectionHeroLayout } from '@/components/common/SectionHeroLayout';
+import { sectionEnvironments } from '@/theme/environments';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppBadge } from '@/components/common/AppBadge';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppSelector } from '@/store/hooks';
 import { selectMeditationHistory } from '@/features/meditation/selectors';
 
 export const MeditationHistoryScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const history = useAppSelector(selectMeditationHistory);
 
   return (
-    <TabHeroLayout title="Meditation history" onBack={() => navigation.goBack()} scroll={false}>
+    <SectionHeroLayout environment={sectionEnvironments.meditation} title={t('meditation.historyScreen.title')} onBack={() => navigation.goBack()} scroll={false}>
       <FlatList
         data={history}
         keyExtractor={(item) => item.id}
@@ -34,7 +37,10 @@ export const MeditationHistoryScreen: React.FC = () => {
                   {new Date(item.startedAt).toLocaleDateString()} · {Math.round(item.activeDurationSeconds / 60)} min
                 </AppText>
               </View>
-              <AppBadge label={item.status.replace('_', ' ')} tone={item.status === 'completed' ? 'success' : 'warning'} />
+              <AppBadge
+                label={item.status === 'completed' ? t('meditation.historyScreen.statusCompleted') : t('meditation.historyScreen.statusEndedEarly')}
+                tone={item.status === 'completed' ? 'success' : 'warning'}
+              />
             </View>
           </HeroCard>
         )}
@@ -54,11 +60,11 @@ export const MeditationHistoryScreen: React.FC = () => {
               <AppIcon name="file-tray-outline" size={30} color="rgba(255,255,255,0.5)" />
             </View>
             <AppText variant="headingSmall" color="#FFFFFF" align="center">
-              No sessions yet
+              {t('meditation.historyScreen.empty')}
             </AppText>
           </View>
         }
       />
-    </TabHeroLayout>
+    </SectionHeroLayout>
   );
 };

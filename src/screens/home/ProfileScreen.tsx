@@ -4,13 +4,15 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedStyle, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { HomeStackParamList } from '@/navigation/types';
+import { ProfileStackParamList } from '@/navigation/types';
 import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon, AppIconName } from '@/components/common/AppIcon';
 import { GlowOrb } from '@/components/common/GlowOrb';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
+import { UserAvatar } from '@/features/profile/components/UserAvatar';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { motion } from '@/theme/motion';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUserProfile } from '@/features/profile/selectors';
@@ -19,7 +21,8 @@ import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashbo
 
 export const ProfileScreen: React.FC = () => {
   const { theme } = useTheme();
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const { t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const dispatch = useAppDispatch();
   const profile = useAppSelector(selectUserProfile);
 
@@ -31,7 +34,7 @@ export const ProfileScreen: React.FC = () => {
         <Pressable
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('common.back')}
           hitSlop={8}
           style={{
             width: 36,
@@ -47,12 +50,12 @@ export const ProfileScreen: React.FC = () => {
           <AppIcon name="chevron-back" size={18} color={dashboardColors.textPrimary} />
         </Pressable>
         <AppText variant="headingMedium" weight="600" color={dashboardColors.textPrimary} align="center" style={{ flex: 1 }}>
-          Profile
+          {t('profile.title')}
         </AppText>
         <View style={{ width: 36 }} />
       </View>
 
-      <ProfileAvatar initial={profile.firstName.charAt(0)} />
+      <ProfileAvatar avatarId={profile.avatarId} name={profile.firstName} />
 
       <AppText variant="displayMedium" color={dashboardColors.textPrimary} align="center" style={{ marginTop: theme.spacing.md }}>
         {profile.firstName} {profile.lastName}
@@ -62,24 +65,24 @@ export const ProfileScreen: React.FC = () => {
       </AppText>
 
       <View style={[dashboardCardStyle, { marginTop: theme.spacing.xl, padding: theme.spacing.sm }]}>
-        <StatRow index={0} icon="resize-outline" label="Height" value={`${profile.heightCm} cm`} />
-        <StatRow index={1} icon="scale-outline" label="Weight" value={`${profile.weightKg} kg`} />
-        <StatRow index={2} icon="walk-outline" label="Activity level" value={profile.activityLevel.replace('_', ' ')} capitalize />
-        <StatRow index={3} icon="flag-outline" label="Goal" value={profile.goal.replace('_', ' ')} capitalize isLast />
+        <StatRow index={0} icon="resize-outline" label={t('profile.height')} value={`${profile.heightCm} ${t('units.cm')}`} />
+        <StatRow index={1} icon="scale-outline" label={t('profile.weight')} value={`${profile.weightKg} ${t('units.kg')}`} />
+        <StatRow index={2} icon="walk-outline" label={t('profile.activityLevel')} value={t(`enums.activityLevel.${profile.activityLevel}`)} />
+        <StatRow index={3} icon="flag-outline" label={t('profile.goal')} value={t(`enums.goal.${profile.goal}`)} isLast />
       </View>
 
       <View style={{ marginTop: theme.spacing.lg }}>
-        <ActionRow index={0} icon="person-outline" label="Edit profile" onPress={() => navigation.navigate('EditProfile')} />
-        <ActionRow index={1} icon="settings-outline" label="Settings" onPress={() => navigation.navigate('Settings')} />
-        <ActionRow index={2} icon="heart-outline" label="Health integrations" onPress={() => navigation.navigate('HealthIntegrations')} />
-        <ActionRow index={3} icon="chatbox-ellipses-outline" label="Send feedback" onPress={() => navigation.navigate('Feedback')} />
-        <ActionRow index={4} icon="shield-checkmark-outline" label="Privacy" onPress={() => navigation.navigate('Privacy')} isLast />
+        <ActionRow index={0} icon="person-outline" label={t('profile.editProfile')} onPress={() => navigation.navigate('EditProfile')} />
+        <ActionRow index={1} icon="settings-outline" label={t('profile.settings')} onPress={() => navigation.navigate('Settings')} />
+        <ActionRow index={2} icon="heart-outline" label={t('profile.healthIntegrations')} onPress={() => navigation.navigate('HealthIntegrations')} />
+        <ActionRow index={3} icon="chatbox-ellipses-outline" label={t('profile.sendFeedback')} onPress={() => navigation.navigate('Feedback')} />
+        <ActionRow index={4} icon="shield-checkmark-outline" label={t('profile.privacy')} onPress={() => navigation.navigate('Privacy')} isLast />
       </View>
 
       <Pressable
         onPress={handleLogout}
         accessibilityRole="button"
-        accessibilityLabel="Log out"
+        accessibilityLabel={t('profile.logout')}
         style={({ pressed }) => ({
           flexDirection: 'row',
           alignItems: 'center',
@@ -95,15 +98,15 @@ export const ProfileScreen: React.FC = () => {
       >
         <AppIcon name="log-out-outline" size={18} color={dashboardColors.accent} />
         <AppText variant="headingSmall" color={dashboardColors.accent} style={{ marginLeft: 8 }}>
-          Log out
+          {t('profile.logout')}
         </AppText>
       </Pressable>
     </TabHeroLayout>
   );
 };
 
-/** Premium avatar hero — dark surface, cyan ring, a soft glow behind it, and a couple of tiny orbiting accent dots for polish. No green, no purple. */
-const ProfileAvatar: React.FC<{ initial: string }> = React.memo(({ initial }) => {
+/** Premium avatar hero — dark surface, cyan ring, a soft glow behind it, and a couple of tiny orbiting accent dots for polish. No green, no purple. The ring/glow/dots are unchanged; only the inner content is now a `UserAvatar` (chosen preset or initial-letter fallback). */
+const ProfileAvatar: React.FC<{ avatarId?: string; name: string }> = React.memo(({ avatarId, name }) => {
   const glow = useSharedValue(0);
   useEffect(() => {
     glow.value = withDelay(
@@ -139,9 +142,7 @@ const ProfileAvatar: React.FC<{ initial: string }> = React.memo(({ initial }) =>
             glowStyle,
           ]}
         >
-          <AppText variant="displayLarge" color={dashboardColors.accent} weight="700">
-            {initial}
-          </AppText>
+          <UserAvatar size={size - 4} avatarId={avatarId} name={name} ring={false} backgroundColor="transparent" />
         </Animated.View>
         <View style={{ position: 'absolute', top: 4, right: 8, width: 5, height: 5, borderRadius: 3, backgroundColor: dashboardColors.accentBright }} />
         <View style={{ position: 'absolute', bottom: 10, left: 0, width: 4, height: 4, borderRadius: 2, backgroundColor: dashboardColors.accentBright, opacity: 0.7 }} />

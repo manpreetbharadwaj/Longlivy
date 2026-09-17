@@ -21,20 +21,30 @@ export function calculateActiveSecondsFromEvents(events: MeditationSessionEvent[
     switch (event.type) {
       case 'started':
       case 'resumed':
+        // A 'resumed' closes out whatever pause interval preceded it — without
+        // this, the time between 'paused' and 'resumed' was silently dropped
+        // instead of counted into pausedSeconds.
+        if (pauseStart !== null) {
+          pausedSeconds += (t - pauseStart) / 1000;
+          pauseStart = null;
+        }
         segmentStart = t;
-        pauseStart = null;
         break;
       case 'paused':
-      case 'backgrounded':
         if (segmentStart !== null) {
           activeSeconds += (t - segmentStart) / 1000;
           segmentStart = null;
         }
         pauseStart = t;
         break;
+      case 'backgrounded':
       case 'foregrounded':
-        // resumes an implicit active segment only if a "resumed" event follows;
-        // foregrounded alone does not restart the timer.
+        // Informational only — background/lock-screen audio is expected to
+        // keep playing (native background-audio mode is configured; see
+        // useMeditationAudioSession), so backgrounding is NOT a pause
+        // boundary. Only an explicit 'paused' event closes an active
+        // segment; these two just record what happened without affecting
+        // active/paused duration math.
         break;
       case 'completed':
       case 'stopped':

@@ -1,40 +1,45 @@
 import { TextStyle, ViewStyle } from 'react-native';
 
 /**
- * Premium dark-wellness tokens for the Home Dashboard redesign.
+ * Premium dark-wellness tokens for the Home Dashboard.
  *
  * Scoped to this feature (same pattern as onboarding's onboardingTheme.ts)
  * rather than folded into the app-wide theme/colors.ts: the dashboard is a
  * hardcoded dark hero surface regardless of the device's light/dark
- * setting (same reasoning HeroCard/AppProgressRing already document), and
- * these exact hex values were specified as the visual source of truth for
- * this redesign. They sit extremely close to the app's existing darkColors
- * (same charcoal-graphite + cobalt-teal language), just pinned to the
- * requested values instead of drifting.
+ * setting (same reasoning HeroCard/AppProgressRing already document).
+ *
+ * v5 premium-neutral pass: the old `accent`/`accentBright` pair
+ * (#19B8F2/#25C7FF) was a bright, near-neon electric blue — on the single
+ * most-viewed screen in the app, that read as "gaming HUD" rather than
+ * "quiet luxury wellness-tech." Replaced with the same muted steel accent
+ * as the app-wide `colors.ts` primary, and the neutral tones lost their
+ * blue undertone in favor of a true warm-neutral charcoal, matching the
+ * rest of the v5 palette so Home doesn't feel like a different app from
+ * the sections around it.
  */
 export const dashboardColors = {
-  background: '#070A0F',
-  surface: '#0D1219',
-  surfaceElevated: '#111720',
-  surfaceSecondary: '#151B24',
+  background: '#0A0A0C',
+  surface: '#131315',
+  surfaceElevated: '#1A1A1D',
+  surfaceSecondary: '#1F1F22',
 
-  textPrimary: '#F5F7FA',
-  textSecondary: '#A7AFBB',
-  textMuted: '#697382',
+  textPrimary: '#F2F1EE',
+  textSecondary: '#A6A5A2',
+  textMuted: '#706F6C',
 
-  accent: '#19B8F2',
-  accentBright: '#25C7FF',
-  accentDark: '#087DAA',
+  accent: '#5C7A94',
+  accentBright: '#7A97B0',
+  accentDark: '#3D5266',
 
   border: 'rgba(255,255,255,0.08)',
   borderStrong: 'rgba(255,255,255,0.12)',
 
-  success: '#22C985',
-  warning: '#F3B44B',
-  danger: '#FF6B6B',
+  success: '#5FA37D',
+  warning: '#D9954B',
+  danger: '#C97268',
 
-  iconInactive: '#8B94A3',
-  iconImportant: '#F5F7FA',
+  iconInactive: '#8B8A87',
+  iconImportant: '#F2F1EE',
 } as const;
 
 /** Level-2 "dark elevated surface" card — the default for most dashboard sections. Spread into a HeroCard's `style` prop to override its glassy default without touching HeroCard.tsx (shared by many other screens). */

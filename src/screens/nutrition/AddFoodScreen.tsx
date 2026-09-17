@@ -12,6 +12,7 @@ import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
@@ -22,10 +23,11 @@ import { selectFavoriteFoods } from '@/features/nutrition/selectors';
 import { selectActiveFast } from '@/features/fasting/selectors';
 import { endFastThunk } from '@/features/fasting/fastingSlice';
 
-const NUTRITION_GRADIENT = ['#E0AC55', '#8F6A2E'] as const;
+const NUTRITION_GRADIENT = ['#C9974E', '#8F6A2E'] as const;
 
 export const AddFoodScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<NutritionStackParamList>>();
   const route = useRoute<RouteProp<NutritionStackParamList, 'AddFood'>>();
   const dispatch = useAppDispatch();
@@ -60,17 +62,17 @@ export const AddFoodScreen: React.FC = () => {
     // if the user explicitly confirms it.
     if (activeFast) {
       Alert.alert(
-        'You have an active fast',
-        'Logging food usually means an eating window has started. End your current fast now?',
+        t('nutrition.endFastPrompt.title'),
+        t('nutrition.endFastPrompt.message'),
         [
-          { text: 'Keep fasting', style: 'cancel', onPress: () => navigation.popToTop() },
-          { text: 'End fast', style: 'destructive', onPress: () => { dispatch(endFastThunk(activeFast)); navigation.popToTop(); } },
+          { text: t('nutrition.endFastPrompt.keepFasting'), style: 'cancel', onPress: () => navigation.popToTop() },
+          { text: t('nutrition.endFastPrompt.endFast'), style: 'destructive', onPress: () => { dispatch(endFastThunk(activeFast)); navigation.popToTop(); } },
         ]
       );
     } else {
       navigation.popToTop();
     }
-  }, [dispatch, food, quantity, route.params.mealType, navigation, activeFast]);
+  }, [dispatch, food, quantity, route.params.mealType, navigation, activeFast, t]);
 
   const toggleFavorite = useCallback(async () => {
     await nutritionRepository.toggleFavorite('user_demo_1', route.params.foodId);

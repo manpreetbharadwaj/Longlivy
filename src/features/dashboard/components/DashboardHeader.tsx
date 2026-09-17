@@ -1,15 +1,17 @@
 import React from 'react';
 import { View, Pressable, StyleProp, ViewStyle } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import Animated, { SharedValue, useSharedValue, useAnimatedStyle, withTiming, interpolate, Extrapolation } from 'react-native-reanimated';
-import { HomeStackParamList } from '@/navigation/types';
+import { HomeStackParamList, MainTabParamList } from '@/navigation/types';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { selectUserProfile } from '@/features/profile/selectors';
+import { UserAvatar } from '@/features/profile/components/UserAvatar';
 import { selectUnreadNotificationCount } from '@/features/notifications/selectors';
 import { useTranslation } from '@/localization';
 import { TranslationKey } from '@/localization/types';
@@ -32,7 +34,8 @@ const COLLAPSE_RANGE = 90;
 export const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({ scrollY }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation =
+    useNavigation<CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList>, BottomTabNavigationProp<MainTabParamList>>>();
   const profile = useAppSelector(selectUserProfile);
   const unread = useAppSelector(selectUnreadNotificationCount);
 
@@ -56,7 +59,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({ scr
         </AppText>
       </Animated.View>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <PressScale onPress={() => navigation.navigate('Notifications')} accessibilityLabel="Notifications" style={{ marginRight: theme.spacing.sm }}>
+        <PressScale onPress={() => navigation.navigate('Notifications')} accessibilityLabel={t('notifications.title')} style={{ marginRight: theme.spacing.sm }}>
           <View>
             <AppIcon name="notifications-outline" size={22} color={dashboardColors.textPrimary} />
             {unread > 0 ? (
@@ -81,23 +84,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({ scr
             ) : null}
           </View>
         </PressScale>
-        <PressScale onPress={() => navigation.navigate('Profile')} accessibilityLabel="Profile">
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: dashboardColors.surfaceElevated,
-              borderWidth: 1.5,
-              borderColor: dashboardColors.accent,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <AppText variant="headingSmall" color={dashboardColors.accent}>
-              {profile.firstName.charAt(0)}
-            </AppText>
-          </View>
+        <PressScale onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })} accessibilityLabel={t('profile.title')}>
+          <UserAvatar size={40} avatarId={profile.avatarId} name={profile.firstName} />
         </PressScale>
       </View>
     </View>

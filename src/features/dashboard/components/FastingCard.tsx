@@ -17,6 +17,9 @@ import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
+/** Fasting's own warm bronze accent (matches `theme.colors.fasting`) — this card is the one place on the otherwise-neutral Home dashboard that should read as "fasting," not the dashboard's generic steel accent. */
+const FASTING_ACCENT = '#8B7FA8';
+
 export const FastingCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
@@ -31,12 +34,12 @@ export const FastingCard: React.FC = React.memo(() => {
   return (
     <HeroCard onPress={goToFasting} style={[dashboardCardElevated, { marginBottom: theme.spacing.sm }]} scaleOnPress>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <AppProgressRing progress={animatedProgress} size={72} strokeWidth={7} color={dashboardColors.accent} trackColor={dashboardColors.border}>
-          <AppIcon name="timer-outline" size={22} color={dashboardColors.accent} />
+        <AppProgressRing progress={animatedProgress} size={72} strokeWidth={7} color={FASTING_ACCENT} trackColor={dashboardColors.border}>
+          <AppIcon name="timer-outline" size={22} color={FASTING_ACCENT} />
         </AppProgressRing>
         <View style={{ flex: 1, marginLeft: theme.spacing.md }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-            <AppText variant="label" color={dashboardColors.accent} style={{ letterSpacing: 0.5 }}>
+            <AppText variant="label" color={FASTING_ACCENT} style={{ letterSpacing: 0.5 }}>
               FASTING
             </AppText>
             {activeFast ? (
@@ -75,7 +78,7 @@ export const FastingCard: React.FC = React.memo(() => {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: dashboardColors.accent,
+              backgroundColor: FASTING_ACCENT,
               paddingHorizontal: theme.spacing.sm,
               paddingVertical: 8,
               borderRadius: theme.radius.pill,

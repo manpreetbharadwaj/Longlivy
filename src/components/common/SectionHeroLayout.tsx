@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Pressable, StatusBar, RefreshControl, ScrollViewProps } from 'react-native';
+import { View, Pressable, StatusBar, RefreshControl, ScrollViewProps, Image, ImageSourcePropType } from 'react-native';
 import { SafeAreaView, Edge } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { AnimatedRef, ScrollHandlerProcessed } from 'react-native-reanimated';
@@ -27,6 +27,10 @@ interface SectionHeroLayoutProps {
   onScroll?: ScrollHandlerProcessed<Record<string, unknown>>;
   edges?: Edge[];
   applyTabBarSpacing?: boolean;
+  /** Optional photographic background, e.g. for an immersive "moment" screen — rendered beneath the gradient, which dims to let it show through (see `backgroundImageGradientOpacity`). Omit for the normal flat-gradient hero look. */
+  backgroundImageSource?: ImageSourcePropType;
+  /** How opaque the gradient overlay stays on top of `backgroundImageSource` — lower lets more of the photo show through. Ignored without an image. */
+  backgroundImageGradientOpacity?: number;
 }
 
 /**
@@ -55,6 +59,8 @@ export const SectionHeroLayout: React.FC<SectionHeroLayoutProps> = ({
   onScroll,
   edges = ['top', 'left', 'right'],
   applyTabBarSpacing = true,
+  backgroundImageSource,
+  backgroundImageGradientOpacity = 0.55,
 }) => {
   const { theme } = useTheme();
   // The floating tab bar is an absolutely-positioned overlay, not a docked
@@ -91,7 +97,13 @@ export const SectionHeroLayout: React.FC<SectionHeroLayoutProps> = ({
   return (
     <View style={{ flex: 1, backgroundColor: environment.gradient[0] }}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={environment.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+      {backgroundImageSource ? (
+        <Image source={backgroundImageSource} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} resizeMode="cover" />
+      ) : null}
+      <LinearGradient
+        colors={environment.gradient}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: backgroundImageSource ? backgroundImageGradientOpacity : 1 }}
+      />
       {environment.orbs.map((orb, index) => (
         <GlowOrb key={index} size={orb.size} color={orb.color} opacity={orb.opacity} pulse={orb.pulse} style={orb.style} />
       ))}

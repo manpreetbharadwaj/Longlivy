@@ -14,6 +14,8 @@ import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { CardShimmer } from '@/components/common/CardShimmer';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
+import { TranslationKey } from '@/localization/types';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { motion } from '@/theme/motion';
@@ -22,22 +24,23 @@ import { selectDailyNutritionTotals, selectNutritionProgress, selectTodayMeals }
 import { MealType } from '@/features/nutrition/models';
 import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 
-const MEAL_TYPES: { key: MealType; label: string; icon: AppIconName }[] = [
-  { key: 'breakfast', label: 'Breakfast', icon: 'cafe-outline' },
-  { key: 'lunch', label: 'Lunch', icon: 'restaurant-outline' },
-  { key: 'dinner', label: 'Dinner', icon: 'fast-food-outline' },
-  { key: 'snack', label: 'Snack', icon: 'nutrition-outline' },
+const MEAL_TYPES: { key: MealType; icon: AppIconName }[] = [
+  { key: 'breakfast', icon: 'cafe-outline' },
+  { key: 'lunch', icon: 'restaurant-outline' },
+  { key: 'dinner', icon: 'fast-food-outline' },
+  { key: 'snack', icon: 'nutrition-outline' },
 ];
 
-const QUICK_LINKS: { label: string; icon: AppIconName; nav: keyof NutritionStackParamList }[] = [
-  { label: 'Scan barcode', icon: 'barcode-outline', nav: 'BarcodeScanner' },
-  { label: 'AI photo', icon: 'camera-outline', nav: 'AiPhotoEntry' },
-  { label: 'AI voice', icon: 'mic-outline', nav: 'AiVoiceEntry' },
-  { label: 'AI text', icon: 'chatbubble-ellipses-outline', nav: 'AiTextEntry' },
+const QUICK_LINKS: { labelKey: TranslationKey; icon: AppIconName; nav: keyof NutritionStackParamList }[] = [
+  { labelKey: 'nutrition.quickAdd.barcode', icon: 'barcode-outline', nav: 'BarcodeScanner' },
+  { labelKey: 'nutrition.quickAdd.aiPhoto', icon: 'camera-outline', nav: 'AiPhotoEntry' },
+  { labelKey: 'nutrition.quickAdd.aiVoice', icon: 'mic-outline', nav: 'AiVoiceEntry' },
+  { labelKey: 'nutrition.quickAdd.aiText', icon: 'chatbubble-ellipses-outline', nav: 'AiTextEntry' },
 ];
 
 export const NutritionDashboardScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<NutritionStackParamList>>();
   const dispatch = useAppDispatch();
   const meals = useAppSelector(selectTodayMeals);
@@ -52,24 +55,26 @@ export const NutritionDashboardScreen: React.FC = () => {
   const mealFor = useCallback((type: MealType) => meals.find((m) => m.mealType === type), [meals]);
 
   return (
-    <SectionHeroLayout environment={sectionEnvironments.nutrition} title="Nutrition">
+    <SectionHeroLayout environment={sectionEnvironments.nutrition} title={t('nutrition.title')}>
       <HeroCard style={[dashboardCardStyle, { alignItems: 'center', marginBottom: theme.spacing.md, overflow: 'hidden' }]}>
-        <AppProgressRing progress={ringProgress} size={160} strokeWidth={12} color={progress.calories.exceeded ? dashboardColors.warning : '#E0AC55'} trackColor={dashboardColors.border} glow>
+        <AppProgressRing progress={ringProgress} size={160} strokeWidth={12} color={progress.calories.exceeded ? dashboardColors.warning : '#C9974E'} trackColor={dashboardColors.border} glow>
           <AnimatedNumberText value={Math.round(totals.calories)} variant="metricMedium" color={dashboardColors.textPrimary} />
           <AppText variant="caption" color={dashboardColors.textMuted}>
-            of {progress.calories.target} kcal
+            {t('nutrition.ofKcal', { target: progress.calories.target })}
           </AppText>
         </AppProgressRing>
         <AppText variant="bodyMedium" style={{ marginTop: theme.spacing.sm }} color={progress.calories.exceeded ? dashboardColors.warning : dashboardColors.textSecondary}>
-          {progress.calories.exceeded ? `Goal exceeded by ${Math.round(progress.calories.exceededBy)} kcal` : `${Math.round(progress.calories.remaining)} kcal remaining`}
+          {progress.calories.exceeded
+            ? t('nutrition.goalExceededBy', { amount: Math.round(progress.calories.exceededBy) })
+            : t('nutrition.kcalRemaining', { amount: Math.round(progress.calories.remaining) })}
         </AppText>
         <CardShimmer delay={400} />
       </HeroCard>
 
       <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
-        <MacroTile index={0} label="Protein" icon="egg-outline" progress={progress.protein} color="#E0AC55" />
-        <MacroTile index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} color="#5B9BD5" />
-        <MacroTile index={2} label="Fat" icon="water-outline" progress={progress.fat} color="#A78BC9" isLast />
+        <MacroTile index={0} label={t('nutrition.macros.protein')} icon="egg-outline" progress={progress.protein} color="#C9974E" />
+        <MacroTile index={1} label={t('nutrition.macros.carbs')} icon="pizza-outline" progress={progress.carbohydrates} color="#6E8FAE" />
+        <MacroTile index={2} label={t('nutrition.macros.fat')} icon="water-outline" progress={progress.fat} color="#8B7FA8" isLast />
       </View>
 
       {MEAL_TYPES.map((mt, index) => {
@@ -92,14 +97,16 @@ export const NutritionDashboardScreen: React.FC = () => {
                       marginRight: theme.spacing.sm,
                     }}
                   >
-                    <AppIcon name={mt.icon} size={20} color="#E0AC55" />
+                    <AppIcon name={mt.icon} size={20} color="#C9974E" />
                   </View>
                   <View>
                     <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
-                      {mt.label}
+                      {t(`enums.meal.${mt.key}`)}
                     </AppText>
                     <AppText variant="bodySmall" color={dashboardColors.textMuted}>
-                      {meal ? `${Math.round(meal.totalCalories)} kcal · ${meal.items.length} items` : 'No items logged'}
+                      {meal
+                        ? t('nutrition.itemsSummary', { kcal: Math.round(meal.totalCalories), count: meal.items.length })
+                        : t('nutrition.noItemsLogged')}
                     </AppText>
                   </View>
                 </View>
@@ -113,16 +120,16 @@ export const NutritionDashboardScreen: React.FC = () => {
       {meals.length === 0 ? (
         <View style={{ alignItems: 'center', paddingVertical: theme.spacing.lg }}>
           <AppText variant="headingSmall" color={dashboardColors.textPrimary} align="center">
-            Nothing logged yet
+            {t('nutrition.emptyTitle')}
           </AppText>
           <AppText variant="bodyMedium" color={dashboardColors.textSecondary} align="center" style={{ marginTop: theme.spacing.xxs }}>
-            Add your first meal to see today's nutrition.
+            {t('nutrition.emptyMessage')}
           </AppText>
         </View>
       ) : null}
 
       <AppText variant="headingSmall" color={dashboardColors.textPrimary} style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
-        Quick add
+        {t('nutrition.quickAddTitle')}
       </AppText>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: theme.spacing.md, marginHorizontal: -theme.spacing.xxs }}>
         {QUICK_LINKS.map((link, index) => (
@@ -131,12 +138,12 @@ export const NutritionDashboardScreen: React.FC = () => {
               <Pressable
                 onPress={() => navigation.navigate(link.nav as never)}
                 accessibilityRole="button"
-                accessibilityLabel={link.label}
+                accessibilityLabel={t(link.labelKey)}
                 style={({ pressed }) => [dashboardCardStyle, { flexDirection: 'row', alignItems: 'center', padding: theme.spacing.sm, opacity: pressed ? 0.85 : 1 }]}
               >
                 <AppIcon name={link.icon} size={18} color={dashboardColors.accent} />
                 <AppText variant="bodyMedium" weight="600" color={dashboardColors.textPrimary} style={{ marginLeft: 8 }}>
-                  {link.label}
+                  {t(link.labelKey)}
                 </AppText>
               </Pressable>
             </FadeSlideIn>
@@ -145,11 +152,11 @@ export const NutritionDashboardScreen: React.FC = () => {
       </View>
 
       <View style={{ marginTop: theme.spacing.sm }}>
-        <ListRow index={0} icon="book-outline" label="My recipes" onPress={() => navigation.navigate('MyRecipes')} />
-        <ListRow index={1} icon="fast-food-outline" label="My foods" onPress={() => navigation.navigate('MyFoods')} />
-        <ListRow index={2} icon="heart-outline" label="Favorites" onPress={() => navigation.navigate('Favorites')} />
-        <ListRow index={3} icon="flag-outline" label="Nutrition goals" onPress={() => navigation.navigate('NutritionGoalsScreen')} />
-        <ListRow index={4} icon="time-outline" label="Nutrition history" onPress={() => navigation.navigate('NutritionHistory')} isLast />
+        <ListRow index={0} icon="book-outline" label={t('nutrition.menu.recipes')} onPress={() => navigation.navigate('MyRecipes')} />
+        <ListRow index={1} icon="fast-food-outline" label={t('nutrition.menu.foods')} onPress={() => navigation.navigate('MyFoods')} />
+        <ListRow index={2} icon="heart-outline" label={t('nutrition.menu.favorites')} onPress={() => navigation.navigate('Favorites')} />
+        <ListRow index={3} icon="flag-outline" label={t('nutrition.menu.goals')} onPress={() => navigation.navigate('NutritionGoalsScreen')} />
+        <ListRow index={4} icon="time-outline" label={t('nutrition.menu.history')} onPress={() => navigation.navigate('NutritionHistory')} isLast />
       </View>
     </SectionHeroLayout>
   );
