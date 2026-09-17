@@ -38,6 +38,7 @@ export const MeditationFavoritesScreen: React.FC = () => {
             </AppText>
             <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
               {Math.round(item.durationSeconds / 60)} min · {getMeditationTopicLabel(item.category, t)}
+              {item.availability === 'coming_soon' ? ` · ${t('meditation.details.comingSoon')}` : ''}
             </AppText>
           </HeroCard>
         )}

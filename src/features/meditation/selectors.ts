@@ -10,9 +10,6 @@ export const selectActiveMeditationSession = (state: RootState) => state.meditat
 export const selectMeditationHistory = (state: RootState) => state.meditation.history;
 export const selectMeditationReminders = (state: RootState) => state.meditation.reminders;
 
-/** Catalog rows that are actually playable — excludes 'coming_soon' metadata-only rows (e.g. thin topics like Energy that have no real audio yet). */
-export const selectAvailableMeditations = createSelector(selectMeditationContent, (content) => content.filter((m) => m.availability !== 'coming_soon'));
-
 export interface MeditationFilters {
   mode?: MeditationType;
   topic?: MeditationTopic;

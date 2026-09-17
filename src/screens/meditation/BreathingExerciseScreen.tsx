@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, BackHandler } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -186,6 +186,20 @@ export const BreathingExerciseScreen: React.FC = () => {
       navigation.goBack();
     }
   }, [isRunning, finish, navigation]);
+
+  // Same rationale as MeditationPlayerScreen's handler — Android's
+  // hardware/gesture back bypasses the header back arrow and the
+  // navigator's (iOS-only) `gestureEnabled: false`, which would otherwise
+  // let a running breathing session's Meditation record end up stuck
+  // unfinished (QA finding).
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (showCompletion) return false;
+      handleBack();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [handleBack, showCompletion]);
 
   if (!scheme) {
     return (

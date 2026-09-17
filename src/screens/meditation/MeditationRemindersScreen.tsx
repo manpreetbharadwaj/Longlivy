@@ -67,6 +67,16 @@ export const MeditationRemindersScreen: React.FC = () => {
   const [draftEnabledIntent, setDraftEnabledIntent] = useState(true);
   const [permissionDeniedNotice, setPermissionDeniedNotice] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Ids with an in-flight toggleReminder — saveMeditationReminderThunk reads
+  // `existing` from Redux state at call time, so two overlapping calls for
+  // the same reminder (a fast double-tap on its switch, before the first
+  // dispatch's fulfilled action lands) would both see the same stale
+  // `notificationIds`, neither would cancel the other's schedule, and
+  // whichever resolves last would win in storage — leaving the loser's OS
+  // schedule orphaned and silently double-firing forever (Section 25 QA
+  // finding). Disabling a reminder's switch for the duration of its own
+  // toggle closes that window without affecting other reminders' switches.
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
   const notificationContent = useMemo(
     () => ({ title: t('meditation.remindersScreen.notificationTitle'), body: t('meditation.remindersScreen.notificationBody') }),
@@ -133,18 +143,28 @@ export const MeditationRemindersScreen: React.FC = () => {
 
   const toggleReminder = useCallback(
     async (reminder: MeditationReminder) => {
-      const result = await dispatch(
-        saveMeditationReminderThunk({
-          id: reminder.id,
-          time: reminder.time,
-          daysOfWeek: reminder.daysOfWeek,
-          enabledIntent: !reminder.enabled,
-          notificationContent,
-        })
-      ).unwrap();
-      if (result.permissionDenied) setPermissionDeniedNotice(true);
+      if (togglingIds.has(reminder.id)) return;
+      setTogglingIds((prev) => new Set(prev).add(reminder.id));
+      try {
+        const result = await dispatch(
+          saveMeditationReminderThunk({
+            id: reminder.id,
+            time: reminder.time,
+            daysOfWeek: reminder.daysOfWeek,
+            enabledIntent: !reminder.enabled,
+            notificationContent,
+          })
+        ).unwrap();
+        if (result.permissionDenied) setPermissionDeniedNotice(true);
+      } finally {
+        setTogglingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(reminder.id);
+          return next;
+        });
+      }
     },
-    [dispatch, notificationContent]
+    [dispatch, notificationContent, togglingIds]
   );
 
   const isEditorOpen = editingId !== undefined;
@@ -194,7 +214,12 @@ export const MeditationRemindersScreen: React.FC = () => {
                   {summarizeDays(reminder.daysOfWeek)}
                 </AppText>
               </View>
-              <AppSwitch value={reminder.enabled} onValueChange={() => toggleReminder(reminder)} variant="hero" />
+              <AppSwitch
+                value={reminder.enabled}
+                onValueChange={() => toggleReminder(reminder)}
+                disabled={togglingIds.has(reminder.id)}
+                variant="hero"
+              />
             </View>
           </HeroCard>
         ))

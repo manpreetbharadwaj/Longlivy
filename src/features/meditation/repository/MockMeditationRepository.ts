@@ -36,12 +36,27 @@ function delay<T>(value: T, ms = 150): Promise<T> {
 export class MockMeditationRepository implements MeditationRepository {
   async getPublishedContent(): Promise<Meditation[]> {
     const db = await store.read();
+    // Backfill catalog rows added to MEDITATION_CONTENT_SEED after an install
+    // already persisted its meditation db — LocalStore.read() returns exactly
+    // the stored blob, never a fresh reseed, so without this any new seed
+    // item would be invisible forever on an existing install (Section 21 QA
+    // finding). Only ADDS ids the install doesn't have yet; never touches an
+    // id it already has, so favorites/sessions/templates keyed by existing
+    // ids are unaffected. (Field-level edits to an *existing* seed id on an
+    // old install are a known, accepted limitation of this local-only mock
+    // store — see class doc comment; a real backend repository has no such
+    // gap since it has no local snapshot to go stale.)
+    const existingIds = new Set(db.content.map((m) => m.id));
+    const missingSeedItems = MEDITATION_CONTENT_SEED.filter((m) => !existingIds.has(m.id));
+    if (missingSeedItems.length > 0) {
+      db.content = [...db.content, ...missingSeedItems];
+      await store.write(db);
+    }
     // Defensive, idempotent normalization for installs whose AsyncStorage
     // blob still holds pre-taxonomy category strings written before this
-    // migration (LocalStore persists whatever was last written, not a fresh
-    // reseed on every read) — a value that's already canonical passes
-    // through unchanged, so this is safe on every read regardless of when
-    // the install last wrote its meditation db.
+    // migration — a value that's already canonical passes through unchanged,
+    // so this is safe on every read regardless of when the install last
+    // wrote its meditation db.
     return delay(
       db.content.filter((m) => m.status === 'published').map((m) => ({ ...m, category: normalizeLegacyMeditationTopic(m.category, m.id) }))
     );

@@ -1,5 +1,5 @@
 import { AppIconName, MaterialCommunityIconName } from '@/components/common/AppIcon';
-import { MeditationTopic, MeditationType } from './models';
+import { MeditationTopic } from './models';
 
 export interface MeditationCategoryIcon {
   name: AppIconName | MaterialCommunityIconName;
@@ -21,10 +21,3 @@ const TOPIC_ICONS: Record<MeditationTopic, MeditationCategoryIcon> = {
 export function getMeditationCategoryIcon(topic: MeditationTopic): MeditationCategoryIcon {
   return TOPIC_ICONS[topic];
 }
-
-/** Icons for the three top-level modes — Breathing's icon lives here (mode level), not as a topic. */
-export const MEDITATION_MODE_ICONS: Record<MeditationType, MeditationCategoryIcon> = {
-  guided: { name: 'headset-outline' },
-  free: { name: 'leaf-outline' },
-  breathing: { name: 'weather-windy', family: 'material-community' },
-};

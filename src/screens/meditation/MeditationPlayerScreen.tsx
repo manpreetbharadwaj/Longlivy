@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, BackHandler } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -201,6 +201,20 @@ export const MeditationPlayerScreen: React.FC = () => {
     setShowExitConfirm(false);
     finish('ended_prematurely');
   }, [finish]);
+
+  // Android's hardware/gesture back button bypasses the header back arrow
+  // entirely (and isn't covered by the navigator's `gestureEnabled: false`,
+  // which is an iOS swipe-back concept) — without this, it would pop the
+  // screen straight past requestExit()/finish(), leaving audio playing and
+  // the session stuck unfinished (QA finding).
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (showCompletion) return false;
+      requestExit();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [requestExit, showCompletion]);
 
   const progress = plannedSeconds > 0 ? elapsedSeconds / plannedSeconds : 0;
 

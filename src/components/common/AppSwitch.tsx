@@ -8,15 +8,17 @@ interface AppSwitchProps {
   accessibilityLabel?: string;
   /** 'hero' uses fixed light-on-dark colors instead of theme tokens — theme.colors.primary is a dark teal in light mode and nearly disappears against the dark hero gradient. */
   variant?: 'default' | 'hero';
+  disabled?: boolean;
 }
 
-export const AppSwitch: React.FC<AppSwitchProps> = React.memo(({ value, onValueChange, accessibilityLabel, variant = 'default' }) => {
+export const AppSwitch: React.FC<AppSwitchProps> = React.memo(({ value, onValueChange, accessibilityLabel, variant = 'default', disabled = false }) => {
   const { theme } = useTheme();
   const hero = variant === 'hero';
   return (
     <Switch
       value={value}
       onValueChange={onValueChange}
+      disabled={disabled}
       accessibilityLabel={accessibilityLabel}
       trackColor={hero ? { false: 'rgba(255,255,255,0.18)', true: '#3D5266' } : { false: theme.colors.border, true: theme.colors.primary }}
       thumbColor={hero ? '#FFFFFF' : theme.colors.surface}
