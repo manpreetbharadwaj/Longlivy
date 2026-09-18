@@ -53,7 +53,7 @@ export const ActivityCard: React.FC = React.memo(() => {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Animated.View style={bobStyle}>
-            <AppIconTile name="walk" color="#6E8FAE" size={40} iconSize={20} style={[homeIconTileStyle, { marginRight: theme.spacing.sm }]} />
+            <AppIconTile name="walk" color="#D98657" size={40} iconSize={20} style={[homeIconTileStyle, { marginRight: theme.spacing.sm }]} />
           </Animated.View>
           <View>
             <AppText variant="headingSmall" color={dashboardColors.textPrimary}>

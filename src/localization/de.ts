@@ -168,7 +168,7 @@ export const de: typeof en = {
     title: 'Verlauf',
     allGoals: 'Alle Ziele',
     emptyTitle: 'Noch kein Verlauf',
-    emptyMessage: 'Aktivitäten aus allen Longlivy-Bereichen erscheinen hier.',
+    emptyMessage: 'Aktivitäten aus allen {{appName}}-Bereichen erscheinen hier.',
     filters: {
       fasting: 'Fasten',
       nutrition: 'Ernährung',
@@ -214,7 +214,7 @@ export const de: typeof en = {
     personalize: {
       title: 'Dein Profil',
       next: 'Los geht’s',
-      subtitle: 'Ein paar kurze Angaben und Longlivy {{tagline}}.',
+      subtitle: 'Ein paar kurze Angaben und {{appName}} {{tagline}}.',
       whatWeUse: 'Was wir verwenden',
       taglineFallback: 'hilft dir, einen Plan zu erstellen, der wirklich passt',
       taglines: {
@@ -286,14 +286,14 @@ export const de: typeof en = {
       carbs: 'Kohlenhydrate',
       protein: 'Protein',
       fat: 'Fett',
-      enter: 'Longlivy starten',
+      enter: '{{appName}} starten',
     },
   },
   auth: {
     mockNotice: 'Die Anmeldung ist für diesen Prototyp lokal simuliert.',
     login: {
       title: 'Willkommen zurück',
-      subtitle: 'Melde dich an, um deine Longlivy-Routine fortzusetzen.',
+      subtitle: 'Melde dich an, um deine {{appName}}-Routine fortzusetzen.',
       email: 'E-Mail',
       emailPlaceholder: 'Gib deine E-Mail ein',
       password: 'Passwort',
@@ -302,7 +302,7 @@ export const de: typeof en = {
       passwordRequired: 'Bitte gib dein Passwort ein.',
       forgotPassword: 'Passwort vergessen?',
       submit: 'Anmelden',
-      newToLonglivy: 'Neu bei Longlivy?',
+      newToLonglivy: 'Neu bei {{appName}}?',
       createAccount: 'Konto erstellen',
     },
     register: {
@@ -324,7 +324,7 @@ export const de: typeof en = {
     },
     address: {
       title: 'Wohin sollen wir liefern?',
-      subtitle: 'Wird für den Longlivy-Webshop verwendet — Bestellungen und Lieferungen.',
+      subtitle: 'Wird für den {{appName}}-Webshop verwendet — Bestellungen und Lieferungen.',
       label: 'Straße, Ort, Postleitzahl',
       submit: 'Weiter',
     },
@@ -614,7 +614,7 @@ export const de: typeof en = {
       weekdays: 'Wochentage',
       selectAtLeastOneDay: 'Wähle mindestens einen Tag aus.',
       savingWhileOff: 'Diese Erinnerung ist aus — Speichern lässt sie aus. Nutze den Schalter, um sie zu aktivieren.',
-      permissionDenied: 'Benachrichtigungen sind für Longlivy deaktiviert, daher kann diese Erinnerung nicht geplant werden. Aktiviere Benachrichtigungen in den Geräteeinstellungen, um sie zu aktivieren.',
+      permissionDenied: 'Benachrichtigungen sind für {{appName}} deaktiviert, daher kann diese Erinnerung nicht geplant werden. Aktiviere Benachrichtigungen in den Geräteeinstellungen, um sie zu aktivieren.',
       notificationTitle: 'Zeit für deine Meditation',
       notificationBody: 'Nimm dir ein paar Minuten für dich.',
     },
@@ -686,7 +686,7 @@ export const de: typeof en = {
       },
       feature: {
         title: 'Funktion vorschlagen',
-        description: 'Etwas, das sich Longlivy wünschen würde.',
+        description: 'Etwas, das sich {{appName}} wünschen würde.',
       },
       general: {
         title: 'Allgemeines Feedback',

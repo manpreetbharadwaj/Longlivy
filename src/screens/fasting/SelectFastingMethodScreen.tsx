@@ -24,7 +24,7 @@ const CATEGORY_SEGMENTS = [
   { key: 'individual', label: 'Individual' },
 ];
 
-const FASTING_GRADIENT = ['#5C7A94', '#3D5266'] as const;
+const FASTING_GRADIENT = ['#4FAE8F', '#1F6F5C'] as const;
 
 export const SelectFastingMethodScreen: React.FC = () => {
   const { theme } = useTheme();

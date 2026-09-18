@@ -42,7 +42,7 @@ const DEFAULTS: AppPreferences = {
   hapticsEnabled: true,
 };
 
-const STORAGE_KEY = '@longlivy/app_preferences';
+const STORAGE_KEY = '@app/app_preferences';
 
 const AppPreferencesContext = createContext<AppPreferencesContextValue | undefined>(undefined);
 

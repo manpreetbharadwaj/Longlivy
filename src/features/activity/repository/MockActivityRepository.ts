@@ -5,7 +5,7 @@ import { generateId } from '@/utils/id';
 import { ACTIVITY_HISTORY_SEED } from '@/mock/activitySeed';
 import { estimateActivityCalories, calculatePace, calculateSpeed, ACTIVITY_CALCULATION_METHOD, ACTIVITY_CALCULATION_VERSION } from '../services/ActivityCalculator';
 
-const store = new LocalStore<Activity[]>('@longlivy/activity_db', ACTIVITY_HISTORY_SEED);
+const store = new LocalStore<Activity[]>('@app/activity_db', ACTIVITY_HISTORY_SEED);
 
 function delay<T>(value: T, ms = 200): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));

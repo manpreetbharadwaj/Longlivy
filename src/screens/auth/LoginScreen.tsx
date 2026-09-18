@@ -72,7 +72,7 @@ export const LoginScreen: React.FC = () => {
     <AuthHeroLayout>
       <View style={{ alignItems: 'center', marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl }}>
         <View style={{ width: 56, height: 56, borderRadius: 18, overflow: 'hidden', marginBottom: theme.spacing.md }}>
-          <LinearGradient colors={['#3D5266', '#3D5266']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <LinearGradient colors={['#1F6F5C', '#1F6F5C']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <AppText variant="headingLarge" color="#FFFFFF" weight="800">
               L
             </AppText>
@@ -136,7 +136,7 @@ export const LoginScreen: React.FC = () => {
             {t('auth.login.newToLonglivy')}{' '}
           </AppText>
           <Pressable onPress={() => navigation.navigate('Register')} hitSlop={8}>
-            <AppText variant="bodyMedium" color="#5C7A94">
+            <AppText variant="bodyMedium" color="#4FAE8F">
               {t('auth.login.createAccount')}
             </AppText>
           </Pressable>

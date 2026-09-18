@@ -46,7 +46,6 @@ export type ProfileStackParamList = {
   EditProfile: undefined;
   Settings: undefined;
   HealthIntegrations: undefined;
-  NoiseDevice: undefined;
   Privacy: undefined;
   DataManagement: undefined;
   Feedback: undefined;

@@ -15,7 +15,7 @@ export const ActivityEmptyState: React.FC<{ onStart: () => void }> = React.memo(
   return (
     <View style={{ alignItems: 'center', paddingVertical: theme.spacing.lg }}>
       <View style={{ width: 96, height: 96, alignItems: 'center', justifyContent: 'center', marginBottom: theme.spacing.sm }}>
-        <GlowOrb size={96} color="#6E8FAE" opacity={0.18} pulse />
+        <GlowOrb size={96} color="#D98657" opacity={0.18} pulse />
         <ActivityFigure type="walking" size={56} />
       </View>
       <AppText variant="headingSmall" color={dashboardColors.textPrimary} align="center">

@@ -62,10 +62,10 @@ export const DataManagementScreen: React.FC = () => {
     try {
       const json = JSON.stringify(exportableSnapshot(), null, 2);
       if (!FileSystem.documentDirectory) throw new Error('Document directory is unavailable on this device.');
-      const uri = `${FileSystem.documentDirectory}longlivy-data-export.json`;
+      const uri = `${FileSystem.documentDirectory}solace-data-export.json`;
       await FileSystem.writeAsStringAsync(uri, json, { encoding: FileSystem.EncodingType.UTF8 });
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: 'application/json', dialogTitle: 'Export Longlivy data' });
+        await Sharing.shareAsync(uri, { mimeType: 'application/json', dialogTitle: 'Export Solace data' });
       } else {
         Alert.alert('Export ready', `Your data was written to:\n${uri}`);
       }
@@ -130,7 +130,7 @@ export const DataManagementScreen: React.FC = () => {
         Export your data
       </AppText>
       <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.sm }}>
-        Download a JSON copy of everything Longlivy has stored for you.
+        Download a JSON copy of everything Solace has stored for you.
       </AppText>
       <HeroCard onPress={exporting ? undefined : handleExport} style={{ marginBottom: theme.spacing.lg, paddingVertical: theme.spacing.sm }}>
         <AppText variant="headingSmall" color="#FFFFFF" align="center">

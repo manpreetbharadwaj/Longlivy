@@ -10,7 +10,7 @@ export const DEMO_USER_ID = 'user_demo_1';
  * one-tap "just let me into the prototype" login — used by
  * `MockAuthRepository`'s seed and by `LoginScreen`'s initial field values.
  */
-export const DEMO_LOGIN_EMAIL = 'demo@longlivy.app';
+export const DEMO_LOGIN_EMAIL = 'demo@solace.app';
 export const DEMO_LOGIN_PASSWORD = 'demo1234';
 
 export interface DemoUserProfile {

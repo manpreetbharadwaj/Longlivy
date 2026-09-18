@@ -1,6 +1,6 @@
 # Profile avatar library — licensing
 
-**All artwork in this directory is original vector art created for Longlivy.**
+**All artwork in this directory is original vector art created for this product.**
 
 Every preset avatar in [`avatarArt.tsx`](./avatarArt.tsx) is drawn at runtime
 from [`react-native-svg`](https://github.com/software-mansion/react-native-svg)

@@ -11,6 +11,7 @@ import { OnboardingBackground } from '@/features/onboarding/components/Onboardin
 import { onboardingAccent, onboardingCtaGradient, onboardingData, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
 import { useAppPreferences, AppLanguage } from '@/contexts/AppPreferencesContext';
 import { useTranslation } from '@/localization';
+import { brand } from '@/config/branding';
 
 interface LanguageOption {
   code: AppLanguage;
@@ -51,7 +52,7 @@ export const LanguageSelectScreen: React.FC = () => {
         <View style={{ flex: 1, padding: theme.spacing.md, justifyContent: 'center' }}>
           <FadeSlideIn fromY={10}>
             <AppText variant="caption" color={onboardingData} style={{ letterSpacing: 3, marginBottom: theme.spacing.sm }}>
-              LONGLIVY
+              {brand.wordmark}
             </AppText>
           </FadeSlideIn>
 

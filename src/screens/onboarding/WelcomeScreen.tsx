@@ -24,6 +24,7 @@ import { TranslationKey } from '@/localization/types';
 import { motion } from '@/theme/motion';
 import { OnboardingBackground } from '@/features/onboarding/components/OnboardingBackground';
 import { onboardingAccent, onboardingData, onboardingCtaGradient, onboardingGlass, onboardingPillarColors } from '@/features/onboarding/theme/onboardingTheme';
+import { brand } from '@/config/branding';
 
 /**
  * One floating "live signal" chip — a small, meaningful glimpse into a real
@@ -309,7 +310,7 @@ export const WelcomeScreen: React.FC = () => {
 
           <FadeSlideIn delay={motion.duration.slow}>
             <AppText variant="caption" color={onboardingData} align="center" style={{ letterSpacing: 3, marginBottom: theme.spacing.sm }}>
-              LONGLIVY
+              {brand.wordmark}
             </AppText>
           </FadeSlideIn>
 

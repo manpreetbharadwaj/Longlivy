@@ -20,7 +20,7 @@ interface MeditationDb {
   reminders?: MeditationReminder[];
 }
 
-const store = new LocalStore<MeditationDb>('@longlivy/meditation_db', {
+const store = new LocalStore<MeditationDb>('@app/meditation_db', {
   content: MEDITATION_CONTENT_SEED,
   schemes: BREATHING_SCHEMES_SEED,
   sessions: MEDITATION_SESSION_SEED,

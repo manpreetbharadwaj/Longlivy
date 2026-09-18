@@ -80,7 +80,7 @@ export const RegisterScreen: React.FC = () => {
         <AppGradientButton label={t('auth.register.submit')} onPress={handleRegister} disabled={!valid} loading={status === 'loading'} />
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={{ alignSelf: 'center', marginTop: theme.spacing.md }}>
           <AppText variant="bodyMedium" color="rgba(255,255,255,0.7)">
-            {t('auth.register.haveAccount')} <AppText variant="bodyMedium" color="#5C7A94">{t('auth.register.logIn')}</AppText>
+            {t('auth.register.haveAccount')} <AppText variant="bodyMedium" color="#4FAE8F">{t('auth.register.logIn')}</AppText>
           </AppText>
         </Pressable>
       </FadeSlideIn>

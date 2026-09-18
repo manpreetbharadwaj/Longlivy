@@ -3,7 +3,7 @@ import { FeedbackDraft, FeedbackSubmission } from '../models';
 import { LocalStore } from '@/services/storage/LocalStore';
 import { generateId } from '@/utils/id';
 
-const store = new LocalStore<FeedbackSubmission[]>('@longlivy/feedback_db', []);
+const store = new LocalStore<FeedbackSubmission[]>('@app/feedback_db', []);
 
 function delay<T>(value: T, ms = 600): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));

@@ -11,7 +11,7 @@ interface FastingDb {
   planOverrides: FastingPlanDayOverride[];
 }
 
-const store = new LocalStore<FastingDb>('@longlivy/fasting_db', {
+const store = new LocalStore<FastingDb>('@app/fasting_db', {
   sessions: FASTING_HISTORY_SEED,
   plans: [
     {

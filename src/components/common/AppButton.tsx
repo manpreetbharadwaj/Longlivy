@@ -25,8 +25,14 @@ export const AppButton: React.FC<AppButtonProps> = React.memo(
       if (!disabled && !loading) onPress();
     }, [disabled, loading, onPress]);
 
-    const palette: Record<ButtonVariant, { bg: string; text: string; border?: string }> = {
-      primary: { bg: theme.colors.primary, text: theme.colors.onPrimary },
+    // Five explicit hierarchy rungs, from "the one thing on this screen you
+    // want tapped" down to "de-emphasized but still an action":
+    // primary (filled brand + lift) > secondary (filled, no lift) >
+    // outline (bordered, no fill) > ghost (text-only) > danger (its own
+    // filled color, outside the emphasis ladder since it's about risk, not
+    // priority).
+    const palette: Record<ButtonVariant, { bg: string; text: string; border?: string; elevated?: boolean }> = {
+      primary: { bg: theme.colors.primary, text: theme.colors.onPrimary, elevated: true },
       secondary: { bg: theme.colors.secondary, text: theme.colors.onSecondary },
       outline: { bg: 'transparent', text: theme.colors.primary, border: theme.colors.primary },
       ghost: { bg: 'transparent', text: theme.colors.primary },
@@ -44,7 +50,7 @@ export const AppButton: React.FC<AppButtonProps> = React.memo(
         style={({ pressed }) => [
           {
             height: theme.componentSizes.buttonHeight,
-            borderRadius: theme.radius.md,
+            borderRadius: theme.radius.lg,
             backgroundColor: colors.bg,
             borderWidth: colors.border ? 1.5 : 0,
             borderColor: colors.border,
@@ -54,6 +60,7 @@ export const AppButton: React.FC<AppButtonProps> = React.memo(
             paddingHorizontal: theme.spacing.lg,
             opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
             alignSelf: fullWidth ? 'stretch' : 'flex-start',
+            ...(colors.elevated && !disabled ? theme.shadows.elevated : null),
           },
           style,
         ]}

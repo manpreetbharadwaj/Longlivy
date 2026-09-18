@@ -4,7 +4,7 @@ import { LocalStore } from '@/services/storage/LocalStore';
 import { generateId } from '@/utils/id';
 import { WEIGHT_SEED } from '@/mock/weightSeed';
 
-const store = new LocalStore<WeightEntry[]>('@longlivy/weight_db', WEIGHT_SEED);
+const store = new LocalStore<WeightEntry[]>('@app/weight_db', WEIGHT_SEED);
 
 function delay<T>(value: T, ms = 150): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));

@@ -7,10 +7,18 @@ export interface ShadowTokens {
   floating: object;
 }
 
-function shadow(elevation: number, opacity: number, radius: number, height: number) {
+/**
+ * A warm, ink-tinted shadow color instead of pure black — soft shadows pick
+ * up a faint brown undertone that matches the warm neutral palette instead
+ * of reading as a generic cool-gray drop shadow.
+ */
+const SHADOW_COLOR_LIGHT = '#3A2E1C';
+const SHADOW_COLOR_DARK = '#000000';
+
+function shadow(shadowColor: string, elevation: number, opacity: number, radius: number, height: number) {
   return Platform.select({
     ios: {
-      shadowColor: '#000',
+      shadowColor,
       shadowOpacity: opacity,
       shadowRadius: radius,
       shadowOffset: { width: 0, height },
@@ -22,14 +30,14 @@ function shadow(elevation: number, opacity: number, radius: number, height: numb
 
 export const lightShadows: ShadowTokens = {
   none: {},
-  card: shadow(2, 0.06, 8, 2),
-  elevated: shadow(4, 0.08, 12, 4),
-  floating: shadow(8, 0.12, 20, 8),
+  card: shadow(SHADOW_COLOR_LIGHT, 2, 0.07, 10, 3),
+  elevated: shadow(SHADOW_COLOR_LIGHT, 4, 0.1, 14, 5),
+  floating: shadow(SHADOW_COLOR_LIGHT, 8, 0.14, 22, 9),
 };
 
 export const darkShadows: ShadowTokens = {
   none: {},
-  card: shadow(2, 0.3, 8, 2),
-  elevated: shadow(4, 0.35, 12, 4),
-  floating: shadow(8, 0.4, 20, 8),
+  card: shadow(SHADOW_COLOR_DARK, 2, 0.3, 8, 2),
+  elevated: shadow(SHADOW_COLOR_DARK, 4, 0.35, 12, 4),
+  floating: shadow(SHADOW_COLOR_DARK, 8, 0.4, 20, 8),
 };

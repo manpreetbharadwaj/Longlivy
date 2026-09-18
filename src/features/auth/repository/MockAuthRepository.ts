@@ -10,7 +10,7 @@ interface AuthDb {
   onboardingComplete: boolean;
 }
 
-const store = new LocalStore<AuthDb>('@longlivy/auth_db', {
+const store = new LocalStore<AuthDb>('@app/auth_db', {
   users: [
     {
       id: DEMO_USER.id,
