@@ -29,7 +29,7 @@ interface HealthConnectState {
   metrics: HealthConnectMetrics;
   debugInfo: HealthConnectDebugInfo;
   refreshStatus: RefreshStatus;
-  /** Every time LongLivy actually asked Health Connect for data — advances even if nothing new came back. */
+  /** Every time HealthyMe actually asked Health Connect for data — advances even if nothing new came back. */
   lastCheckedAt: string | null;
   /** The most recent `recordedAt` across every populated metric — when the freshest data we have was actually measured, not when we last checked. */
   lastDataReceivedAt: string | null;
@@ -147,7 +147,7 @@ function delay(ms: number): Promise<void> {
 type HealthConnectThunkApi = { state: { healthConnect: ReturnType<typeof healthConnectSlice.reducer> } };
 
 /**
- * Used specifically when LongLivy comes back to foreground after the user
+ * Used specifically when HealthyMe comes back to foreground after the user
  * tapped "Open NoiseFit" — NoiseFit's own sync, then Google Fit, then
  * Health Connect all need a moment to settle, and there's no event to tell
  * us when that's done. A bounded 3-attempt retry (now, +2.5s, +5s more) is

@@ -29,7 +29,7 @@ import {
 
 /**
  * Every permission this app actually requests — read-only, matching exactly
- * the metrics section 2 of the spec asks for. Never write access: LongLivy
+ * the metrics section 2 of the spec asks for. Never write access: HealthyMe
  * only reads what NoiseFit/Google Fit already wrote via the verified
  * pipeline, never inserts anything of its own into Health Connect.
  */

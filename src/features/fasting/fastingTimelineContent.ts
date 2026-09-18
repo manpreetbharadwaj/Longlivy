@@ -30,7 +30,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
     key: 'fed',
     label: 'Fed state',
     rangeLabel: '0–3h',
-    color: '#D6A253',
+    color: '#F5A94E',
     milestones: [
       { hours: 0, title: 'Fasting started', description: 'Your eating window has closed for this session.' },
       { hours: 1.5, title: 'Digesting your last meal', description: 'Nutrients from your last meal are still being absorbed into your bloodstream.' },
@@ -40,7 +40,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
     key: 'early',
     label: 'Early fasting',
     rangeLabel: '~3–8h',
-    color: '#D9C25F',
+    color: '#E0B75C',
     milestones: [
       { hours: 3.5, title: 'Blood sugar stabilizing', description: 'Blood glucose and insulin typically begin returning toward baseline as your last meal is fully processed.' },
       { hours: 7, title: 'Glycogen becomes the main fuel', description: 'As glucose from food runs low, the liver increasingly taps stored glycogen for energy.' },
@@ -50,7 +50,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
     key: 'glycogen',
     label: 'Glycogen phase',
     rangeLabel: '~8–16h',
-    color: '#D98657',
+    color: '#FF7A63',
     milestones: [
       { hours: 10, title: 'Insulin continues to decline', description: 'Lower insulin levels are generally associated with increased fat breakdown.' },
       {
@@ -64,7 +64,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
     key: 'fat-adapted',
     label: 'Fat-adapted phase',
     rangeLabel: '~16–24h',
-    color: '#1F6F5C',
+    color: '#0E9BB5',
     milestones: [
       { hours: 18, title: 'Fat metabolism increases', description: 'Fat becomes an increasingly important energy source for many people in this window.' },
       {
@@ -78,7 +78,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
     key: 'extended',
     label: 'Extended fasting',
     rangeLabel: '24h+',
-    color: '#6E8DBE',
+    color: '#7C93F0',
     milestones: [
       { hours: 24, title: 'One full day', description: "You've completed a full 24 hours without food." },
       {

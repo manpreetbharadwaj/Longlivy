@@ -16,7 +16,7 @@ import { RootNavigator } from '@/navigation/RootNavigator';
 import { navigationRef, navigateToMeditationHome } from '@/navigation/navigationRef';
 import { withErrorBoundary } from '@/components/hoc/withErrorBoundary';
 import { useAppFonts } from '@/hooks/useAppFonts';
-import { darkColors } from '@/theme/colors';
+import { useRtlSync } from '@/hooks/useRtlSync';
 
 /**
  * Minimum useful behavior for a tapped Meditation reminder (Phase 6 Section
@@ -38,11 +38,12 @@ function useMeditationReminderNotificationTap(): void {
   }, []);
 }
 
-const RootNavigatorSafe = withErrorBoundary(RootNavigator, 'Longlivy');
+const RootNavigatorSafe = withErrorBoundary(RootNavigator, 'HealthyMe');
 
 const NavigationRoot: React.FC = () => {
   const { theme } = useTheme();
   useMeditationReminderNotificationTap();
+  useRtlSync();
 
   // React Navigation's own screen wrapper (`Background`, from
   // @react-navigation/elements) paints every screen — and the space around
@@ -82,11 +83,13 @@ export default function App() {
   // Nothing below this renders any text (AppText's typography variants all
   // name a custom fontFamily) until the font files are ready — otherwise
   // the very first frame would flash system-font text before the real
-  // typeface pops in. Matches the dark hero atmosphere's base color so this
-  // gap (typically a couple hundred ms) doesn't itself flash a mismatched
-  // background against the native splash image before it.
+  // typeface pops in. Pure black — matching the native splash screen
+  // (app.json's expo-splash-screen.backgroundColor) and SplashScreen.tsx's
+  // own background, both chosen to match assets/app_logo.png's baked-in
+  // black margin — so this gap (typically a couple hundred ms) doesn't
+  // itself flash a mismatched tone in between them.
   if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: darkColors.background }} />;
+    return <View style={{ flex: 1, backgroundColor: '#000000' }} />;
   }
 
   return (

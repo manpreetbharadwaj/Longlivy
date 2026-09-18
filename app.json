@@ -1,27 +1,27 @@
 {
   "expo": {
-    "name": "Solace",
-    "slug": "solace",
+    "name": "HealthyMe",
+    "slug": "healthyme",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.solace.app",
+      "bundleIdentifier": "com.healthyme.app",
       "icon": "./assets/icon.png",
       "infoPlist": {
-        "NSCameraUsageDescription": "Solace uses the camera to scan food barcodes and photograph meals for AI-assisted logging.",
-        "NSPhotoLibraryUsageDescription": "Solace can use photos from your library to log a meal with AI-assisted recognition.",
-        "NSMicrophoneUsageDescription": "Solace uses the microphone so you can dictate a meal description using your keyboard's voice input.",
-        "NSLocationWhenInUseUsageDescription": "Solace uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
+        "NSCameraUsageDescription": "HealthyMe uses the camera to scan food barcodes and photograph meals for AI-assisted logging.",
+        "NSPhotoLibraryUsageDescription": "HealthyMe can use photos from your library to log a meal with AI-assisted recognition.",
+        "NSMicrophoneUsageDescription": "HealthyMe uses the microphone so you can dictate a meal description using your keyboard's voice input.",
+        "NSLocationWhenInUseUsageDescription": "HealthyMe uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
       }
     },
     "android": {
-      "package": "com.solace.app",
+      "package": "com.healthyme.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon-foreground.png",
-        "backgroundColor": "#13110D"
+        "backgroundColor": "#0A0F14"
       },
       "permissions": [
         "CAMERA",
@@ -53,26 +53,26 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Solace uses the camera to scan food barcodes and photograph meals for AI-assisted logging."
+          "cameraPermission": "HealthyMe uses the camera to scan food barcodes and photograph meals for AI-assisted logging."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Solace can use photos from your library to log a meal with AI-assisted recognition."
+          "photosPermission": "HealthyMe can use photos from your library to log a meal with AI-assisted recognition."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Solace uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
+          "locationWhenInUsePermission": "HealthyMe uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
         }
       ],
       "expo-secure-store",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#13110D",
+          "backgroundColor": "#000000",
           "image": "./assets/splash-icon.png",
           "resizeMode": "contain"
         }
@@ -94,8 +94,8 @@
       [
         "@kingstinct/react-native-healthkit",
         {
-          "NSHealthShareUsageDescription": "Solace reads your Activity, Vitals, Sleep and Body data from Apple Health to show your real health data.",
-          "NSHealthUpdateUsageDescription": "Solace does not write any data to Apple Health."
+          "NSHealthShareUsageDescription": "HealthyMe reads your Activity, Vitals, Sleep and Body data from Apple Health to show your real health data.",
+          "NSHealthUpdateUsageDescription": "HealthyMe does not write any data to Apple Health."
         }
       ]
     ]

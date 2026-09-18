@@ -1,6 +1,6 @@
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'custom';
 export type FoodUnit = 'g' | 'kg' | 'ml' | 'l' | 'piece' | 'serving';
-export type FoodSource = 'manual' | 'barcode_database' | 'user_recipe' | 'ai_estimated' | 'longlivy_calculated';
+export type FoodSource = 'manual' | 'barcode_database' | 'user_recipe' | 'ai_estimated' | 'healthyme_calculated';
 
 export interface Food {
   id: string;

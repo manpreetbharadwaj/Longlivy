@@ -29,7 +29,7 @@ export const MethodCard: React.FC<MethodCardProps> = React.memo(({ method, onPre
       scaleOnPress
       style={{
         marginBottom: theme.spacing.sm,
-        borderColor: selected ? '#4FAE8F' : 'rgba(255,255,255,0.14)',
+        borderColor: selected ? '#22D3EE' : 'rgba(255,255,255,0.14)',
         borderWidth: selected ? 2 : 1.5,
       }}
     >
@@ -45,7 +45,7 @@ export const MethodCard: React.FC<MethodCardProps> = React.memo(({ method, onPre
         <AppBadge label={method.category} tone={categoryTone as any} />
       </View>
       {method.recommendation ? (
-        <AppText variant="caption" color="#4FAE8F" style={{ marginTop: theme.spacing.xxs }}>
+        <AppText variant="caption" color="#22D3EE" style={{ marginTop: theme.spacing.xxs }}>
           {method.recommendation}
         </AppText>
       ) : null}

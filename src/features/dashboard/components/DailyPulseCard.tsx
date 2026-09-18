@@ -34,7 +34,8 @@ const RING_LABEL_KEYS: Record<DailyRing['key'], TranslationKey> = {
  * The Home dashboard's command-center hero: one glance across every
  * pillar's progress today, plus the net-calorie headline and both streaks.
  * Reads a single `selectDailySummary` subscription rather than composing
- * five selectors itself, so it stays in sync with `TodaySummary` for free.
+ * five selectors itself. This is Home's single calorie/streak hero — the
+ * one place net calories, pillar progress rings and streaks are headlined.
  */
 export const DailyPulseCard: React.FC = React.memo(() => {
   const { theme } = useTheme();

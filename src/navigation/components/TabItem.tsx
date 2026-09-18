@@ -58,7 +58,7 @@ export const TabItem: React.FC<TabItemProps> = React.memo(({ icon, activeIcon, i
     >
       <Animated.View
         style={[
-          { position: 'absolute', top: 4, width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(79,174,143,0.16)' },
+          { position: 'absolute', top: 4, width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(34,211,238,0.16)' },
           bubbleStyle,
         ]}
       />

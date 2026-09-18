@@ -2,13 +2,40 @@ import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { useAppPreferences, AppLanguage } from '@/contexts/AppPreferencesContext';
 import { en } from './en';
 import { de } from './de';
-import { TranslationKey, TranslationParams } from './types';
+import { es } from './es';
+import { fr } from './fr';
+import { pt } from './pt';
+import { it } from './it';
+import { nl } from './nl';
+import { pl } from './pl';
+import { tr } from './tr';
+import { ru } from './ru';
+import { ar } from './ar';
+import { hi } from './hi';
+import { pa } from './pa';
+import { bn } from './bn';
+import { ur } from './ur';
+import { zh } from './zh';
+import { ja } from './ja';
+import { ko } from './ko';
+import { id } from './id';
+import { vi } from './vi';
+import { th } from './th';
+import { TranslationKey, TranslationParams, PartialDictionary } from './types';
 import { brand } from '@/config/branding';
 
 /** Merged into every `t()` call automatically — copy can use `{{appName}}` without every call site having to pass it. Per-call `params` win on a key collision. */
 const GLOBAL_PARAMS: TranslationParams = { appName: brand.name };
 
-const dictionaries: Record<AppLanguage, typeof en> = { en, de };
+/**
+ * One dictionary per language in `@/config/languages`. `en` and `de` are
+ * complete (typed `: typeof en`); every other language is a `PartialDictionary`
+ * — only the keys it actually has translated — since `resolve()` below
+ * falls back to `en` per-key for anything a dictionary omits. That's what
+ * makes "add a language" mean "add what you have translated so far", not
+ * "translate every key or don't ship it".
+ */
+const dictionaries: Record<AppLanguage, PartialDictionary> = { en, de, es, fr, pt, it, nl, pl, tr, ru, ar, hi, pa, bn, ur, zh, ja, ko, id, vi, th };
 
 function resolve(dict: Record<string, unknown>, key: string): string | undefined {
   const value = key.split('.').reduce<unknown>((acc, part) => {

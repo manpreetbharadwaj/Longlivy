@@ -1,5 +1,5 @@
 /**
- * Type scaffolding for the future Longlivy Shop — intentionally
+ * Type scaffolding for the future HealthyMe Shop — intentionally
  * unreferenced by any slice, screen, or navigation route in this phase.
  * Onboarding's AddressStepScreen already collects `DemoUserProfile.address`
  * "for the future webshop" (see its own comments); these types are the

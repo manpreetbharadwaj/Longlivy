@@ -10,6 +10,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { motion } from '@/theme/motion';
 import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
+import { useGoalFlow } from '@/features/onboarding/goals/useGoalFlow';
 import { RulerPicker } from '@/features/onboarding/components/RulerPicker';
 import { HumanBodyVisualizer } from '@/features/onboarding/components/three/HumanBodyVisualizer';
 import { onboardingNeutral, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
@@ -38,6 +39,7 @@ export const HeightStepScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { draft, update } = useOnboardingDraft();
+  const { totalSteps } = useGoalFlow();
   const heightCm = draft.heightCm ?? DEFAULT_HEIGHT;
 
   // The ruler + info pill's own natural height — a plain (non-flex)
@@ -52,7 +54,7 @@ export const HeightStepScreen: React.FC = () => {
   return (
     <OnboardingStepLayout
       step={4}
-      totalSteps={7}
+      totalSteps={totalSteps}
       title={t('onboarding.height.title')}
       subtitle={t('onboarding.height.subtitle')}
       onNext={() => navigation.navigate('Weight')}

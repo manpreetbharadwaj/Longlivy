@@ -12,6 +12,7 @@ import { useTranslation } from '@/localization';
 import { TranslationKey } from '@/localization/types';
 import { motion } from '@/theme/motion';
 import { useOnboardingDraft, OnboardingDraft } from '@/features/onboarding/OnboardingContext';
+import { useGoalFlow } from '@/features/onboarding/goals/useGoalFlow';
 import { onboardingNeutral, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
 import { OnboardingStepLayout } from './OnboardingStepLayout';
 
@@ -101,12 +102,13 @@ export const PersonalizeMeScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { draft } = useOnboardingDraft();
+  const { totalSteps } = useGoalFlow();
   const tagline = draft.goal ? t(`onboarding.personalize.taglines.${draft.goal}`) : t('onboarding.personalize.taglineFallback');
 
   return (
     <OnboardingStepLayout
       step={1}
-      totalSteps={7}
+      totalSteps={totalSteps}
       title={t('onboarding.personalize.title')}
       subtitle={t('onboarding.personalize.subtitle', { tagline })}
       onNext={() => navigation.navigate('Gender')}

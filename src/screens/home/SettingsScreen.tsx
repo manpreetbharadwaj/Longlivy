@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ProfileStackParamList } from '@/navigation/types';
@@ -7,11 +7,13 @@ import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppSegmentedControl } from '@/components/common/AppSegmentedControl';
+import { AppChip } from '@/components/common/AppChip';
 import { AppSwitch } from '@/components/common/AppSwitch';
 import { useTheme } from '@/hooks/useTheme';
 import { ThemePreference } from '@/contexts/ThemeContext';
 import { useAppPreferences, AppLanguage } from '@/contexts/AppPreferencesContext';
 import { useTranslation } from '@/localization';
+import { LANGUAGES } from '@/config/languages';
 
 export const SettingsScreen: React.FC = () => {
   const { theme, preference, setPreference } = useTheme();
@@ -49,16 +51,17 @@ export const SettingsScreen: React.FC = () => {
       </HeroCard>
 
       <SectionLabel>{t('settings.language.title')}</SectionLabel>
-      <HeroCard style={{ marginBottom: theme.spacing.md }}>
-        <AppSegmentedControl
-          variant="hero"
-          segments={[
-            { key: 'en', label: t('settings.language.english') },
-            { key: 'de', label: t('settings.language.german') },
-          ]}
-          selectedKey={preferences.language}
-          onChange={(k) => setLanguage(k as AppLanguage)}
-        />
+      <HeroCard style={{ marginBottom: theme.spacing.md, paddingHorizontal: theme.spacing.sm }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: theme.spacing.xs }}>
+          {LANGUAGES.map((lang) => (
+            <AppChip
+              key={lang.code}
+              label={lang.nativeName}
+              selected={preferences.language === lang.code}
+              onPress={() => setLanguage(lang.code as AppLanguage)}
+            />
+          ))}
+        </ScrollView>
       </HeroCard>
 
       <SectionLabel>{t('settings.liveMoments.title')}</SectionLabel>

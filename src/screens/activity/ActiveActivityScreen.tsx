@@ -24,7 +24,7 @@ import { ActivityFigure } from '@/features/activity/components/ActivityFigure';
 import { getActivityImage } from '@/features/activity/activityImages';
 import { ActivityHeroLayout } from './ActivityHeroLayout';
 
-const ACTIVITY_ACCENT = '#D98657';
+const ACTIVITY_ACCENT = '#FF7A63';
 
 export const ActiveActivityScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -192,7 +192,7 @@ export const ActiveActivityScreen: React.FC = () => {
       <View style={{ flexDirection: 'row', marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
         {isPaused ? (
           <View style={{ flex: 1 }}>
-            <AppGradientButton label="Resume" onPress={() => dispatch(resumeActivityThunk(activity.id))} colors={['#D98657', '#1F6F5C']} />
+            <AppGradientButton label="Resume" onPress={() => dispatch(resumeActivityThunk(activity.id))} colors={['#FF7A63', '#0E9BB5']} />
           </View>
         ) : (
           <View style={{ flex: 1 }}>
@@ -232,7 +232,7 @@ const GpsStatusLine: React.FC<{ gpsAvailable: boolean; status: ReturnType<typeof
   if (status === 'tracking') {
     return (
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-        <AppIcon name="navigate" size={14} color="#59A184" />
+        <AppIcon name="navigate" size={14} color="#34D399" />
         <AppText variant="caption" color="rgba(255,255,255,0.6)" style={{ marginLeft: 6 }}>
           GPS tracking active
         </AppText>

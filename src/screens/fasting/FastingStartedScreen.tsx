@@ -58,7 +58,7 @@ export const FastingStartedScreen: React.FC = () => {
       <FastingHeroLayout scroll={false}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <View style={{ width: 148, height: 148, alignItems: 'center', justifyContent: 'center', marginBottom: theme.spacing.lg }}>
-            <GlowOrb size={148} color="#1F6F5C" opacity={0.22} pulse />
+            <GlowOrb size={148} color="#0E9BB5" opacity={0.22} pulse />
             <Animated.View
               style={[
                 {

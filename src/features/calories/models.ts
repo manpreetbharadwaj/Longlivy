@@ -1,5 +1,5 @@
 export type EnergyExpenditureType = 'bmr' | 'nrla' | 'activity' | 'imported_activity' | 'manual' | 'total_estimated';
-export type EnergySource = 'device_imported' | 'longlivy_calculated' | 'user_manual';
+export type EnergySource = 'device_imported' | 'healthyme_calculated' | 'user_manual';
 
 export interface EnergyExpenditure {
   id: string;

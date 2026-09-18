@@ -16,11 +16,9 @@ interface Metric {
 }
 
 /**
- * One unified metrics card (Option A) rather than three separate tiles —
- * reads as a single deliberate "dashboard" component with dividers between
- * metrics instead of three unrelated boxes, and matches the pattern
- * already established by the Home dashboard's CalorieBalanceCard/
- * TodaySummary rather than inventing a new card language.
+ * One unified metrics card rather than three separate tiles — reads as a
+ * single deliberate "dashboard" component with dividers between metrics
+ * instead of three unrelated boxes.
  */
 export const ActivitySummaryCard: React.FC<{ activities: number; distanceKm: number; calories: number }> = React.memo(
   ({ activities, distanceKm, calories }) => {

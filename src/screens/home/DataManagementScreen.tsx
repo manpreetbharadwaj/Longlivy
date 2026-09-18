@@ -20,6 +20,7 @@ import { loadTodayMeals, loadFavoriteFoods } from '@/features/nutrition/nutritio
 import { loadActivityData } from '@/features/activity/activitySlice';
 import { loadMeditationData } from '@/features/meditation/meditationSlice';
 import { loadWeightHistory } from '@/features/weight/weightSlice';
+import { brand } from '@/config/branding';
 
 /** Domains that make up "your data" for export/deletion — deliberately excludes UI-only state (theme, nav). */
 function exportableSnapshot() {
@@ -62,10 +63,10 @@ export const DataManagementScreen: React.FC = () => {
     try {
       const json = JSON.stringify(exportableSnapshot(), null, 2);
       if (!FileSystem.documentDirectory) throw new Error('Document directory is unavailable on this device.');
-      const uri = `${FileSystem.documentDirectory}solace-data-export.json`;
+      const uri = `${FileSystem.documentDirectory}healthyme-data-export.json`;
       await FileSystem.writeAsStringAsync(uri, json, { encoding: FileSystem.EncodingType.UTF8 });
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: 'application/json', dialogTitle: 'Export Solace data' });
+        await Sharing.shareAsync(uri, { mimeType: 'application/json', dialogTitle: `Export ${brand.name} data` });
       } else {
         Alert.alert('Export ready', `Your data was written to:\n${uri}`);
       }
@@ -130,7 +131,7 @@ export const DataManagementScreen: React.FC = () => {
         Export your data
       </AppText>
       <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.sm }}>
-        Download a JSON copy of everything Solace has stored for you.
+        Download a JSON copy of everything {brand.name} has stored for you.
       </AppText>
       <HeroCard onPress={exporting ? undefined : handleExport} style={{ marginBottom: theme.spacing.lg, paddingVertical: theme.spacing.sm }}>
         <AppText variant="headingSmall" color="#FFFFFF" align="center">

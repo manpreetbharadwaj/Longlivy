@@ -1,4 +1,6 @@
 import { FastingMethodId } from '@/features/fasting/models';
+import { GoalKey } from '@/features/onboarding/goals/types';
+import { brand } from '@/config/branding';
 
 export const DEMO_USER_ID = 'user_demo_1';
 
@@ -10,7 +12,7 @@ export const DEMO_USER_ID = 'user_demo_1';
  * one-tap "just let me into the prototype" login — used by
  * `MockAuthRepository`'s seed and by `LoginScreen`'s initial field values.
  */
-export const DEMO_LOGIN_EMAIL = 'demo@solace.app';
+export const DEMO_LOGIN_EMAIL: string = brand.demoAccountEmail;
 export const DEMO_LOGIN_PASSWORD = 'demo1234';
 
 export interface DemoUserProfile {
@@ -43,6 +45,12 @@ export interface DemoUserProfile {
    * `updateProfile` like every other field here.
    */
   avatarId?: string;
+  /** The focus areas chosen on GoalSelectScreen — "why is this person here" (which HealthyMe modules to personalize toward), distinct from the weight-direction `goal` above. See `features/onboarding/goals/`. */
+  selectedGoals?: GoalKey[];
+  /** Which of `selectedGoals` should be given priority (e.g. Home dashboard pillar ordering) — every other selected goal stays a fully-accessible secondary goal, never hidden. */
+  primaryGoal?: GoalKey | null;
+  /** Per-goal, per-question answers from goal-specific onboarding (see GoalQuestionScreen) — e.g. `goalAnswers.fasting.schedule = ['16:8']`. Meant to personalize defaults/recommendations in each feature, never to gate access to it. */
+  goalAnswers?: Partial<Record<GoalKey, Record<string, string[]>>>;
 }
 
 export const DEMO_USER: DemoUserProfile = {

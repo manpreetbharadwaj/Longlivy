@@ -8,11 +8,11 @@ export interface ShadowTokens {
 }
 
 /**
- * A warm, ink-tinted shadow color instead of pure black — soft shadows pick
- * up a faint brown undertone that matches the warm neutral palette instead
- * of reading as a generic cool-gray drop shadow.
+ * A cool navy-tinted shadow color instead of pure black — soft shadows pick
+ * up a faint navy undertone that matches the brand's cool neutral palette
+ * instead of reading as a generic warm drop shadow.
  */
-const SHADOW_COLOR_LIGHT = '#3A2E1C';
+const SHADOW_COLOR_LIGHT = '#0E1B22';
 const SHADOW_COLOR_DARK = '#000000';
 
 function shadow(shadowColor: string, elevation: number, opacity: number, radius: number, height: number) {

@@ -136,7 +136,7 @@ interface WheelDatePickerProps {
 }
 
 /**
- * Longlivy's own month/day/year wheel picker — replaces the platform-native
+ * HealthyMe's own month/day/year wheel picker — replaces the platform-native
  * date picker (a UIDatePicker wheel on iOS, a calendar dialog by default on
  * Android) with one component that looks and behaves identically on both,
  * styled in the app's own restrained/premium language instead of the

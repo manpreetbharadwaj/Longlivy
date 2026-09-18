@@ -16,9 +16,10 @@ const clampFraction = (value: number) => Math.max(0, Math.min(1, value));
 
 /**
  * One consolidated "how's today going" view across every pillar, composed
- * entirely from existing per-feature selectors (no new calculation logic).
- * Promotes what `TodaySummary` used to assemble inline so any screen can
- * subscribe to the same shape.
+ * entirely from existing per-feature selectors (no new calculation logic)
+ * — the single source `DailyPulseCard` (Home's calorie/streak hero) reads
+ * from, so any other screen that wants the same shape can subscribe here
+ * too instead of re-deriving it.
  */
 export const selectDailySummary = createSelector(
   selectDailyEnergyBalance,
@@ -60,7 +61,7 @@ export const selectDailySummary = createSelector(
         value: Math.round(balance.caloriesConsumed),
         target: balance.calorieGoal,
         fraction: clampFraction(balance.calorieGoal > 0 ? balance.caloriesConsumed / balance.calorieGoal : 0),
-        color: '#D6A253',
+        color: '#F5A94E',
       },
       {
         key: 'activity',
@@ -68,7 +69,7 @@ export const selectDailySummary = createSelector(
         value: activityMinutes,
         target: activityTargetMinutes,
         fraction: clampFraction(activityTargetMinutes > 0 ? activityMinutes / activityTargetMinutes : 0),
-        color: '#D98657',
+        color: '#FF7A63',
       },
       {
         key: 'mindfulness',
@@ -76,7 +77,7 @@ export const selectDailySummary = createSelector(
         value: Math.round(meditationMinutesToday),
         target: mindfulnessTargetMinutes,
         fraction: clampFraction(mindfulnessTargetMinutes > 0 ? meditationMinutesToday / mindfulnessTargetMinutes : 0),
-        color: '#A186BD',
+        color: '#B79AF5',
       },
     ];
 

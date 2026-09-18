@@ -6,6 +6,7 @@ import { OnboardingStackParamList } from '@/navigation/types';
 import { AppDateField } from '@/components/common/AppDateField';
 import { useTranslation } from '@/localization';
 import { useOnboardingDraft, ageFromDateOfBirth } from '@/features/onboarding/OnboardingContext';
+import { useGoalFlow } from '@/features/onboarding/goals/useGoalFlow';
 import { HumanBodyVisualizer } from '@/features/onboarding/components/three/HumanBodyVisualizer';
 import { OnboardingStepLayout } from './OnboardingStepLayout';
 
@@ -32,13 +33,14 @@ export const AgeStepScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const { t } = useTranslation();
   const { draft, update } = useOnboardingDraft();
+  const { totalSteps } = useGoalFlow();
   const dob = draft.dateOfBirth ? new Date(draft.dateOfBirth) : DEFAULT_DOB;
   const age = draft.age ?? ageFromDateOfBirth(toIsoDate(dob));
 
   return (
     <OnboardingStepLayout
       step={3}
-      totalSteps={7}
+      totalSteps={totalSteps}
       title={t('onboarding.age.title')}
       subtitle={t('onboarding.age.subtitle')}
       onNext={() => navigation.navigate('Height')}

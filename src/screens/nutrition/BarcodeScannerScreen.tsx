@@ -14,8 +14,9 @@ import { useTheme } from '@/hooks/useTheme';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
 import { DEMO_BARCODES } from '@/mock/foodDatabaseSeed';
 import { heroGradient } from '@/theme/gradients';
+import { brand } from '@/config/branding';
 
-const NUTRITION_GRADIENT = ['#D6A253', '#8C6423'] as const;
+const NUTRITION_GRADIENT = ['#F5A94E', '#A2650F'] as const;
 
 /**
  * Scan barcode → recognize product → view product data → select quantity →
@@ -82,7 +83,7 @@ export const BarcodeScannerScreen: React.FC = () => {
               <View style={styles.permissionBox}>
                 <AppIcon name="camera-outline" size={32} color="rgba(255,255,255,0.6)" />
                 <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
-                  Solace needs camera access to scan barcodes.
+                  {brand.name} needs camera access to scan barcodes.
                 </AppText>
                 <AppGradientButton label="Allow camera access" onPress={requestPermission} colors={NUTRITION_GRADIENT} style={{ alignSelf: 'center' }} fullWidth={false} />
               </View>
@@ -113,7 +114,7 @@ export const BarcodeScannerScreen: React.FC = () => {
                 This product isn't in the food database yet. Add it manually and it'll be found next time.
               </AppText>
               <Pressable onPress={() => navigation.navigate('MyFoods', { barcode: manualCode || undefined })} accessibilityRole="button">
-                <AppText variant="bodyMedium" color="#4FAE8F">
+                <AppText variant="bodyMedium" color="#22D3EE">
                   Add this product manually
                 </AppText>
               </Pressable>

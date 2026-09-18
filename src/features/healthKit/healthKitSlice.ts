@@ -112,7 +112,7 @@ function delay(ms: number): Promise<void> {
 type HealthKitThunkApi = { state: { healthKit: ReturnType<typeof healthKitSlice.reducer> } };
 
 /**
- * Used when LongLivy returns to foreground after the user visited Apple
+ * Used when HealthyMe returns to foreground after the user visited Apple
  * Health or another health app — a bounded 3-attempt retry (now, +2.5s,
  * +5s more), stopping early once lastDataReceivedAt actually advances.
  * Never a continuous poll.

@@ -2,13 +2,12 @@
  * TEMPORARY diagnostic module — not part of the production Health Connect
  * read path (see healthConnectService.ts / healthConnectSlice.ts, both
  * untouched by this file). Its only job is to answer one question with real
- * records instead of guesses: after a NoiseFit sync, where exactly does the
- * new measurement stop showing up — NoiseFit, Google Fit, Health Connect, or
- * LongLivy's own state?
+ * records instead of guesses: where exactly does a new measurement stop
+ * showing up — Google Fit, Health Connect, or the app's own state?
  *
- * Hard limitation, stated up front: LongLivy has no supported way to query
- * NoiseFit or Google Fit directly (the Google Fit REST/Sensors/History APIs
- * are deprecated and explicitly off-limits here). Every "Google Fit" number
+ * Hard limitation, stated up front: the app has no supported way to query
+ * Google Fit directly (the Google Fit REST/Sensors/History APIs are
+ * deprecated and explicitly off-limits here). Every "Google Fit" number
  * below is actually "the most recent Health Connect record whose
  * dataOrigin is Google Fit's package" — i.e. Google Fit's data AS FAR AS
  * HEALTH CONNECT HAS SEEN IT, not a live read of Google Fit itself. If
@@ -21,6 +20,7 @@ import { readRecords, aggregateRecord, getChanges } from 'react-native-health-co
 import type { RecordType } from 'react-native-health-connect';
 import { describeSource, todayRange } from './healthConnectService';
 import { HealthConnectSource } from './models';
+import { brand } from '@/config/branding';
 
 const GOOGLE_FIT_PACKAGE = 'com.google.android.apps.fitness';
 
@@ -39,7 +39,7 @@ export interface HeartRateDiagnosticSample {
 }
 
 export interface HeartRateDiagnostic {
-  /** Up to the 10 most recent samples across all HeartRate records in the last 48h, most recent first. Each HeartRate "record" can itself hold many samples — this flattens all of them so nothing is hidden inside a record LongLivy's production path already summarized to one value. */
+  /** Up to the 10 most recent samples across all HeartRate records in the last 48h, most recent first. Each HeartRate "record" can itself hold many samples — this flattens all of them so nothing is hidden inside a record the app's production path already summarized to one value. */
   samples: HeartRateDiagnosticSample[];
   /** Freshest sample time found — null if nothing in the window. */
   latestSampleTime: string | null;
@@ -197,29 +197,32 @@ function isSourceGoogleFit(source: HealthConnectSource | 'unknown'): boolean {
 }
 
 /**
- * Compares what THIS Deep Refresh found in Health Connect against what
- * LongLivy had already displayed before it ran. This is the only genuine
+ * Compares what THIS Deep Refresh found in Health Connect against what the
+ * app had already displayed before it ran. This is the only genuine
  * three-way split available without leaving the app: did Health Connect
- * advance, and if so, did LongLivy's own state catch up.
+ * advance, and if so, did the app's own state catch up.
+ *
+ * Previously included a "Noise Watch (BLE)"/"NoiseFit" stage — dropped
+ * along with the rest of the Noise smartwatch BLE integration (see
+ * PHASE_0_AUDIT.md §8); Health Connect/HealthKit are the only wearable
+ * data sources now, so this pipeline starts at Google Fit.
  */
 export function computePipelineVerdict(params: {
-  isWatchBleConnected: boolean;
   beforeHeartRateRecordedAt: string | null;
   beforeStepsRecordedAt: string | null;
   afterHeartRateDiagnostic: HeartRateDiagnostic;
   afterStepsDiagnostic: StepsDiagnostic;
-  /** LongLivy's Redux state AFTER the production refresh that Deep Refresh also triggers — used to catch an app-side staleness bug distinct from an upstream one. */
-  longlivyHeartRateRecordedAtAfterRefresh: string | null;
-  longlivyStepsRecordedAtAfterRefresh: string | null;
+  /** The app's Redux state AFTER the production refresh that Deep Refresh also triggers — used to catch an app-side staleness bug distinct from an upstream one. */
+  appHeartRateRecordedAtAfterRefresh: string | null;
+  appStepsRecordedAtAfterRefresh: string | null;
 }): PipelineVerdict {
   const {
-    isWatchBleConnected,
     beforeHeartRateRecordedAt,
     beforeStepsRecordedAt,
     afterHeartRateDiagnostic,
     afterStepsDiagnostic,
-    longlivyHeartRateRecordedAtAfterRefresh,
-    longlivyStepsRecordedAtAfterRefresh,
+    appHeartRateRecordedAtAfterRefresh,
+    appStepsRecordedAtAfterRefresh,
   } = params;
 
   const hrAdvanced = isNewer(afterHeartRateDiagnostic.latestSampleTime, beforeHeartRateRecordedAt);
@@ -228,13 +231,11 @@ export function computePipelineVerdict(params: {
 
   const hrGoogleFitSource = afterHeartRateDiagnostic.samples[0] ? isSourceGoogleFit(afterHeartRateDiagnostic.samples[0].source) : false;
 
-  const longlivyCaughtUp =
-    (!hrAdvanced || longlivyHeartRateRecordedAtAfterRefresh === afterHeartRateDiagnostic.latestSampleTime) &&
-    (!stepsAdvanced || longlivyStepsRecordedAtAfterRefresh === afterStepsDiagnostic.latestIndividualRecordTime);
+  const appCaughtUp =
+    (!hrAdvanced || appHeartRateRecordedAtAfterRefresh === afterHeartRateDiagnostic.latestSampleTime) &&
+    (!stepsAdvanced || appStepsRecordedAtAfterRefresh === afterStepsDiagnostic.latestIndividualRecordTime);
 
   const stages: PipelineStage[] = [
-    { label: 'Noise Watch (BLE)', status: 'unknown', detail: isWatchBleConnected ? 'Connected — link status only, no data-recency signal available without vendor protocol decoding.' : 'Not connected to LongLivy right now — irrelevant to whether NoiseFit already has the reading.' },
-    { label: 'NoiseFit', status: 'unknown', detail: 'Cannot determine — no supported API to query NoiseFit directly.' },
     {
       label: 'Google Fit (as reflected in Health Connect)',
       status: healthConnectAdvanced && hrGoogleFitSource ? 'new' : healthConnectAdvanced ? 'new' : 'old',
@@ -247,22 +248,22 @@ export function computePipelineVerdict(params: {
       status: healthConnectAdvanced ? 'new' : 'old',
       detail: healthConnectAdvanced
         ? `Advanced — Heart Rate ${hrAdvanced ? 'newer' : 'unchanged'}, Steps ${stepsAdvanced ? 'newer' : 'unchanged'}.`
-        : 'No record in Health Connect is newer than what LongLivy already had before this Deep Refresh.',
+        : `No record in Health Connect is newer than what ${brand.name} already had before this Deep Refresh.`,
     },
     {
-      label: 'LongLivy',
-      status: !healthConnectAdvanced ? 'old' : longlivyCaughtUp ? 'new' : 'missing',
-      detail: !healthConnectAdvanced ? 'Nothing new to read yet.' : longlivyCaughtUp ? 'Read the new Health Connect record successfully.' : 'Health Connect has newer data than LongLivy is currently displaying — this is an app-side staleness bug, not an upstream delay.',
+      label: brand.name,
+      status: !healthConnectAdvanced ? 'old' : appCaughtUp ? 'new' : 'missing',
+      detail: !healthConnectAdvanced ? 'Nothing new to read yet.' : appCaughtUp ? 'Read the new Health Connect record successfully.' : `Health Connect has newer data than ${brand.name} is currently displaying — this is an app-side staleness bug, not an upstream delay.`,
     },
   ];
 
   let headline: string;
   if (!healthConnectAdvanced) {
-    headline = 'No new record reached Health Connect since before this Deep Refresh. Open Google Fit directly to check whether IT already has the new measurement — if yes, the delay is Google Fit → Health Connect; if no, the delay is NoiseFit → Google Fit.';
-  } else if (longlivyCaughtUp) {
-    headline = 'Health Connect has the new data and LongLivy is reading it.';
+    headline = 'No new record reached Health Connect since before this Deep Refresh. Open Google Fit directly to check whether it already has the new measurement.';
+  } else if (appCaughtUp) {
+    headline = `Health Connect has the new data and ${brand.name} is reading it.`;
   } else {
-    headline = 'Health Connect has newer data than LongLivy is currently displaying — LongLivy\'s query/state is stale (app-side issue).';
+    headline = `Health Connect has newer data than ${brand.name} is currently displaying — its query/state is stale (app-side issue).`;
   }
 
   return { stages, headline };

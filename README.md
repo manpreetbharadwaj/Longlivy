@@ -1,6 +1,6 @@
-# Longlivy (Prototype)
+# HealthyMe (Prototype)
 
-A React Native + TypeScript wireframe/prototype of the Longlivy wellness
+A React Native + TypeScript wireframe/prototype of the HealthyMe wellness
 platform: fasting, nutrition, calories, activity, meditation, statistics,
 goals and health integrations — all connected through a shared data model,
 running today on local mock repositories.
@@ -17,7 +17,7 @@ Demo login is pre-filled on the login screen:
 - Email: whatever you registered with, or the seeded demo account
 - Password: `demo1234`
 
-Onboarding is required once; after "Enter Longlivy" you land in the mock
+Onboarding is required once; after completing it you land in the mock
 authenticated session automatically.
 
 ## Architecture

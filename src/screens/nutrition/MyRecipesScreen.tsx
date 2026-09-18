@@ -13,7 +13,7 @@ import { nutritionRepository } from '@/features/nutrition/repository/MockNutriti
 import { Recipe } from '@/features/nutrition/models';
 import { DEMO_USER_ID } from '@/mock/demoUser';
 
-const NUTRITION_GRADIENT = ['#D6A253', '#8C6423'] as const;
+const NUTRITION_GRADIENT = ['#F5A94E', '#A2650F'] as const;
 
 export const MyRecipesScreen: React.FC = () => {
   const { theme } = useTheme();

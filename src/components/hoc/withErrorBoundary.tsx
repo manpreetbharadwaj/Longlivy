@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { AppText } from '@/components/common/AppText';
 import { AppButton } from '@/components/common/AppButton';
+import { brand } from '@/config/branding';
 
 interface ErrorBoundaryState {
   error: Error | null;
@@ -16,7 +17,7 @@ class FeatureErrorBoundary extends React.Component<{ children: React.ReactNode; 
 
   componentDidCatch(error: Error) {
     // A real app would forward this to an analytics/crash-reporting service.
-    console.warn(`[Solace] ${this.props.label ?? 'Feature'} crashed:`, error);
+    console.warn(`[${brand.name}] ${this.props.label ?? 'Feature'} crashed:`, error);
   }
 
   reset = () => this.setState({ error: null });

@@ -44,9 +44,9 @@ interface OnboardingStepLayoutProps {
  * glass/glow visual system, a morphing progress line instead of segmented
  * boxes, and a pinned CTA footer so the primary action is always reachable
  * regardless of content height or keyboard state. Also used, via `eyebrow`,
- * by the Goal screen — the transition beat between "understanding Long
- * Livy" and the seven numbered steps (PersonalizeMe → Gender → Age → Height
- * → Weight → ActivityLevelStep → Micronutrients) — so it shares the same
+ * by the Goal screen — the transition beat between "understanding the app"
+ * and the seven numbered steps (PersonalizeMe → Gender → Age → Height →
+ * Weight → ActivityLevelStep → Micronutrients) — so it shares the same
  * chrome without being counted as one of them.
  */
 export const OnboardingStepLayout: React.FC<OnboardingStepLayoutProps> = ({

@@ -24,7 +24,7 @@ import { FastingHeroLayout } from './FastingHeroLayout';
 // dashboard blue accent, so landing on this tab reads as "fasting" the
 // moment the ring/CTA render, not just once the atmosphere gradient behind
 // them is noticed.
-const FASTING_ACCENT = '#6E8DBE';
+const FASTING_ACCENT = '#7C93F0';
 
 export const FastingHomeScreen: React.FC = () => {
   const { theme } = useTheme();

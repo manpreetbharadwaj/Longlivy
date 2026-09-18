@@ -6,27 +6,28 @@
  * native/static fields below that can't read a TS module — see the note on
  * each).
  *
- * "Solace" is a deliberate placeholder brand for Phase 1 (design-system
- * foundation) — see PHASE_0_AUDIT.md §8. When a final name is chosen, swap
- * every value below; no other file should need to change for the app's
- * *copy* to pick it up. `slug`/`bundleId` are also duplicated as static
- * literals in `app.json` (JSON can't import this module) — update both
- * together.
+ * `slug`/`bundleId` are also duplicated as static literals in `app.json`
+ * (JSON can't import this module) — update both together.
  */
 export const brand = {
-  /** Display name used throughout the product (wordmark, i18n `{{appName}}` interpolation, dev logs). */
-  name: 'Solace',
-  /** Uppercase wordmark used on Splash/Welcome/Language screens. */
-  wordmark: 'SOLACE',
+  /**
+   * Display name used throughout the product (wordmark, i18n `{{appName}}`
+   * interpolation, dev logs). One word, exact casing — "HealthyMe", never
+   * "Healthy Me"/"Healthy me"/"HEALTHY ME". Don't split or re-space it in
+   * copy.
+   */
+  name: 'HealthyMe',
+  /** Uppercase wordmark used on Splash/Welcome/Language screens — still one word, no inserted space. */
+  wordmark: 'HEALTHYME',
   /** Lowercase, URL-safe identifier. Must match `app.json`'s `expo.slug`. */
-  slug: 'solace',
+  slug: 'healthyme',
   /** Must match `app.json`'s `expo.ios.bundleIdentifier` / `expo.android.package`. */
-  bundleId: 'com.solace.app',
+  bundleId: 'com.healthyme.app',
   /** Short brand promise — used sparingly, e.g. a tagline slot in intro copy. */
-  tagline: 'find your calm',
-  supportEmail: 'support@solace.app',
+  tagline: 'eat well, live well',
+  supportEmail: 'support@healthyme.app',
   /** Pre-filled on the login screen in this mock-backend prototype (see README.md). */
-  demoAccountEmail: 'demo@solace.app',
+  demoAccountEmail: 'demo@healthyme.app',
 } as const;
 
 export type Brand = typeof brand;

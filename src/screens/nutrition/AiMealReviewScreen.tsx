@@ -20,7 +20,7 @@ import { addFoodToMealThunk } from '@/features/nutrition/nutritionSlice';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
 import { MealType } from '@/features/nutrition/models';
 
-const NUTRITION_GRADIENT = ['#D6A253', '#8C6423'] as const;
+const NUTRITION_GRADIENT = ['#F5A94E', '#A2650F'] as const;
 
 const MEAL_TYPES: { key: MealType; label: string }[] = [
   { key: 'breakfast', label: 'Breakfast' },
@@ -75,7 +75,7 @@ export const AiMealReviewScreen: React.FC = () => {
   return (
     <TabHeroLayout title="Review before saving" onBack={() => navigation.goBack()}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.md }}>
-        <AppIcon name="information-circle-outline" size={18} color="#D98657" />
+        <AppIcon name="information-circle-outline" size={18} color="#FF7A63" />
         <AppText variant="bodySmall" color="rgba(255,255,255,0.7)" style={{ marginLeft: theme.spacing.xxs, flex: 1 }}>
           {SOURCE_LABEL[route.params.source]}-based recognition is an estimate. Check and adjust each item before
           saving — nothing is stored automatically.
