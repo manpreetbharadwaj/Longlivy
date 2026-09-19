@@ -21,7 +21,7 @@ interface ActivityFigureProps {
  * matter of adding one entry to BIPED_PARAMS or a new render branch, not
  * restructuring the callers.
  */
-export const ActivityFigure: React.FC<ActivityFigureProps> = React.memo(({ type, size = 48, color = '#FF7A63' }) => {
+export const ActivityFigure: React.FC<ActivityFigureProps> = React.memo(({ type, size = 48, color = '#D98657' }) => {
   if (type === 'cycling') return <CyclingFigure size={size} color={color} />;
 
   const params = BIPED_PARAMS[type];

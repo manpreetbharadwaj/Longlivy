@@ -69,6 +69,8 @@ export const en = {
   language: {
     selectTitle: 'Choose your language',
     selectSubtitle: 'You can change this later in Settings.',
+    englishName: 'English',
+    germanName: 'German',
     continueCta: 'Continue',
   },
   units: {
@@ -194,129 +196,27 @@ export const en = {
   onboarding: {
     stepProgress: 'Step {{step}} of {{total}}',
     welcome: {
-      tagline: 'Your health, beautifully aligned.',
-      begin: 'Start',
-      /** Not an existing tab — the other four feature chips on this screen reuse `tabs.*` directly instead of duplicating those labels here. */
-      wellness: 'Wellness',
-    },
-    goals: {
-      heading: 'What brings you to HealthyMe?',
-      subheading: "Choose what you'd like to focus on. We'll personalize your experience.",
-      recommendation: 'Choose up to 3 to start — you can add more any time.',
-      items: {
-        fitness: { title: 'Get Fit & Build Strength', subtitle: 'Training, strength, structure' },
-        activity: { title: 'Be More Active', subtitle: 'Move more, every day' },
-        yoga: { title: 'Practice Yoga', subtitle: 'Flexibility & mindful movement' },
-        meditation: { title: 'Meditate & Feel Better', subtitle: 'Calm, focus, better sleep' },
-        fasting: { title: 'Improve My Fasting', subtitle: 'Build a rhythm that works for you' },
-        nutrition: { title: 'Eat Better', subtitle: 'Track and improve what you eat' },
-        overall: { title: 'Improve Overall Health', subtitle: 'A bit of everything' },
-      },
-      primary: {
-        eyebrow: 'MAIN FOCUS',
-        title: "What's your main focus right now?",
-        subtitle: 'The rest stay part of your experience too — this just decides what comes first.',
+      liveWell: 'Live well.',
+      liveLong: 'Live long.',
+      begin: 'Begin',
+      signals: {
+        fasting: '14h 32m fasted',
+        nutrition: 'Protein 82%',
+        activity: '+18% movement',
+        meditation: '12 min today',
+        statistics: '7-day streak',
       },
     },
-    goalQuestions: {
-      fitness: {
-        level: {
-          title: "What's your fitness level?",
-          options: { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' },
-        },
-        where: {
-          title: 'Where do you usually train?',
-          options: { home: 'At Home', gym: 'At the Gym', both: 'Both' },
-        },
-        targets: {
-          title: 'What are you working toward?',
-          options: { muscle: 'Build Muscle', fat_loss: 'Lose Fat', strength: 'Get Stronger', fitness: 'Improve Fitness', consistency: 'Stay Consistent' },
-        },
-        frequency: {
-          title: 'How often would you like to train?',
-          options: { two: '2 days/week', three: '3 days/week', four: '4 days/week', five_plus: '5+ days/week' },
-        },
+    value: {
+      title: 'One system, four signals',
+      subtitle: 'Drag a card away to see the next.',
+      showPillar: 'Show {{name}}',
+      pillars: {
+        fasting: { title: 'Fasting', desc: 'Build healthier eating rhythms with intelligent fasting guidance.' },
+        nutrition: { title: 'Nutrition', desc: 'Understand what your body needs and stay on track effortlessly.' },
+        activity: { title: 'Activity', desc: 'Turn everyday movement into measurable progress.' },
+        meditation: { title: 'Mind', desc: 'Create moments of calm and improve your daily mental balance.' },
       },
-      activity: {
-        enjoy: {
-          title: 'What activities do you enjoy?',
-          options: { walking: 'Walking', running: 'Running', cycling: 'Cycling', hiking: 'Outdoor Activity', other: 'General Movement' },
-        },
-        improve: {
-          title: 'What would you like to improve?',
-          options: { daily_movement: 'Daily movement', endurance: 'Endurance', distance: 'Distance', pace: 'Pace / speed', consistency: 'Consistency' },
-        },
-      },
-      yoga: {
-        experience: {
-          title: "What's your yoga experience?",
-          options: { new: 'New to Yoga', some: 'Some Experience', regular: 'Regular Practice' },
-        },
-        focus: {
-          title: 'What would you like from yoga?',
-          options: { flexibility: 'Flexibility', mobility: 'Mobility', relaxation: 'Relaxation', strength: 'Strength', balance: 'Balance', stress_relief: 'Stress Relief' },
-        },
-        sessionLength: {
-          title: 'How long should a typical session feel?',
-          options: { short: '5–10 min', medium: '15–20 min', long: '30 min', extended: '45+ min' },
-        },
-      },
-      meditation: {
-        help: {
-          title: 'What would you like meditation to help with?',
-          options: { stress_relief: 'Stress Relief', sleep: 'Better Sleep', focus: 'Focus & Concentration', calm: 'Calm', mindfulness: 'Mindfulness', energy: 'Energy', relaxation: 'Relaxation' },
-        },
-        familiarity: {
-          title: 'How familiar are you with meditation?',
-          options: { new: "I'm new", tried: "I've tried it", regular: 'I meditate regularly' },
-        },
-        sessionLength: {
-          title: 'What session length feels right?',
-          options: { five: '5 min', fifteen: '15 min', thirty: '30 min', forty_five_plus: '45+ min' },
-        },
-      },
-      fasting: {
-        familiarity: {
-          title: 'How familiar are you with fasting?',
-          options: { new: "I'm new", tried: "I've tried fasting", regular: 'I fast regularly' },
-        },
-        lookingFor: {
-          title: 'What are you looking for?',
-          options: { routine: 'Build a routine', track: 'Track fasting time', consistency: 'Improve consistency', explore: 'Explore fasting schedules' },
-        },
-        schedule: {
-          title: 'Which fasting schedule interests you?',
-          options: { fourteen_ten: '14:10', sixteen_eight: '16:8', eighteen_six: '18:6', twenty_four: '20:4' },
-        },
-      },
-      nutrition: {
-        focus: {
-          title: 'What would you like to focus on?',
-          options: { eat_healthier: 'Eat Healthier', track_calories: 'Track Calories', protein: 'Improve Protein Intake' },
-        },
-      },
-      overall: {
-        matters: {
-          title: 'What matters most to you?',
-          options: { move: 'Move more', eat: 'Eat better', sleep: 'Sleep / relax better', consistency: 'Build consistency', fitness: 'Improve fitness', mindfulness: 'Mindfulness' },
-        },
-      },
-    },
-    goalSummary: {
-      title: 'HealthyMe is ready for you.',
-      yourFocus: 'Your focus',
-      /** `{{items}}` is a plain, already-joined list (e.g. "strength training, short mindfulness sessions and nutrition tracking") — built deterministically from `goalSummary.blurbs`, never generated text. */
-      body: 'Your experience will prioritize {{items}}.',
-      blurbs: {
-        fitness: 'strength training',
-        activity: 'daily movement',
-        yoga: 'mindful movement',
-        meditation: 'short mindfulness sessions',
-        fasting: 'a fasting rhythm that fits you',
-        nutrition: 'nutrition tracking',
-        overall: 'a balanced routine across the essentials',
-      },
-      continueCta: 'Continue',
     },
     goal: {
       eyebrow: 'YOUR GOAL',
@@ -418,7 +318,7 @@ export const en = {
       passwordRequired: 'Please enter your password.',
       forgotPassword: 'Forgot password?',
       submit: 'Log in',
-      newToApp: 'New to {{appName}}?',
+      newToLonglivy: 'New to {{appName}}?',
       createAccount: 'Create an account',
     },
     register: {
@@ -502,6 +402,8 @@ export const en = {
     },
     language: {
       title: 'Language',
+      english: 'English',
+      german: 'Deutsch',
     },
     liveMoments: {
       title: 'Fasting timeline "live moments"',

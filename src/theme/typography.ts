@@ -3,18 +3,20 @@ import { TextStyle } from 'react-native';
 /**
  * Named font files, loaded via `expo-font`/`@expo-google-fonts/*` in
  * `App.tsx` (`useAppFonts`) before the app renders any text — see
- * `src/hooks/useAppFonts.ts`. A single family, Manrope (a clean geometric
- * sans), carries the entire type system — display/heading, body, and
- * metric styles alike. Unifying on one face instead of pairing in an
- * editorial serif keeps the read minimal and "health-tech" rather than
- * warm/editorial, and means a heading and a calorie count or timer
- * readout always feel like the same product.
+ * `src/hooks/useAppFonts.ts`. Two families, each doing one job:
+ *  - `display*` (Fraunces, a warm editorial serif) carries headlines and
+ *    large display type — the single biggest visual break from a
+ *    system-font-only look.
+ *  - `body*` (Manrope, a clean geometric sans) carries everything read at
+ *    length or at speed: body copy, labels, and — deliberately, for
+ *    legibility at a glance — the numeric metric styles too, so a serif
+ *    headline never has to double as a calorie count or a timer readout.
  */
 export const fontFamily = {
-  displayMedium: 'Manrope_600SemiBold',
-  displaySemibold: 'Manrope_700Bold',
-  displayBold: 'Manrope_800ExtraBold',
-  displayItalic: 'Manrope_600SemiBold',
+  displayMedium: 'Fraunces_500Medium',
+  displaySemibold: 'Fraunces_600SemiBold',
+  displayBold: 'Fraunces_700Bold',
+  displayItalic: 'Fraunces_600SemiBold_Italic',
   body: 'Manrope_400Regular',
   bodyMedium: 'Manrope_500Medium',
   bodySemibold: 'Manrope_600SemiBold',

@@ -20,10 +20,10 @@ export const spacing = {
  * way to a fully rounded/pill-heavy look everywhere.
  */
 export const radius = {
-  sm: 12,
-  md: 18,
+  sm: 10,
+  md: 16,
   lg: 22,
-  xl: 26,
+  xl: 30,
   pill: 999,
   /** A deliberately small, fixed corner radius for progress-bar tracks/fills — independent of bar height, so bars read as clean and rectangular rather than pill-shaped regardless of how tall a given bar is. */
   flat: 3,

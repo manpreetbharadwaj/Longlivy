@@ -60,9 +60,7 @@ export const AppButton: React.FC<AppButtonProps> = React.memo(
             paddingHorizontal: theme.spacing.lg,
             opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
             alignSelf: fullWidth ? 'stretch' : 'flex-start',
-            ...(colors.elevated && !disabled
-              ? { ...theme.shadows.elevated, shadowColor: theme.colors.primary, shadowOpacity: 0.35 }
-              : null),
+            ...(colors.elevated && !disabled ? theme.shadows.elevated : null),
           },
           style,
         ]}

@@ -39,7 +39,7 @@ export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mo
   const [modalVisible, setModalVisible] = useState(false);
   const [draftValue, setDraftValue] = useState(value);
   const hero = variant === 'hero';
-  // Date fields get HealthyMe's own wheel picker (identical look and
+  // Date fields get Longlivy's own wheel picker (identical look and
   // interaction on both platforms — see WheelDatePicker); time fields stay
   // on the platform-native picker (a spinner sheet on iOS, the system
   // dialog on Android) unchanged — this task is scoped to date-of-birth

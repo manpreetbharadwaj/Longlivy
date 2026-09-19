@@ -4,37 +4,23 @@ import type { MeditationTopic, UnguidedSoundCategory } from '@/features/meditati
 
 export type OnboardingStackParamList = {
   Welcome: undefined;
-  /** "What brings you to HealthyMe?" — multi-select focus areas. Not counted as one of the 6 numbered common steps (eyebrow-style beat, like Goal below). */
-  GoalSelect: undefined;
-  /** "What's your main focus right now?" — only pushed when more than one goal was selected; a single selection auto-becomes the primary goal with no screen shown. */
-  PrimaryGoal: undefined;
-  /** The weight-direction goal now sits right after focus-area selection, before any personal-info collection starts — see OnboardingNavigator. Asked exactly once. */
+  Value: undefined;
+  /** The goal now sits right after the intro, before any personal-info collection starts — see OnboardingNavigator. Asked exactly once. */
   Goal: undefined;
-  /** Common step 1 of 6 — a focused transition beat, not a question: "we're about to personalize this for you". */
+  /** Step 1 of 7 — a focused transition beat, not a question: "we're about to personalize this for you". */
   PersonalizeMe: undefined;
-  /** Common step 2 of 6. */
+  /** Step 2 of 7. */
   Gender: undefined;
-  /** Common step 3 of 6. Route name kept as "Age" for minimal navigation churn — the screen itself now collects date of birth, not a raw age (see AgeStepScreen). */
+  /** Step 3 of 7. Route name kept as "Age" for minimal navigation churn — the screen itself now collects date of birth, not a raw age (see AgeStepScreen). */
   Age: undefined;
-  /** Common step 4 of 6. */
+  /** Step 4 of 7. */
   Height: undefined;
-  /** Common step 5 of 6. */
+  /** Step 5 of 7. */
   Weight: undefined;
-  /** Common step 6 of 6 — the last screen before the dynamically-generated goal-specific flow begins (see `useGoalFlow`). */
+  /** Step 6 of 7. */
   ActivityLevelStep: undefined;
-  /**
-   * One generic goal-specific question, rendered from `GOALS`/`buildGoalFlow`
-   * (`src/features/onboarding/goals/`) — `key` identifies which question
-   * (e.g. `'fitness.level'`). Pushed (not `navigate`d) once per question in
-   * the user's generated flow, so distinct instances stack correctly for
-   * Back. The only route in this stack that takes real params — every other
-   * screen reads/writes `OnboardingContext` directly instead.
-   */
-  GoalQuestion: { key: string };
-  /** Reached only when Nutrition is among the selected goals, as that goal's final step — not a numbered common step (see MicronutrientSetupScreen). */
+  /** Step 7 of 7 — not a form, see MicronutrientSetupScreen. */
   Micronutrients: undefined;
-  /** "HealthyMe is ready for you" — the goal-focused recap, reached once the generated goal-specific flow is exhausted. Distinct from CompleteSetup, which computes the actual calorie plan. */
-  GoalSummary: undefined;
   CompleteSetup: undefined;
 };
 

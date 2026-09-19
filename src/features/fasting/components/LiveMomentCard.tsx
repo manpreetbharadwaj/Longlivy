@@ -41,9 +41,9 @@ export const LiveMomentCard: React.FC<LiveMomentCardProps> = React.memo(({ miles
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-        <AppIcon name="sparkles-outline" size={18} color="#22D3EE" />
+        <AppIcon name="sparkles-outline" size={18} color="#4FAE8F" />
         <View style={{ flex: 1, marginLeft: theme.spacing.xs }}>
-          <AppText variant="headingSmall" color="#22D3EE">
+          <AppText variant="headingSmall" color="#4FAE8F">
             {milestone >= 1 ? 'Fasting goal reached' : 'Your fasting reaches a new milestone'}
           </AppText>
           <AppText variant="bodySmall" color="rgba(255,255,255,0.7)" style={{ marginTop: 2 }}>

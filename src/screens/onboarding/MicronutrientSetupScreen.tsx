@@ -10,8 +10,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { motion } from '@/theme/motion';
 import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
-import { useGoalFlow } from '@/features/onboarding/goals/useGoalFlow';
-import { navigateToFlowStep, NUTRITION_SCREEN_KEY, COMMON_STEP_COUNT } from '@/features/onboarding/goals/flow';
 import { MICRONUTRIENTS, MICRONUTRIENT_CATEGORIES, recommendMicronutrients } from '@/features/onboarding/data/micronutrients';
 import { MicronutrientChip } from '@/features/onboarding/components/MicronutrientChip';
 import { onboardingAccent, onboardingData, onboardingGlass, onboardingPillarColors } from '@/features/onboarding/theme/onboardingTheme';
@@ -53,22 +51,19 @@ const CoverageRing: React.FC<{ selected: number; total: number }> = ({ selected,
 };
 
 /**
- * Nutrition goal's final step (see `GOALS` in `goalConfig.ts` — reached only
- * when the user selected "Eat Better"), reused as-is rather than duplicated:
- * a coverage ring plus grouped, tappable nutrient chips, pre-selected by
- * `recommendMicronutrients` from the goal and gender already captured (so
- * it opens already personalized, not blank) and freely adjustable from
- * there. The recommendation runs exactly once — re-entering this step via
- * back navigation never overwrites what the user actually chose (see
- * `draft.micronutrients`'s null-vs-[] distinction).
+ * Step 6 of 6 — the new screen the client asked for, explicitly not a
+ * label/input form: a coverage ring plus grouped, tappable nutrient chips,
+ * pre-selected by `recommendMicronutrients` from the goal and gender already
+ * captured (so it opens already personalized, not blank) and freely
+ * adjustable from there. The recommendation runs exactly once — re-entering
+ * this step via back navigation never overwrites what the user actually
+ * chose (see `draft.micronutrients`'s null-vs-[] distinction).
  */
 export const MicronutrientSetupScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<OnboardingStackParamList>>();
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { draft, update } = useOnboardingDraft();
-  const { flow, totalSteps } = useGoalFlow();
-  const index = flow.findIndex((s) => s.key === NUTRITION_SCREEN_KEY);
 
   useEffect(() => {
     if (draft.micronutrients === null) {
@@ -90,11 +85,11 @@ export const MicronutrientSetupScreen: React.FC = () => {
 
   return (
     <OnboardingStepLayout
-      step={COMMON_STEP_COUNT + index + 1}
-      totalSteps={totalSteps}
+      step={7}
+      totalSteps={7}
       title={t('onboarding.micronutrients.title')}
       subtitle={t('onboarding.micronutrients.subtitle')}
-      onNext={() => navigateToFlowStep(navigation, flow[index + 1])}
+      onNext={() => navigation.navigate('CompleteSetup')}
       onBack={() => navigation.goBack()}
       nextLabel={t('onboarding.micronutrients.next')}
       dimBackground

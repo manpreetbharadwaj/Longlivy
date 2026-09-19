@@ -2,14 +2,12 @@ import React, { useEffect } from 'react';
 import { Pressable, View, ViewStyle } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, interpolateColor } from 'react-native-reanimated';
 import { AppText } from './AppText';
-import { AppIcon, AppIconName, MaterialCommunityIconName } from './AppIcon';
+import { AppIcon, AppIconName } from './AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { motion } from '@/theme/motion';
 
 interface HeroOptionCardProps {
-  icon?: AppIconName | MaterialCommunityIconName;
-  /** Icon glyph family — defaults to Ionicons, same convention as `AppIcon`/`AppIconTile`. Only needed for a glyph Ionicons doesn't have. */
-  family?: 'ionicons' | 'material-community';
+  icon?: AppIconName;
   title: string;
   description?: string;
   selected: boolean;
@@ -32,7 +30,7 @@ const UNSELECTED_BG = 'rgba(255,255,255,0.07)';
  * not a replacement.
  */
 export const HeroOptionCard: React.FC<HeroOptionCardProps> = React.memo(
-  ({ icon, family, title, description, selected, onPress, layout = 'row', accentColor = '#22D3EE', style }) => {
+  ({ icon, title, description, selected, onPress, layout = 'row', accentColor = '#4FAE8F', style }) => {
     const { theme } = useTheme();
     const progress = useSharedValue(selected ? 1 : 0);
     const pulse = useSharedValue(1);
@@ -84,7 +82,7 @@ export const HeroOptionCard: React.FC<HeroOptionCardProps> = React.memo(
                   marginBottom: layout === 'column' ? theme.spacing.xs : 0,
                 }}
               >
-                <AppIcon name={icon} family={family} size={layout === 'row' ? 22 : 26} color="#FFFFFF" />
+                <AppIcon name={icon} size={layout === 'row' ? 22 : 26} color="#FFFFFF" />
               </View>
             ) : null}
             <View style={{ flex: layout === 'row' ? 1 : undefined, alignItems: layout === 'column' ? 'center' : undefined }}>

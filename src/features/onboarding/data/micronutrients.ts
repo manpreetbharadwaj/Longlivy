@@ -32,7 +32,7 @@ export const MICRONUTRIENTS: MicronutrientDef[] = [
 /**
  * Smart defaults for MicronutrientSetupScreen — a small, goal- and
  * gender-aware starting set so the screen opens already personalized
- * ("HealthyMe is intelligently setting up your nutrition profile") instead
+ * ("Longlivy is intelligently setting up your nutrition profile") instead
  * of a blank checklist. Purely a starting point: every chip stays
  * individually toggleable, nothing here is enforced.
  */

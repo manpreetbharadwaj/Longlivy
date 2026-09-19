@@ -21,7 +21,6 @@ import { HeroLegendDot } from '@/components/common/HeroLegendDot';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { useOnboardingDraft, ageToDateOfBirth } from '@/features/onboarding/OnboardingContext';
-import { FastingMethodId } from '@/features/fasting/models';
 import { useAppDispatch } from '@/store/hooks';
 import { completeOnboardingThunk } from '@/features/auth/authSlice';
 import { updateProfile } from '@/features/profile/profileSlice';
@@ -95,8 +94,8 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 // output of onboarding, not a question asked during it. Fully adjustable
 // later in Nutrition Goals.
 const MACRO_SPLIT = { carb: 0.4, protein: 0.3, fat: 0.3 };
-const CARB_COLOR = '#FF7A63';
-const PROTEIN_COLOR = '#F5A94E';
+const CARB_COLOR = '#D98657';
+const PROTEIN_COLOR = '#D6A253';
 const FAT_COLOR = onboardingAccent;
 
 /** Nutrition-baseline ring, drawn in once the summary reveals. */
@@ -178,20 +177,6 @@ export const CompleteSetupScreen: React.FC = () => {
   const nrla = engine.calculateNrla({ age, gender, heightCm, weightKg, activityLevel });
   const calorieGoal = engine.calculateCalorieGoal(nrla, goal, pace);
 
-  // Both fields already existed on OnboardingDraft for exactly this purpose
-  // but were dead (never collected) before goal-based onboarding — the
-  // Fitness goal's "how often would you like to train?" and the Fasting
-  // goal's "which fasting schedule interests you?" now populate them for
-  // real, when that goal was part of the user's flow.
-  const fitnessFrequency = draft.goalAnswers.fitness?.frequency?.[0];
-  const trainingFrequency = fitnessFrequency ? Number(fitnessFrequency) : draft.trainingFrequency;
-  const fastingScheduleAnswer = draft.goalAnswers.fasting?.schedule?.[0] as FastingMethodId | undefined;
-  const fastingMethod = fastingScheduleAnswer ?? draft.fastingMethod;
-  // Drop any answer left over from a goal the user later deselected —
-  // `selectedGoals` is the authoritative list, `goalAnswers` can otherwise
-  // still hold orphaned entries from earlier in the draft's lifetime.
-  const goalAnswers = Object.fromEntries(Object.entries(draft.goalAnswers).filter(([key]) => draft.selectedGoals.includes(key as (typeof draft.selectedGoals)[number])));
-
   const finish = useCallback(() => {
     const dateOfBirth = draft.dateOfBirth ?? ageToDateOfBirth(age);
     dispatch(
@@ -202,14 +187,11 @@ export const CompleteSetupScreen: React.FC = () => {
         weightKg,
         activityLevel,
         goal,
-        trainingFrequency: trainingFrequency ?? undefined,
+        trainingFrequency: draft.trainingFrequency ?? undefined,
         trainingVolume: draft.trainingVolume ?? undefined,
         weightChangePaceKgPerWeek: pace ?? undefined,
-        fastingMethod: fastingMethod ?? undefined,
+        fastingMethod: draft.fastingMethod ?? undefined,
         micronutrientFocus: draft.micronutrients ?? undefined,
-        selectedGoals: draft.selectedGoals,
-        primaryGoal: draft.primaryGoal,
-        goalAnswers,
       })
     );
     dispatch(setBodyProfile({ age, gender, heightCm, weightKg, activityLevel }));
@@ -224,23 +206,7 @@ export const CompleteSetupScreen: React.FC = () => {
       })
     );
     dispatch(completeOnboardingThunk());
-  }, [
-    dispatch,
-    age,
-    gender,
-    heightCm,
-    weightKg,
-    activityLevel,
-    goal,
-    pace,
-    draft.dateOfBirth,
-    draft.trainingVolume,
-    draft.selectedGoals,
-    draft.primaryGoal,
-    trainingFrequency,
-    fastingMethod,
-    goalAnswers,
-  ]);
+  }, [dispatch, age, gender, heightCm, weightKg, activityLevel, goal, pace, draft.dateOfBirth, draft.trainingFrequency, draft.trainingVolume, draft.fastingMethod]);
 
   return (
     <OnboardingBackground>

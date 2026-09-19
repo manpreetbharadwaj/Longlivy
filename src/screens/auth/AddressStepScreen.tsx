@@ -11,7 +11,7 @@ import { updateProfile } from '@/features/profile/profileSlice';
 import { AuthHeroLayout } from './AuthHeroLayout';
 
 /**
- * The last account-creation field — needed specifically for the HealthyMe
+ * The last account-creation field — needed specifically for the Longlivy
  * webshop, not for the app's own core function, but still required before
  * `Main` becomes reachable (see RootNavigator: `Main` needs both
  * `isAuthenticated` and a non-empty `profile.address`). Reached

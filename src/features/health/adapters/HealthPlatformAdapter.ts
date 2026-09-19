@@ -2,7 +2,7 @@ import { HealthActivity, HealthHeartRate, HealthPlatformId, HealthSleep, HealthS
 
 /**
  * Every real integration (Apple Health, Garmin, Fitbit, ...) implements this
- * interface and normalizes provider-specific payloads into HealthyMe's
+ * interface and normalizes provider-specific payloads into Longlivy's
  * internal Health* models. The app core never depends on a vendor SDK
  * directly — only on this adapter contract.
  */

@@ -8,8 +8,6 @@ import { HeroOptionCard } from '@/components/common/HeroOptionCard';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { useOnboardingDraft, OnboardingDraft } from '@/features/onboarding/OnboardingContext';
-import { useGoalFlow } from '@/features/onboarding/goals/useGoalFlow';
-import { navigateToFlowStep } from '@/features/onboarding/goals/flow';
 import { motion } from '@/theme/motion';
 import { onboardingAccent } from '@/features/onboarding/theme/onboardingTheme';
 import { OnboardingStepLayout } from './OnboardingStepLayout';
@@ -57,15 +55,14 @@ export const ActivityLevelStepScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { draft, update } = useOnboardingDraft();
-  const { flow, totalSteps } = useGoalFlow();
 
   return (
     <OnboardingStepLayout
       step={6}
-      totalSteps={totalSteps}
+      totalSteps={7}
       title={t('onboarding.activityLevel.title')}
       subtitle={t('onboarding.activityLevel.subtitle')}
-      onNext={() => navigateToFlowStep(navigation, flow[0])}
+      onNext={() => navigation.navigate('Micronutrients')}
       onBack={() => navigation.goBack()}
       nextDisabled={!draft.activityLevel}
     >

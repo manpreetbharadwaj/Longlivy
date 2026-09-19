@@ -45,7 +45,7 @@ export const WeightCard: React.FC = React.memo(() => {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Animated.View style={settleStyle}>
-            <AppIconTile name="scale-outline" color="#2DD4BF" size={40} iconSize={20} style={[homeIconTileStyle, { marginRight: theme.spacing.sm }]} />
+            <AppIconTile name="scale-outline" color="#4FA3A3" size={40} iconSize={20} style={[homeIconTileStyle, { marginRight: theme.spacing.sm }]} />
           </Animated.View>
           <View>
             <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
@@ -69,7 +69,7 @@ export const WeightCard: React.FC = React.memo(() => {
           ) : null}
           {trend !== 0 ? (
             <FadeSlideIn delay={200} fromY={4}>
-              <AppText variant="caption" color={trend < 0 ? '#34D399' : '#FBBF24'}>
+              <AppText variant="caption" color={trend < 0 ? '#59A184' : '#D6A253'}>
                 {trend > 0 ? '+' : ''}
                 {trend} kg
               </AppText>

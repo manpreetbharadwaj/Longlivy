@@ -16,8 +16,8 @@ type Goal = NonNullable<OnboardingDraft['goal']>;
 const GOAL_KEYS: Goal[] = ['weight_loss', 'maintenance', 'muscle_gain'];
 
 /**
- * The bridge from "understanding HealthyMe" to "building my personal
- * HealthyMe profile" — deliberately the first thing asked, before any
+ * The bridge from "understanding Longlivy" to "building my personal
+ * Longlivy profile" — deliberately the first thing asked, before any
  * personal information, and deliberately not counted as one of the seven
  * numbered personalization steps (see OnboardingStepLayout's `eyebrow`):
  * everything from here on — the body profile, the nutrient focus — is

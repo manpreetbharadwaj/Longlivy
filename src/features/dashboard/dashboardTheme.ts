@@ -1,40 +1,40 @@
 import { TextStyle, ViewStyle } from 'react-native';
 
 /**
- * Deep Current tokens for the Home Dashboard and the floating tab bar.
+ * Warm-dark tokens for the Home Dashboard.
  *
  * Scoped to this feature (same pattern as onboarding's onboardingTheme.ts)
- * rather than folded into the app-wide theme/colors.ts: the dashboard (and
- * the tab bar it lends its surfaces to) is a hardcoded dark hero surface
- * regardless of the device's light/dark setting (same reasoning
- * HeroCard/AppProgressRing already document).
+ * rather than folded into the app-wide theme/colors.ts: the dashboard is a
+ * hardcoded dark hero surface regardless of the device's light/dark
+ * setting (same reasoning HeroCard/AppProgressRing already document).
  *
- * Matches the app-wide "Deep Current" identity (`theme/colors.ts`) — near-
- * black navy neutrals with a single restrained cyan accent.
+ * Matches the app-wide "Warm Ink & Jade" identity (`theme/colors.ts`) —
+ * warm espresso neutrals instead of cool charcoal, brand jade instead of
+ * steel blue.
  */
 export const dashboardColors = {
-  background: '#080D12',
-  surface: '#0F161C',
-  surfaceElevated: '#141D24',
-  surfaceSecondary: '#182129',
+  background: '#0C0A07',
+  surface: '#161310',
+  surfaceElevated: '#1D1913',
+  surfaceSecondary: '#231E17',
 
-  textPrimary: '#F2F7F9',
-  textSecondary: '#8DA0AB',
-  textMuted: '#5C6C76',
+  textPrimary: '#F6EFE2',
+  textSecondary: '#AFA48F',
+  textMuted: '#79705F',
 
-  accent: '#22D3EE',
-  accentBright: '#67E8F9',
-  accentDark: '#0E9BB5',
+  accent: '#4FAE8F',
+  accentBright: '#6FCBAA',
+  accentDark: '#1F6F5C',
 
-  border: 'rgba(148, 197, 209, 0.10)',
-  borderStrong: 'rgba(148, 197, 209, 0.18)',
+  border: 'rgba(255,247,232,0.08)',
+  borderStrong: 'rgba(255,247,232,0.13)',
 
-  success: '#34D399',
-  warning: '#FBBF24',
-  danger: '#F87171',
+  success: '#59A184',
+  warning: '#D6A253',
+  danger: '#CB6E5C',
 
-  iconInactive: '#5C6C76',
-  iconImportant: '#F2F7F9',
+  iconInactive: '#8C8271',
+  iconImportant: '#F6EFE2',
 } as const;
 
 /** Level-2 "dark elevated surface" card — the default for most dashboard sections. Spread into a HeroCard's `style` prop to override its glassy default without touching HeroCard.tsx (shared by many other screens). */
@@ -47,7 +47,7 @@ export const dashboardCardStyle: ViewStyle = {
 
 /** Level-3 "floating/glass surface" — for the tab bar and the raised center action button. Slightly more opaque + a touch more border than the card level, so it still reads as detached from the content behind it. */
 export const dashboardFloatingStyle: ViewStyle = {
-  backgroundColor: 'rgba(9,14,19,0.92)',
+  backgroundColor: 'rgba(17,14,10,0.94)',
   borderWidth: 1,
   borderColor: dashboardColors.border,
 };

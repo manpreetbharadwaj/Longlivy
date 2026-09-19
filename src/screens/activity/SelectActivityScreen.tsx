@@ -47,7 +47,7 @@ export const SelectActivityScreen: React.FC = () => {
         {SELECTABLE_ACTIVITY_TYPES.map((type) => (
           <View key={type} style={{ width: '50%', paddingHorizontal: theme.spacing.xxs, marginBottom: theme.spacing.sm }}>
             <HeroCard onPress={() => start(type)} style={{ alignItems: 'center' }}>
-              <AppIconTile name={ICONS[type]} family={ICON_FAMILY[type]} color="#FF7A63" size={52} iconSize={26} style={{ marginBottom: theme.spacing.xs }} />
+              <AppIconTile name={ICONS[type]} family={ICON_FAMILY[type]} color="#D98657" size={52} iconSize={26} style={{ marginBottom: theme.spacing.xs }} />
               <AppText variant="headingSmall" color="#FFFFFF">
                 {ACTIVITY_TYPE_LABELS[type]}
               </AppText>

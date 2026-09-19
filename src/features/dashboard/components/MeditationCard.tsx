@@ -18,7 +18,7 @@ import { homeIconTileStyle } from '../homeIconTileStyle';
 import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 /** Meditation's own muted lavender accent (matches `theme.colors.meditation`) — this card is the one place on the otherwise-neutral Home dashboard that should read as "meditation," not the dashboard's generic steel accent. */
-const MEDITATION_ACCENT = '#B79AF5';
+const MEDITATION_ACCENT = '#A186BD';
 
 export const MeditationCard: React.FC = React.memo(() => {
   const { theme } = useTheme();

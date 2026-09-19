@@ -68,7 +68,7 @@ export const ManualActivityScreen: React.FC = () => {
         keyboardType="numeric"
         style={{ marginBottom: theme.spacing.md }}
       />
-      <AppGradientButton label="Save activity" onPress={save} loading={saving} colors={['#FF7A63', '#0E9BB5']} />
+      <AppGradientButton label="Save activity" onPress={save} loading={saving} colors={['#D98657', '#1F6F5C']} />
     </TabHeroLayout>
   );
 };

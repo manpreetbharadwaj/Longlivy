@@ -53,6 +53,8 @@ export const de: typeof en = {
   language: {
     selectTitle: 'Wähle deine Sprache',
     selectSubtitle: 'Du kannst das später in den Einstellungen ändern.',
+    englishName: 'Englisch',
+    germanName: 'Deutsch',
     continueCta: 'Weiter',
   },
   units: {
@@ -178,127 +180,27 @@ export const de: typeof en = {
   onboarding: {
     stepProgress: 'Schritt {{step}} von {{total}}',
     welcome: {
-      tagline: 'Deine Gesundheit, im Einklang.',
-      begin: 'Start',
-      wellness: 'Wohlbefinden',
-    },
-    goals: {
-      heading: 'Was führt dich zu HealthyMe?',
-      subheading: 'Wähle aus, worauf du dich konzentrieren möchtest. Wir passen deine Erfahrung entsprechend an.',
-      recommendation: 'Wähle bis zu 3 zum Start — du kannst jederzeit mehr hinzufügen.',
-      items: {
-        fitness: { title: 'Fit werden & Kraft aufbauen', subtitle: 'Training, Kraft, Struktur' },
-        activity: { title: 'Aktiver werden', subtitle: 'Jeden Tag mehr bewegen' },
-        yoga: { title: 'Yoga praktizieren', subtitle: 'Beweglichkeit & achtsame Bewegung' },
-        meditation: { title: 'Meditieren & sich besser fühlen', subtitle: 'Ruhe, Fokus, besserer Schlaf' },
-        fasting: { title: 'Mein Fasten verbessern', subtitle: 'Einen Rhythmus finden, der zu dir passt' },
-        nutrition: { title: 'Besser essen', subtitle: 'Verfolge und verbessere deine Ernährung' },
-        overall: { title: 'Allgemeine Gesundheit verbessern', subtitle: 'Ein bisschen von allem' },
-      },
-      primary: {
-        eyebrow: 'HAUPTFOKUS',
-        title: 'Was ist gerade dein Hauptfokus?',
-        subtitle: 'Der Rest bleibt trotzdem Teil deiner Erfahrung — das entscheidet nur, was zuerst kommt.',
+      liveWell: 'Lebe gut.',
+      liveLong: 'Lebe lang.',
+      begin: 'Los geht’s',
+      signals: {
+        fasting: '14 Std. 32 Min. gefastet',
+        nutrition: 'Protein 82 %',
+        activity: '+18 % Bewegung',
+        meditation: '12 Min. heute',
+        statistics: '7-Tage-Serie',
       },
     },
-    goalQuestions: {
-      fitness: {
-        level: {
-          title: 'Wie ist dein Fitnesslevel?',
-          options: { beginner: 'Anfänger', intermediate: 'Mittelstufe', advanced: 'Fortgeschritten' },
-        },
-        where: {
-          title: 'Wo trainierst du normalerweise?',
-          options: { home: 'Zuhause', gym: 'Im Fitnessstudio', both: 'Beides' },
-        },
-        targets: {
-          title: 'Woran arbeitest du?',
-          options: { muscle: 'Muskeln aufbauen', fat_loss: 'Fett verlieren', strength: 'Stärker werden', fitness: 'Fitness verbessern', consistency: 'Konstant bleiben' },
-        },
-        frequency: {
-          title: 'Wie oft möchtest du trainieren?',
-          options: { two: '2 Tage/Woche', three: '3 Tage/Woche', four: '4 Tage/Woche', five_plus: '5+ Tage/Woche' },
-        },
+    value: {
+      title: 'Ein System, vier Signale',
+      subtitle: 'Zieh eine Karte weg, um die nächste zu sehen.',
+      showPillar: '{{name}} anzeigen',
+      pillars: {
+        fasting: { title: 'Fasten', desc: 'Entwickle gesündere Essrhythmen mit intelligenter Fasten-Begleitung.' },
+        nutrition: { title: 'Ernährung', desc: 'Verstehe, was dein Körper braucht, und bleib mühelos auf Kurs.' },
+        activity: { title: 'Aktivität', desc: 'Mach alltägliche Bewegung zu messbarem Fortschritt.' },
+        meditation: { title: 'Geist', desc: 'Schaffe Momente der Ruhe und verbessere deine mentale Balance im Alltag.' },
       },
-      activity: {
-        enjoy: {
-          title: 'Welche Aktivitäten machst du gerne?',
-          options: { walking: 'Gehen', running: 'Laufen', cycling: 'Radfahren', hiking: 'Outdoor-Aktivität', other: 'Allgemeine Bewegung' },
-        },
-        improve: {
-          title: 'Was möchtest du verbessern?',
-          options: { daily_movement: 'Tägliche Bewegung', endurance: 'Ausdauer', distance: 'Distanz', pace: 'Tempo', consistency: 'Konstanz' },
-        },
-      },
-      yoga: {
-        experience: {
-          title: 'Wie viel Yoga-Erfahrung hast du?',
-          options: { new: 'Neu bei Yoga', some: 'Etwas Erfahrung', regular: 'Regelmäßige Praxis' },
-        },
-        focus: {
-          title: 'Was möchtest du von Yoga?',
-          options: { flexibility: 'Beweglichkeit', mobility: 'Mobilität', relaxation: 'Entspannung', strength: 'Kraft', balance: 'Balance', stress_relief: 'Stressabbau' },
-        },
-        sessionLength: {
-          title: 'Wie lang sollte eine typische Einheit sein?',
-          options: { short: '5–10 Min.', medium: '15–20 Min.', long: '30 Min.', extended: '45+ Min.' },
-        },
-      },
-      meditation: {
-        help: {
-          title: 'Wobei soll Meditation dir helfen?',
-          options: { stress_relief: 'Stressabbau', sleep: 'Besserer Schlaf', focus: 'Fokus & Konzentration', calm: 'Ruhe', mindfulness: 'Achtsamkeit', energy: 'Energie', relaxation: 'Entspannung' },
-        },
-        familiarity: {
-          title: 'Wie vertraut bist du mit Meditation?',
-          options: { new: 'Ich bin neu dabei', tried: 'Ich habe es schon probiert', regular: 'Ich meditiere regelmäßig' },
-        },
-        sessionLength: {
-          title: 'Welche Sitzungslänge fühlt sich richtig an?',
-          options: { five: '5 Min.', fifteen: '15 Min.', thirty: '30 Min.', forty_five_plus: '45+ Min.' },
-        },
-      },
-      fasting: {
-        familiarity: {
-          title: 'Wie vertraut bist du mit Fasten?',
-          options: { new: 'Ich bin neu dabei', tried: 'Ich habe Fasten schon probiert', regular: 'Ich faste regelmäßig' },
-        },
-        lookingFor: {
-          title: 'Wonach suchst du?',
-          options: { routine: 'Eine Routine aufbauen', track: 'Fastenzeit verfolgen', consistency: 'Konstanz verbessern', explore: 'Fastenpläne entdecken' },
-        },
-        schedule: {
-          title: 'Welcher Fastenplan interessiert dich?',
-          options: { fourteen_ten: '14:10', sixteen_eight: '16:8', eighteen_six: '18:6', twenty_four: '20:4' },
-        },
-      },
-      nutrition: {
-        focus: {
-          title: 'Worauf möchtest du dich konzentrieren?',
-          options: { eat_healthier: 'Gesünder essen', track_calories: 'Kalorien verfolgen', protein: 'Proteinzufuhr verbessern' },
-        },
-      },
-      overall: {
-        matters: {
-          title: 'Was ist dir am wichtigsten?',
-          options: { move: 'Mehr bewegen', eat: 'Besser essen', sleep: 'Besser schlafen/entspannen', consistency: 'Konstanz aufbauen', fitness: 'Fitness verbessern', mindfulness: 'Achtsamkeit' },
-        },
-      },
-    },
-    goalSummary: {
-      title: 'HealthyMe ist bereit für dich.',
-      yourFocus: 'Dein Fokus',
-      body: 'Deine Erfahrung konzentriert sich auf {{items}}.',
-      blurbs: {
-        fitness: 'Krafttraining',
-        activity: 'tägliche Bewegung',
-        yoga: 'achtsame Bewegung',
-        meditation: 'kurze Achtsamkeitsübungen',
-        fasting: 'einen Fastenrhythmus, der zu dir passt',
-        nutrition: 'Ernährungs-Tracking',
-        overall: 'eine ausgewogene Routine über alle Bereiche',
-      },
-      continueCta: 'Weiter',
     },
     goal: {
       eyebrow: 'DEIN ZIEL',
@@ -400,7 +302,7 @@ export const de: typeof en = {
       passwordRequired: 'Bitte gib dein Passwort ein.',
       forgotPassword: 'Passwort vergessen?',
       submit: 'Anmelden',
-      newToApp: 'Neu bei {{appName}}?',
+      newToLonglivy: 'Neu bei {{appName}}?',
       createAccount: 'Konto erstellen',
     },
     register: {
@@ -484,6 +386,8 @@ export const de: typeof en = {
     },
     language: {
       title: 'Sprache',
+      english: 'English',
+      german: 'Deutsch',
     },
     liveMoments: {
       title: 'Fasten-Timeline „Live-Momente“',

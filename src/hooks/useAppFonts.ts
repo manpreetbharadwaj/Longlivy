@@ -1,4 +1,5 @@
 import { useFonts } from 'expo-font';
+import { Fraunces_500Medium, Fraunces_600SemiBold, Fraunces_700Bold, Fraunces_600SemiBold_Italic } from '@expo-google-fonts/fraunces';
 import {
   Manrope_400Regular,
   Manrope_500Medium,
@@ -17,6 +18,10 @@ import {
  */
 export function useAppFonts(): boolean {
   const [loaded] = useFonts({
+    Fraunces_500Medium,
+    Fraunces_600SemiBold,
+    Fraunces_700Bold,
+    Fraunces_600SemiBold_Italic,
     Manrope_400Regular,
     Manrope_500Medium,
     Manrope_600SemiBold,

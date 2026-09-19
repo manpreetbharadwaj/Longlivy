@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useMemo, useState, useCallback } from 'react';
 import { FastingMethodId } from '@/features/fasting/models';
-import { GoalKey } from '@/features/onboarding/goals/types';
 
 /**
  * Everything onboarding collects to personalize the experience and compute
@@ -44,12 +43,6 @@ export interface OnboardingDraft {
    * user's actual choice.
    */
   micronutrients: string[] | null;
-  /** The focus areas chosen on GoalSelectScreen — "why is this person here", not the weight-direction `goal` above. Drives which goal-specific screens `useGoalFlow` generates. */
-  selectedGoals: GoalKey[];
-  /** Which of `selectedGoals` comes first in the generated flow. Auto-set to the only entry when exactly one goal is selected; asked explicitly (PrimaryGoalScreen) when there's more than one. */
-  primaryGoal: GoalKey | null;
-  /** Answers collected on GoalQuestionScreen, keyed by goal then by that goal's own question id — e.g. `goalAnswers.fitness.level = ['intermediate']`. A plain string array regardless of single/multi-select (single-select just holds one entry), so one storage shape covers both. */
-  goalAnswers: Partial<Record<GoalKey, Record<string, string[]>>>;
 }
 
 const DEFAULT_DRAFT: OnboardingDraft = {
@@ -65,16 +58,11 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   weightChangePaceKgPerWeek: null,
   fastingMethod: null,
   micronutrients: null,
-  selectedGoals: [],
-  primaryGoal: null,
-  goalAnswers: {},
 };
 
 interface OnboardingContextValue {
   draft: OnboardingDraft;
   update: (patch: Partial<OnboardingDraft>) => void;
-  /** Replaces one goal's one question's selected option ids — the single place GoalQuestionScreen writes an answer, so every question (single- or multi-select) goes through the same merge logic. */
-  setGoalAnswer: (goalKey: GoalKey, questionId: string, ids: string[]) => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextValue | undefined>(undefined);
@@ -82,15 +70,7 @@ const OnboardingContext = createContext<OnboardingContextValue | undefined>(unde
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [draft, setDraft] = useState<OnboardingDraft>(DEFAULT_DRAFT);
   const update = useCallback((patch: Partial<OnboardingDraft>) => setDraft((prev) => ({ ...prev, ...patch })), []);
-  const setGoalAnswer = useCallback(
-    (goalKey: GoalKey, questionId: string, ids: string[]) =>
-      setDraft((prev) => ({
-        ...prev,
-        goalAnswers: { ...prev.goalAnswers, [goalKey]: { ...prev.goalAnswers[goalKey], [questionId]: ids } },
-      })),
-    []
-  );
-  const value = useMemo(() => ({ draft, update, setGoalAnswer }), [draft, update, setGoalAnswer]);
+  const value = useMemo(() => ({ draft, update }), [draft, update]);
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
 };
 

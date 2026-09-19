@@ -38,7 +38,7 @@ interface AppProgressRingProps {
  * only changes what happens if a future usage omits them.
  */
 export const AppProgressRing: React.FC<AppProgressRingProps> = React.memo(
-  ({ progress, size = 220, strokeWidth = 16, color = '#22D3EE', trackColor = 'rgba(255,255,255,0.12)', children, icon, iconSize, iconColor, glow = false }) => {
+  ({ progress, size = 220, strokeWidth = 16, color = '#4FAE8F', trackColor = 'rgba(255,255,255,0.12)', children, icon, iconSize, iconColor, glow = false }) => {
     const clamped = Math.max(0, Math.min(progress, 1));
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;

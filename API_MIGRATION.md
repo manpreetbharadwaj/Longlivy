@@ -23,7 +23,7 @@ For each feature (`fasting`, `nutrition`, `activity`, `meditation`, `weight`,
    The interface itself should not need to change — it was designed against
    the domain, not against AsyncStorage.
 2. **Add RTK Query endpoints** in `src/services/api/` (e.g.
-   `healthyMeApi.ts`) using `createApi` + `fetchBaseQuery` (or a custom
+   `longlivyApi.ts`) using `createApi` + `fetchBaseQuery` (or a custom
    `baseQuery` if the backend needs custom auth headers). Configure
    `apiClientConfig.baseUrl` from `src/services/api/apiClient.ts`.
 3. **Implement `Api<Feature>Repository`** classes that satisfy the same

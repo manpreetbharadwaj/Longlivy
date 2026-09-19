@@ -16,7 +16,7 @@ import { HealthKitField, HealthKitSource, HealthKitMetrics, HealthKitDebugInfo, 
 
 /**
  * Every HealthKit type this app reads — read-only, matching exactly what
- * section 2 of the spec asks for. HealthyMe never writes to Apple Health.
+ * section 2 of the spec asks for. LongLivy never writes to Apple Health.
  */
 export const REQUIRED_READ_TYPES: ObjectTypeIdentifier[] = [
   'HKQuantityTypeIdentifierStepCount',

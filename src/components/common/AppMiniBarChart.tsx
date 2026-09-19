@@ -20,7 +20,7 @@ interface AppMiniBarChartProps {
  */
 export const AppMiniBarChart: React.FC<AppMiniBarChartProps> = React.memo(({ data, color, height = 64 }) => {
   const { theme } = useTheme();
-  const tint = color ?? '#22D3EE';
+  const tint = color ?? '#4FAE8F';
   const max = useMemo(() => Math.max(1, ...data.map((d) => d.value)), [data]);
 
   return (

@@ -6,7 +6,6 @@ import { OnboardingStackParamList } from '@/navigation/types';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
-import { useGoalFlow } from '@/features/onboarding/goals/useGoalFlow';
 import { GenderCard } from '@/features/onboarding/components/GenderCard';
 import { HumanBodyVisualizer } from '@/features/onboarding/components/three/HumanBodyVisualizer';
 import { OnboardingStepLayout } from './OnboardingStepLayout';
@@ -37,7 +36,6 @@ export const GenderStepScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { draft, update } = useOnboardingDraft();
-  const { totalSteps } = useGoalFlow();
 
   // The gender row's own natural height — a plain (non-flex) measurement,
   // so unlike a `flex: 1` figure box this settles reliably on the first
@@ -51,7 +49,7 @@ export const GenderStepScreen: React.FC = () => {
   return (
     <OnboardingStepLayout
       step={2}
-      totalSteps={totalSteps}
+      totalSteps={7}
       title={t('onboarding.gender.title')}
       subtitle={t('onboarding.gender.subtitle')}
       onNext={() => navigation.navigate('Age')}

@@ -10,7 +10,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { motion } from '@/theme/motion';
 import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
-import { useGoalFlow } from '@/features/onboarding/goals/useGoalFlow';
 import { RulerPicker } from '@/features/onboarding/components/RulerPicker';
 import { HumanBodyVisualizer } from '@/features/onboarding/components/three/HumanBodyVisualizer';
 import { onboardingNeutral, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
@@ -23,13 +22,12 @@ export const WeightStepScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const { draft, update } = useOnboardingDraft();
-  const { totalSteps } = useGoalFlow();
   const weightKg = draft.weightKg ?? DEFAULT_WEIGHT;
 
   return (
     <OnboardingStepLayout
       step={5}
-      totalSteps={totalSteps}
+      totalSteps={7}
       title={t('onboarding.weight.title')}
       subtitle={t('onboarding.weight.subtitle')}
       onNext={() => navigation.navigate('ActivityLevelStep')}

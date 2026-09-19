@@ -48,7 +48,7 @@ export const ActivitySummaryScreen: React.FC = () => {
             marginBottom: theme.spacing.sm,
           }}
         >
-          <AppIcon name="checkmark-circle" size={36} color="#34D399" />
+          <AppIcon name="checkmark-circle" size={36} color="#59A184" />
         </View>
         <AppText variant="displayMedium" color="#FFFFFF" align="center">
           {ACTIVITY_TYPE_LABELS[activity.type]} complete
@@ -67,7 +67,7 @@ export const ActivitySummaryScreen: React.FC = () => {
           {activity.gpsUnavailableReason}
         </AppText>
       ) : null}
-      <AppGradientButton label="Done" onPress={() => navigation.popToTop()} colors={['#FF7A63', '#0E9BB5']} style={{ marginTop: theme.spacing.lg }} />
+      <AppGradientButton label="Done" onPress={() => navigation.popToTop()} colors={['#D98657', '#1F6F5C']} style={{ marginTop: theme.spacing.lg }} />
     </ActivityHeroLayout>
   );
 };

@@ -23,7 +23,7 @@ import { selectFavoriteFoods } from '@/features/nutrition/selectors';
 import { selectActiveFast } from '@/features/fasting/selectors';
 import { endFastThunk } from '@/features/fasting/fastingSlice';
 
-const NUTRITION_GRADIENT = ['#F5A94E', '#A2650F'] as const;
+const NUTRITION_GRADIENT = ['#D6A253', '#8C6423'] as const;
 
 export const AddFoodScreen: React.FC = () => {
   const { theme } = useTheme();

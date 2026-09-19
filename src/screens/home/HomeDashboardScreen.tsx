@@ -7,8 +7,10 @@ import { sectionEnvironments } from '@/theme/environments';
 import { useAppDispatch } from '@/store/hooks';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { DailyPulseCard } from '@/features/dashboard/components/DailyPulseCard';
+import { TodaySummary } from '@/features/dashboard/components/TodaySummary';
 import { FastingCard } from '@/features/dashboard/components/FastingCard';
 import { NutritionCard } from '@/features/dashboard/components/NutritionCard';
+import { CalorieBalanceCard } from '@/features/dashboard/components/CalorieBalanceCard';
 import { ActivityCard } from '@/features/dashboard/components/ActivityCard';
 import { WeightCard } from '@/features/dashboard/components/WeightCard';
 import { MeditationCard } from '@/features/dashboard/components/MeditationCard';
@@ -23,15 +25,7 @@ import { loadWeightHistory } from '@/features/weight/weightSlice';
 // The remaining sections stagger in together (index * staggerStepMs, capped)
 // via StaggerGroup — DashboardHeader is excluded since it drives its own
 // scroll-collapse animation instead of a mount-in entrance.
-//
-// DailyPulseCard is the single calorie/streak hero for the whole screen —
-// there used to be two more cards (TodaySummary, CalorieBalanceCard) that
-// each re-headlined the same net-calorie number in a different shape, plus
-// metrics (fasting streak, activity kcal, meditation minutes) that were
-// already shown on FastingCard/ActivityCard/MeditationCard below. Removed
-// rather than recolored: same underlying data, one clear hero instead of
-// three competing ones.
-const SECTIONS = [DailyPulseCard, QuickActions, FastingCard, NutritionCard, ActivityCard, MeditationCard, WeightCard, GoalsCard];
+const SECTIONS = [DailyPulseCard, TodaySummary, QuickActions, FastingCard, CalorieBalanceCard, NutritionCard, ActivityCard, MeditationCard, WeightCard, GoalsCard];
 
 export const HomeDashboardScreen: React.FC = () => {
   const dispatch = useAppDispatch();

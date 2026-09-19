@@ -1,10 +1,8 @@
 import React, { createContext, useContext, useMemo, useState, useCallback, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LanguageCode } from '@/config/languages';
 
 export type UnitSystem = 'metric' | 'imperial';
-/** Any registered language code from `src/config/languages.ts` — the single source of truth for which languages exist. */
-export type AppLanguage = LanguageCode;
+export type AppLanguage = 'en' | 'de';
 
 interface AppPreferences {
   unitSystem: UnitSystem;

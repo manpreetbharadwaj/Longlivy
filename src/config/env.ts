@@ -23,8 +23,8 @@ const appEnv = resolveAppEnv();
 /** Per-environment fallback base URLs, used only when EXPO_PUBLIC_API_BASE_URL isn't set. */
 const DEFAULT_API_BASE_URLS: Record<AppEnv, string> = {
   development: 'http://localhost:3000/api',
-  staging: 'https://staging-api.healthyme.app/api',
-  production: 'https://api.healthyme.app/api',
+  staging: 'https://staging-api.solace.app/api',
+  production: 'https://api.solace.app/api',
 };
 
 const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim() || DEFAULT_API_BASE_URLS[appEnv];

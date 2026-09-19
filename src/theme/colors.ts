@@ -1,19 +1,23 @@
 /**
- * HealthyMe color tokens — "Deep Current."
+ * Solace color tokens — "Warm Ink & Jade."
  *
  * Every UI component must consume these via useTheme() instead of
  * hardcoding hex values.
  *
- * Dark-first: a near-black navy neutral scale (not a warm ink, not a true
- * cool charcoal) paired with a single restrained cyan/aqua brand accent.
- * The accent is used deliberately sparingly — most surfaces stay flat dark
- * navy/charcoal, cyan is reserved for primary actions, selected states and
- * glow moments, so the app never reads as "everything blue." Pillar hues
- * are each a distinct family so no health domain is confused with another
- * or with the brand accent itself: fasting reads as indigo (focused),
- * nutrition as warm amber (nourishment), activity as coral (energetic),
- * meditation as soft violet (calm), weight/progress as teal (analytical,
- * closest to the brand family but still distinguishable from it).
+ * Deliberately a different temperature and structure from a cool
+ * charcoal-and-steel-blue palette, not a re-tint of one:
+ *  - the neutral scale is warm (a soft ink/espresso dark, a warm parchment
+ *    light) instead of true/cool gray, so both themes read as "paper and
+ *    warmth" rather than "glass and steel"
+ *  - the brand primary is a deep jade/emerald — a color no pillar shares —
+ *    instead of a muted blue that doubled as both "the brand" and "the
+ *    activity pillar"
+ *  - pillar hues are deliberately reassigned rather than reused: fasting
+ *    now reads as indigo (a "focused/analytical" mood), activity as
+ *    terracotta (energetic/warm), nutrition as golden ochre
+ *    (food/nourishment), meditation as dusty plum (calm but distinct from
+ *    the brand's own green), weight/progress as teal. No pillar owns the
+ *    brand's primary hue, and no two pillars share a hue family.
  */
 
 export interface ColorTokens {
@@ -52,71 +56,71 @@ export interface ColorTokens {
 }
 
 export const lightColors: ColorTokens = {
-  background: '#F4F8FA',
+  background: '#FAF6EF',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
   card: '#FFFFFF',
-  border: '#DCE7EA',
-  divider: '#E7EFF1',
+  border: '#E7DFCE',
+  divider: '#EFE9DB',
 
-  textPrimary: '#0E1B22',
-  textSecondary: '#51636C',
-  textTertiary: '#8598A1',
+  textPrimary: '#211C14',
+  textSecondary: '#665D4C',
+  textTertiary: '#9A907C',
   textInverse: '#FFFFFF',
 
-  primary: '#0891B2',
-  primaryMuted: '#DFF4F8',
+  primary: '#1F6F5C',
+  primaryMuted: '#DCEAE4',
   onPrimary: '#FFFFFF',
 
-  secondary: '#0D9488',
+  secondary: '#B5772E',
   onSecondary: '#FFFFFF',
 
-  success: '#059669',
-  warning: '#D97706',
-  danger: '#DC2626',
-  info: '#0284C7',
+  success: '#3C7A5D',
+  warning: '#B5772E',
+  danger: '#B04A3C',
+  info: '#3E5A8C',
 
-  fasting: '#4C63C7',
-  nutrition: '#C2790F',
-  activity: '#E1583D',
-  meditation: '#8B5CF6',
-  weight: '#0D9488',
+  fasting: '#3E5A8C',
+  nutrition: '#B5842E',
+  activity: '#C1622E',
+  meditation: '#7C5A94',
+  weight: '#2E7A7A',
 
-  overlay: 'rgba(14, 27, 34, 0.45)',
-  skeleton: '#E7EFF1',
+  overlay: 'rgba(33, 24, 15, 0.45)',
+  skeleton: '#EFE7D5',
 };
 
 export const darkColors: ColorTokens = {
-  background: '#080D12',
-  surface: '#0F161C',
-  surfaceElevated: '#141D24',
-  card: '#121A21',
-  border: 'rgba(148, 197, 209, 0.14)',
-  divider: '#1B252D',
+  background: '#13110D',
+  surface: '#1B1815',
+  surfaceElevated: '#221E19',
+  card: '#1E1A16',
+  border: '#332C22',
+  divider: '#282219',
 
-  textPrimary: '#F2F7F9',
-  textSecondary: '#8DA0AB',
-  textTertiary: '#5C6C76',
-  textInverse: '#071016',
+  textPrimary: '#F6EFE2',
+  textSecondary: '#B3A791',
+  textTertiary: '#7D7362',
+  textInverse: '#13110D',
 
-  primary: '#22D3EE',
-  primaryMuted: '#123138',
-  onPrimary: '#04141A',
+  primary: '#4FAE8F',
+  primaryMuted: '#1C2E28',
+  onPrimary: '#0B1613',
 
-  secondary: '#14B8A6',
-  onSecondary: '#041512',
+  secondary: '#D6A253',
+  onSecondary: '#2A1B08',
 
-  success: '#34D399',
-  warning: '#FBBF24',
-  danger: '#F87171',
-  info: '#38BDF8',
+  success: '#59A184',
+  warning: '#D6A253',
+  danger: '#CB6E5C',
+  info: '#6E8DBE',
 
-  fasting: '#7C93F0',
-  nutrition: '#F5A94E',
-  activity: '#FF7A63',
-  meditation: '#B79AF5',
-  weight: '#2DD4BF',
+  fasting: '#6E8DBE',
+  nutrition: '#D6A253',
+  activity: '#D98657',
+  meditation: '#A186BD',
+  weight: '#4FA3A3',
 
-  overlay: 'rgba(3, 6, 9, 0.7)',
-  skeleton: '#16202A',
+  overlay: 'rgba(10, 8, 5, 0.6)',
+  skeleton: '#241F19',
 };

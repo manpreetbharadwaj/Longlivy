@@ -12,7 +12,6 @@ import { selectHealthConnections } from '@/features/health/selectors';
 import { connectHealthPlatformThunk, disconnectHealthPlatformThunk } from '@/features/health/healthIntegrationSlice';
 import { HealthPlatformId } from '@/features/health/models';
 import { ProfileStackParamList } from '@/navigation/types';
-import { brand } from '@/config/branding';
 
 export const HealthIntegrationsScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -30,7 +29,7 @@ export const HealthIntegrationsScreen: React.FC = () => {
   return (
     <TabHeroLayout title="Health integrations" onBack={() => navigation.goBack()}>
       <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.md }}>
-        Each platform is connected through its own adapter and normalized into {brand.name}'s internal data
+        Each platform is connected through its own adapter and normalized into Solace's internal data
         model — no single provider is hard-wired into the app.
       </AppText>
       {connections.map((c) => (
@@ -64,11 +63,11 @@ const ToggleButton: React.FC<{ connected: boolean; onPress: () => void }> = ({ c
       style={{
         paddingHorizontal: theme.spacing.md,
         paddingVertical: theme.spacing.xs,
-        backgroundColor: connected ? 'rgba(255,255,255,0.08)' : 'rgba(34,211,238,0.22)',
-        borderColor: connected ? 'rgba(255,255,255,0.14)' : 'rgba(34,211,238,0.5)',
+        backgroundColor: connected ? 'rgba(255,255,255,0.08)' : 'rgba(79,174,143,0.22)',
+        borderColor: connected ? 'rgba(255,255,255,0.14)' : 'rgba(79,174,143,0.5)',
       }}
     >
-      <AppText variant="label" color={connected ? '#FFFFFF' : '#22D3EE'}>
+      <AppText variant="label" color={connected ? '#FFFFFF' : '#4FAE8F'}>
         {connected ? 'Disconnect' : 'Connect'}
       </AppText>
     </HeroCard>

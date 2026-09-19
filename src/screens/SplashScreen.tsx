@@ -1,27 +1,24 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { AppText } from '@/components/common/AppText';
-import { AppLogo } from '@/components/common/AppLogo';
-import { onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
+import { onboardingGradient, onboardingCtaGradient, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
 import { brand } from '@/config/branding';
 
 /**
- * Fully static — no network/API dependency. Fades in the logo/wordmark
- * then hands off to whichever route RootNavigator decides on (onboarding,
- * auth, or main app) once auth/session bootstrap resolves.
+ * Fully static — no network/API dependency. Fades in the wordmark then
+ * hands off to whichever route RootNavigator decides on (onboarding, auth,
+ * or main app) once auth/session bootstrap resolves.
  *
- * Background is solid black (not the app's usual near-black navy gradient)
- * to match `AppLogo`'s cropped mark as closely as possible — see
- * `AppLogo.tsx` for why the source art needs cropping in the first place.
- * The very next screen (LanguageSelectScreen, via OnboardingBackground)
- * sits on `onboardingGradient[0]` (#05080B) instead — close enough to pure
- * black that the handoff doesn't read as a flash, without pulling the rest
- * of onboarding's atmosphere down to pure black just for this one screen.
+ * Uses the same dark blue-black atmosphere + cyan accent as onboarding/the
+ * main app (rather than a flat theme.colors.primary fill) so the very
+ * first frame the user sees already reads as "this app", not a plain
+ * brand-color splash screen.
  */
-const SPLASH_BACKGROUND = '#000000';
-
 export const SplashScreen: React.FC = () => {
+  const { theme } = useTheme();
   const { t } = useTranslation();
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -30,9 +27,26 @@ export const SplashScreen: React.FC = () => {
   }, [opacity]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: SPLASH_BACKGROUND, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ flex: 1, backgroundColor: onboardingGradient[0], alignItems: 'center', justifyContent: 'center' }}>
+      <LinearGradient colors={onboardingGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
       <Animated.View style={{ opacity, alignItems: 'center' }}>
-        <AppLogo size={120} style={{ marginBottom: 20 }} />
+        <View
+          style={{
+            width: 84,
+            height: 84,
+            borderRadius: 24,
+            overflow: 'hidden',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: theme.spacing.md,
+          }}
+        >
+          <LinearGradient colors={onboardingCtaGradient} style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+            <AppText variant="displayMedium" color="#FFFFFF" weight="800">
+              {brand.name[0]}
+            </AppText>
+          </LinearGradient>
+        </View>
         <AppText variant="displayMedium" color={onboardingGlass.textPrimary}>
           {brand.name}
         </AppText>
