@@ -11,8 +11,8 @@ import * as SecureStore from 'expo-secure-store';
  * one-file answer.
  */
 
-const ACCESS_TOKEN_KEY = 'app.auth.accessToken';
-const REFRESH_TOKEN_KEY = 'app.auth.refreshToken';
+const ACCESS_TOKEN_KEY = 'longlivy.auth.accessToken';
+const REFRESH_TOKEN_KEY = 'longlivy.auth.refreshToken';
 
 export interface TokenPair {
   accessToken: string;

@@ -13,7 +13,7 @@ interface NutritionDb {
   favorites: Record<string, string[]>; // userId -> foodIds
 }
 
-const store = new LocalStore<NutritionDb>('@app/nutrition_db', {
+const store = new LocalStore<NutritionDb>('@longlivy/nutrition_db', {
   foods: FOOD_DATABASE_SEED,
   meals: MEALS_SEED,
   recipes: [],

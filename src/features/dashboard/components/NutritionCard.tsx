@@ -35,9 +35,9 @@ export const NutritionCard: React.FC = React.memo(() => {
           View details
         </AppText>
       </View>
-      <MacroRow index={0} label="Protein" icon="egg-outline" progress={progress.protein} color="#D6A253" />
-      <MacroRow index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} color="#D98657" />
-      <MacroRow index={2} label="Fat" icon="water-outline" progress={progress.fat} color="#6E8DBE" isLast />
+      <MacroRow index={0} label="Protein" icon="egg-outline" progress={progress.protein} color="#C9974E" />
+      <MacroRow index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} color="#6E8FAE" />
+      <MacroRow index={2} label="Fat" icon="water-outline" progress={progress.fat} color="#8B7FA8" isLast />
     </HeroCard>
   );
 });

@@ -14,7 +14,7 @@ interface HeroChipProps {
 }
 
 /** Pill selector for the dark hero screens — the AppChip equivalent for compact multi-option rows (e.g. gender, meditation categories). The selected state cross-fades smoothly instead of snapping. */
-export const HeroChip: React.FC<HeroChipProps> = React.memo(({ label, selected, onPress, activeColor = '#1F6F5C' }) => {
+export const HeroChip: React.FC<HeroChipProps> = React.memo(({ label, selected, onPress, activeColor = '#3D5266' }) => {
   const { theme } = useTheme();
   const selectedProgress = useSharedValue(selected ? 1 : 0);
   const pressScale = useSharedValue(1);

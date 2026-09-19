@@ -5,7 +5,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { AppText } from '@/components/common/AppText';
 import { onboardingGradient, onboardingCtaGradient, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
-import { brand } from '@/config/branding';
 
 /**
  * Fully static — no network/API dependency. Fades in the wordmark then
@@ -43,12 +42,12 @@ export const SplashScreen: React.FC = () => {
         >
           <LinearGradient colors={onboardingCtaGradient} style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
             <AppText variant="displayMedium" color="#FFFFFF" weight="800">
-              {brand.name[0]}
+              L
             </AppText>
           </LinearGradient>
         </View>
         <AppText variant="displayMedium" color={onboardingGlass.textPrimary}>
-          {brand.name}
+          Longlivy
         </AppText>
         <AppText variant="bodyMedium" color={onboardingGlass.textSecondary} style={{ marginTop: 4 }}>
           {t('splash.tagline')}

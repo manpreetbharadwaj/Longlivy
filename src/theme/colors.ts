@@ -1,23 +1,30 @@
 /**
- * Solace color tokens — "Warm Ink & Jade."
+ * Longlivy color tokens.
+ * Every UI component must consume these via useTheme() instead of hardcoding hex values.
  *
- * Every UI component must consume these via useTheme() instead of
- * hardcoding hex values.
+ * v5 palette — premium neutral redesign. The v4 palette leaned on one bright
+ * cobalt-teal (#1BA7D1) as the primary accent AND reused it (or its lighter
+ * glow sibling #5FE0FF) across fasting, statistics, and the home atmosphere
+ * — blue ended up carrying nearly every highlight in the app, which reads
+ * as "neon/gaming" rather than "quiet luxury" over long daily use.
  *
- * Deliberately a different temperature and structure from a cool
- * charcoal-and-steel-blue palette, not a re-tint of one:
- *  - the neutral scale is warm (a soft ink/espresso dark, a warm parchment
- *    light) instead of true/cool gray, so both themes read as "paper and
- *    warmth" rather than "glass and steel"
- *  - the brand primary is a deep jade/emerald — a color no pillar shares —
- *    instead of a muted blue that doubled as both "the brand" and "the
- *    activity pillar"
- *  - pillar hues are deliberately reassigned rather than reused: fasting
- *    now reads as indigo (a "focused/analytical" mood), activity as
- *    terracotta (energetic/warm), nutrition as golden ochre
- *    (food/nourishment), meditation as dusty plum (calm but distinct from
- *    the brand's own green), weight/progress as teal. No pillar owns the
- *    brand's primary hue, and no two pillars share a hue family.
+ * v5 keeps the same charcoal-graphite elevation structure but:
+ *  - desaturates and darkens the primary accent into a muted steel blue —
+ *    present, but no longer glowing
+ *  - gives each pillar its own restrained, desaturated hue instead of
+ *    sharing the primary blue, so sections stay distinguishable without
+ *    the whole app reading as "blue"
+ *  - pulls semantic state colors (success/warning/danger) toward the same
+ *    muted family so nothing in the UI reads as a bright neon accent
+ *
+ * v6 section-identity pass: reassigned which pillar owns which hue so each
+ * section's *character* matches its color, not just "a different color per
+ * section" — activity stays the steel blue (energetic/performance reads as
+ * blue), nutrition moved to warm amber (fresh/informative), meditation
+ * moved to sage green (calm/natural), and fasting moved to muted violet
+ * (a restrained "scientific/biological" accent, distinct from the other
+ * three). Same hexes as before, just rotated between pillars — no new
+ * colors invented.
  */
 
 export interface ColorTokens {
@@ -56,71 +63,71 @@ export interface ColorTokens {
 }
 
 export const lightColors: ColorTokens = {
-  background: '#FAF6EF',
+  background: '#F6F5F3',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
   card: '#FFFFFF',
-  border: '#E7DFCE',
-  divider: '#EFE9DB',
+  border: '#E3E1DC',
+  divider: '#ECEAE5',
 
-  textPrimary: '#211C14',
-  textSecondary: '#665D4C',
-  textTertiary: '#9A907C',
+  textPrimary: '#1B1B1D',
+  textSecondary: '#5E5D5A',
+  textTertiary: '#8C8A86',
   textInverse: '#FFFFFF',
 
-  primary: '#1F6F5C',
-  primaryMuted: '#DCEAE4',
+  primary: '#3D5266',
+  primaryMuted: '#E4E9ED',
   onPrimary: '#FFFFFF',
 
-  secondary: '#B5772E',
+  secondary: '#A97A3E',
   onSecondary: '#FFFFFF',
 
-  success: '#3C7A5D',
-  warning: '#B5772E',
-  danger: '#B04A3C',
-  info: '#3E5A8C',
+  success: '#4C7A63',
+  warning: '#B5793E',
+  danger: '#AD5A50',
+  info: '#3D5A73',
 
-  fasting: '#3E5A8C',
-  nutrition: '#B5842E',
-  activity: '#C1622E',
-  meditation: '#7C5A94',
-  weight: '#2E7A7A',
+  fasting: '#6F638A',
+  nutrition: '#A97A3E',
+  activity: '#3D5A73',
+  meditation: '#5C7A58',
+  weight: '#4C7A63',
 
-  overlay: 'rgba(33, 24, 15, 0.45)',
-  skeleton: '#EFE7D5',
+  overlay: 'rgba(20, 18, 16, 0.45)',
+  skeleton: '#EDEBE7',
 };
 
 export const darkColors: ColorTokens = {
-  background: '#13110D',
-  surface: '#1B1815',
-  surfaceElevated: '#221E19',
-  card: '#1E1A16',
-  border: '#332C22',
-  divider: '#282219',
+  background: '#0B0B0D',
+  surface: '#141416',
+  surfaceElevated: '#1C1C1F',
+  card: '#18181B',
+  border: '#2A2A2D',
+  divider: '#212124',
 
-  textPrimary: '#F6EFE2',
-  textSecondary: '#B3A791',
-  textTertiary: '#7D7362',
-  textInverse: '#13110D',
+  textPrimary: '#F2F1EE',
+  textSecondary: '#9B9A97',
+  textTertiary: '#6B6A67',
+  textInverse: '#0B0B0D',
 
-  primary: '#4FAE8F',
-  primaryMuted: '#1C2E28',
-  onPrimary: '#0B1613',
+  primary: '#5C7A94',
+  primaryMuted: '#1C242C',
+  onPrimary: '#F2F1EE',
 
-  secondary: '#D6A253',
-  onSecondary: '#2A1B08',
+  secondary: '#C9974E',
+  onSecondary: '#241505',
 
-  success: '#59A184',
-  warning: '#D6A253',
-  danger: '#CB6E5C',
-  info: '#6E8DBE',
+  success: '#5FA37D',
+  warning: '#D9954B',
+  danger: '#C97268',
+  info: '#6E8FAE',
 
-  fasting: '#6E8DBE',
-  nutrition: '#D6A253',
-  activity: '#D98657',
-  meditation: '#A186BD',
-  weight: '#4FA3A3',
+  fasting: '#8B7FA8',
+  nutrition: '#C9974E',
+  activity: '#6E8FAE',
+  meditation: '#7A9B76',
+  weight: '#6FA085',
 
-  overlay: 'rgba(10, 8, 5, 0.6)',
-  skeleton: '#241F19',
+  overlay: 'rgba(8, 8, 9, 0.6)',
+  skeleton: '#1E1E21',
 };

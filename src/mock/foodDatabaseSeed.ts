@@ -21,8 +21,8 @@ export const FOOD_DATABASE_SEED: Food[] = [
   food({ id: 'food_greek_yogurt', name: 'Greek Yogurt', category: 'Dairy', servingSize: 100, unit: 'g', calories: 59, protein: 10, carbohydrates: 3.6, fat: 0.4 }),
   food({ id: 'food_broccoli', name: 'Broccoli, steamed', category: 'Vegetables', servingSize: 100, unit: 'g', calories: 35, protein: 2.4, carbohydrates: 7, fat: 0.4, fiber: 3.3 }),
   food({ id: 'food_olive_oil', name: 'Olive Oil', category: 'Oils & Fats', servingSize: 15, unit: 'ml', calories: 119, protein: 0, carbohydrates: 0, fat: 13.5 }),
-  food({ id: 'food_protein_shake', name: 'Whey Protein Shake', brand: 'Solace Nutrition', category: 'Supplements', barcode: '4006381333931', servingSize: 30, unit: 'g', calories: 120, protein: 24, carbohydrates: 3, fat: 1.5 }),
-  food({ id: 'food_oat_milk', name: 'Oat Milk', brand: 'Solace Nutrition', category: 'Dairy Alternatives', barcode: '7350031320013', servingSize: 100, unit: 'ml', calories: 47, protein: 1, carbohydrates: 6.7, fat: 1.5 }),
+  food({ id: 'food_protein_shake', name: 'Whey Protein Shake', brand: 'Longlivy Nutrition', category: 'Supplements', barcode: '4006381333931', servingSize: 30, unit: 'g', calories: 120, protein: 24, carbohydrates: 3, fat: 1.5 }),
+  food({ id: 'food_oat_milk', name: 'Oat Milk', brand: 'Longlivy Nutrition', category: 'Dairy Alternatives', barcode: '7350031320013', servingSize: 100, unit: 'ml', calories: 47, protein: 1, carbohydrates: 6.7, fat: 1.5 }),
 ];
 
 /** A couple of the barcodes above, surfaced for the manual-lookup fallback when no camera is available. */

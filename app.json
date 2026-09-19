@@ -1,33 +1,36 @@
 {
   "expo": {
-    "name": "Solace",
-    "slug": "solace",
+    "name": "Longlivy",
+    "slug": "longlivy",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.solace.app",
+      "bundleIdentifier": "com.longlivy.app",
       "icon": "./assets/icon.png",
       "infoPlist": {
-        "NSCameraUsageDescription": "Solace uses the camera to scan food barcodes and photograph meals for AI-assisted logging.",
-        "NSPhotoLibraryUsageDescription": "Solace can use photos from your library to log a meal with AI-assisted recognition.",
-        "NSMicrophoneUsageDescription": "Solace uses the microphone so you can dictate a meal description using your keyboard's voice input.",
-        "NSLocationWhenInUseUsageDescription": "Solace uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
+        "NSCameraUsageDescription": "Longlivy uses the camera to scan food barcodes and photograph meals for AI-assisted logging.",
+        "NSPhotoLibraryUsageDescription": "Longlivy can use photos from your library to log a meal with AI-assisted recognition.",
+        "NSMicrophoneUsageDescription": "Longlivy uses the microphone so you can dictate a meal description using your keyboard's voice input.",
+        "NSLocationWhenInUseUsageDescription": "Longlivy uses your location to record the route, distance and pace of GPS-based activities like running or cycling.",
+        "NSBluetoothAlwaysUsageDescription": "Longlivy uses Bluetooth to connect to your Noise smartwatch and read live activity data."
       }
     },
     "android": {
-      "package": "com.solace.app",
+      "package": "com.longlivy.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon-foreground.png",
-        "backgroundColor": "#13110D"
+        "backgroundColor": "#070A0F"
       },
       "permissions": [
         "CAMERA",
         "RECORD_AUDIO",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
         "android.permission.health.READ_STEPS",
         "android.permission.health.READ_DISTANCE",
         "android.permission.health.READ_TOTAL_CALORIES_BURNED",
@@ -53,26 +56,26 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Solace uses the camera to scan food barcodes and photograph meals for AI-assisted logging."
+          "cameraPermission": "Longlivy uses the camera to scan food barcodes and photograph meals for AI-assisted logging."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Solace can use photos from your library to log a meal with AI-assisted recognition."
+          "photosPermission": "Longlivy can use photos from your library to log a meal with AI-assisted recognition."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Solace uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
+          "locationWhenInUsePermission": "Longlivy uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
         }
       ],
       "expo-secure-store",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#13110D",
+          "backgroundColor": "#070A0F",
           "image": "./assets/splash-icon.png",
           "resizeMode": "contain"
         }
@@ -80,6 +83,14 @@
       "expo-asset",
       "expo-audio",
       "expo-notifications",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "modes": [],
+          "bluetoothAlwaysPermission": "Longlivy uses Bluetooth to connect to your Noise smartwatch and read live activity data."
+        }
+      ],
       "react-native-health-connect",
       [
         "expo-build-properties",
@@ -94,8 +105,8 @@
       [
         "@kingstinct/react-native-healthkit",
         {
-          "NSHealthShareUsageDescription": "Solace reads your Activity, Vitals, Sleep and Body data from Apple Health to show your real health data.",
-          "NSHealthUpdateUsageDescription": "Solace does not write any data to Apple Health."
+          "NSHealthShareUsageDescription": "Longlivy reads your Activity, Vitals, Sleep and Body data from Apple Health to show your real health data alongside your Noise smartwatch.",
+          "NSHealthUpdateUsageDescription": "Longlivy does not write any data to Apple Health."
         }
       ]
     ]

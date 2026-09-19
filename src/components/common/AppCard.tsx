@@ -8,16 +8,14 @@ interface AppCardProps {
   style?: ViewStyle | ViewStyle[];
   padded?: boolean;
   elevated?: boolean;
-  /** 'default': the card surface (white/near-white). 'muted': the app's sunken/secondary surface — for a card nested inside another card, or a lower-emphasis row in a list of cards. */
-  tone?: 'default' | 'muted';
   accessibilityLabel?: string;
 }
 
 export const AppCard: React.FC<AppCardProps> = React.memo(
-  ({ children, onPress, style, padded = true, elevated = true, tone = 'default', accessibilityLabel }) => {
+  ({ children, onPress, style, padded = true, elevated = true, accessibilityLabel }) => {
     const { theme } = useTheme();
     const cardStyle: ViewStyle = {
-      backgroundColor: tone === 'muted' ? theme.colors.surfaceElevated : theme.colors.card,
+      backgroundColor: theme.colors.card,
       borderRadius: theme.radius.lg,
       padding: padded ? theme.spacing.md : 0,
       borderWidth: 1,

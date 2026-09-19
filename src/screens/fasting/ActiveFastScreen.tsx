@@ -123,7 +123,7 @@ export const ActiveFastScreen: React.FC = () => {
             </AppText>
           </View>
           <View style={{ alignItems: 'center' }}>
-            <AppText variant="headingMedium" color={progress.isOverdue ? '#59A184' : '#FFFFFF'}>
+            <AppText variant="headingMedium" color={progress.isOverdue ? '#6FA085' : '#FFFFFF'}>
               {progress.isOverdue ? 'Reached' : formatDurationHM(progress.remainingMs)}
             </AppText>
             <AppText variant="caption" color="rgba(255,255,255,0.5)">

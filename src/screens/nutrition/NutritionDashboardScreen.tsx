@@ -57,7 +57,7 @@ export const NutritionDashboardScreen: React.FC = () => {
   return (
     <SectionHeroLayout environment={sectionEnvironments.nutrition} title={t('nutrition.title')}>
       <HeroCard style={[dashboardCardStyle, { alignItems: 'center', marginBottom: theme.spacing.md, overflow: 'hidden' }]}>
-        <AppProgressRing progress={ringProgress} size={160} strokeWidth={12} color={progress.calories.exceeded ? dashboardColors.warning : '#D6A253'} trackColor={dashboardColors.border} glow>
+        <AppProgressRing progress={ringProgress} size={160} strokeWidth={12} color={progress.calories.exceeded ? dashboardColors.warning : '#C9974E'} trackColor={dashboardColors.border} glow>
           <AnimatedNumberText value={Math.round(totals.calories)} variant="metricMedium" color={dashboardColors.textPrimary} />
           <AppText variant="caption" color={dashboardColors.textMuted}>
             {t('nutrition.ofKcal', { target: progress.calories.target })}
@@ -72,9 +72,9 @@ export const NutritionDashboardScreen: React.FC = () => {
       </HeroCard>
 
       <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
-        <MacroTile index={0} label={t('nutrition.macros.protein')} icon="egg-outline" progress={progress.protein} color="#D6A253" />
-        <MacroTile index={1} label={t('nutrition.macros.carbs')} icon="pizza-outline" progress={progress.carbohydrates} color="#D98657" />
-        <MacroTile index={2} label={t('nutrition.macros.fat')} icon="water-outline" progress={progress.fat} color="#6E8DBE" isLast />
+        <MacroTile index={0} label={t('nutrition.macros.protein')} icon="egg-outline" progress={progress.protein} color="#C9974E" />
+        <MacroTile index={1} label={t('nutrition.macros.carbs')} icon="pizza-outline" progress={progress.carbohydrates} color="#6E8FAE" />
+        <MacroTile index={2} label={t('nutrition.macros.fat')} icon="water-outline" progress={progress.fat} color="#8B7FA8" isLast />
       </View>
 
       {MEAL_TYPES.map((mt, index) => {
@@ -97,7 +97,7 @@ export const NutritionDashboardScreen: React.FC = () => {
                       marginRight: theme.spacing.sm,
                     }}
                   >
-                    <AppIcon name={mt.icon} size={20} color="#D6A253" />
+                    <AppIcon name={mt.icon} size={20} color="#C9974E" />
                   </View>
                   <View>
                     <AppText variant="headingSmall" color={dashboardColors.textPrimary}>

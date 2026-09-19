@@ -16,7 +16,7 @@ class FeatureErrorBoundary extends React.Component<{ children: React.ReactNode; 
 
   componentDidCatch(error: Error) {
     // A real app would forward this to an analytics/crash-reporting service.
-    console.warn(`[Solace] ${this.props.label ?? 'Feature'} crashed:`, error);
+    console.warn(`[Longlivy] ${this.props.label ?? 'Feature'} crashed:`, error);
   }
 
   reset = () => this.setState({ error: null });

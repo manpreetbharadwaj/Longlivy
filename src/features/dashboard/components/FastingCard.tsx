@@ -18,7 +18,7 @@ import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 /** Fasting's own warm bronze accent (matches `theme.colors.fasting`) — this card is the one place on the otherwise-neutral Home dashboard that should read as "fasting," not the dashboard's generic steel accent. */
-const FASTING_ACCENT = '#6E8DBE';
+const FASTING_ACCENT = '#8B7FA8';
 
 export const FastingCard: React.FC = React.memo(() => {
   const { theme } = useTheme();

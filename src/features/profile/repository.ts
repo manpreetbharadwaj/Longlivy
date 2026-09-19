@@ -10,7 +10,7 @@ import { DemoUserProfile, DEMO_USER } from '@/mock/demoUser';
  * repository (see `MockAuthRepository`, `MockWeightRepository`, …) — this
  * gives `profile` the same treatment.
  */
-const store = new LocalStore<DemoUserProfile>('@app/profile', DEMO_USER);
+const store = new LocalStore<DemoUserProfile>('@longlivy/profile', DEMO_USER);
 
 export const profileRepository = {
   get: (): Promise<DemoUserProfile> => store.read(),

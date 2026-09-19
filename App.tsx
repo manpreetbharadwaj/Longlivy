@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -15,8 +14,6 @@ import { OnboardingProvider } from '@/features/onboarding/OnboardingContext';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { navigationRef, navigateToMeditationHome } from '@/navigation/navigationRef';
 import { withErrorBoundary } from '@/components/hoc/withErrorBoundary';
-import { useAppFonts } from '@/hooks/useAppFonts';
-import { darkColors } from '@/theme/colors';
 
 /**
  * Minimum useful behavior for a tapped Meditation reminder (Phase 6 Section
@@ -77,18 +74,6 @@ const NavigationRoot: React.FC = () => {
 };
 
 export default function App() {
-  const fontsLoaded = useAppFonts();
-
-  // Nothing below this renders any text (AppText's typography variants all
-  // name a custom fontFamily) until the font files are ready — otherwise
-  // the very first frame would flash system-font text before the real
-  // typeface pops in. Matches the dark hero atmosphere's base color so this
-  // gap (typically a couple hundred ms) doesn't itself flash a mismatched
-  // background against the native splash image before it.
-  if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: darkColors.background }} />;
-  }
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

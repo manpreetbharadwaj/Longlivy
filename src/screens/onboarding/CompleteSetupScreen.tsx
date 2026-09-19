@@ -94,8 +94,8 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 // output of onboarding, not a question asked during it. Fully adjustable
 // later in Nutrition Goals.
 const MACRO_SPLIT = { carb: 0.4, protein: 0.3, fat: 0.3 };
-const CARB_COLOR = '#D98657';
-const PROTEIN_COLOR = '#D6A253';
+const CARB_COLOR = '#6E8FAE';
+const PROTEIN_COLOR = '#C9974E';
 const FAT_COLOR = onboardingAccent;
 
 /** Nutrition-baseline ring, drawn in once the summary reveals. */

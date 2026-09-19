@@ -184,7 +184,7 @@ export const en = {
     title: 'History',
     allGoals: 'All goals',
     emptyTitle: 'No history yet',
-    emptyMessage: 'Activity across all {{appName}} modules will show up here.',
+    emptyMessage: 'Activity across all Longlivy modules will show up here.',
     filters: {
       fasting: 'Fasting',
       nutrition: 'Nutrition',
@@ -230,7 +230,7 @@ export const en = {
     personalize: {
       title: 'Your Profile',
       next: "Let's go",
-      subtitle: 'A few quick things and {{appName}} will {{tagline}}.',
+      subtitle: 'A few quick things and Longlivy will {{tagline}}.',
       whatWeUse: "What we'll use",
       taglineFallback: 'help you build a plan that actually fits',
       taglines: {
@@ -302,14 +302,14 @@ export const en = {
       carbs: 'Carbs',
       protein: 'Protein',
       fat: 'Fat',
-      enter: 'Enter {{appName}}',
+      enter: 'Enter Longlivy',
     },
   },
   auth: {
     mockNotice: 'Authentication is mocked locally for this prototype.',
     login: {
       title: 'Welcome back',
-      subtitle: 'Log in to continue your {{appName}} routine.',
+      subtitle: 'Log in to continue your Longlivy routine.',
       email: 'Email',
       emailPlaceholder: 'Enter your email',
       password: 'Password',
@@ -318,7 +318,7 @@ export const en = {
       passwordRequired: 'Please enter your password.',
       forgotPassword: 'Forgot password?',
       submit: 'Log in',
-      newToLonglivy: 'New to {{appName}}?',
+      newToLonglivy: 'New to Longlivy?',
       createAccount: 'Create an account',
     },
     register: {
@@ -340,7 +340,7 @@ export const en = {
     },
     address: {
       title: 'Where should we ship to?',
-      subtitle: 'Used for the {{appName}} webshop — orders and deliveries.',
+      subtitle: 'Used for the Longlivy webshop — orders and deliveries.',
       label: 'Street address, city, postal code',
       submit: 'Continue',
     },
@@ -630,7 +630,7 @@ export const en = {
       weekdays: 'Weekdays',
       selectAtLeastOneDay: 'Choose at least one day.',
       savingWhileOff: "This reminder is off — saving keeps it off. Use the switch to turn it on.",
-      permissionDenied: "Notifications are turned off for {{appName}}, so this reminder can't be scheduled. Enable notifications in your device settings to turn it on.",
+      permissionDenied: "Notifications are turned off for Longlivy, so this reminder can't be scheduled. Enable notifications in your device settings to turn it on.",
       notificationTitle: 'Time for meditation',
       notificationBody: 'Take a few minutes for yourself.',
     },
@@ -702,7 +702,7 @@ export const en = {
       },
       feature: {
         title: 'Suggest a feature',
-        description: "Something you wish {{appName}} could do.",
+        description: "Something you wish Longlivy could do.",
       },
       general: {
         title: 'General feedback',

@@ -9,7 +9,7 @@ export interface AvatarArtProps {
 export type AvatarArt = React.FC<AvatarArtProps>;
 
 /**
- * Every preset avatar here is original vector art authored for this product and
+ * Every preset avatar here is original vector art authored for Longlivy and
  * drawn from `react-native-svg` primitives at runtime — no bitmap files, no
  * external downloads, no third-party icon packs — so nothing in this set
  * carries a licensing constraint (see ./README.md).
@@ -24,7 +24,7 @@ export type AvatarArt = React.FC<AvatarArtProps>;
 const DISC_BASE = '#17181B';
 const DISC_LIGHT = '#2A2F37';
 const INK = '#F2F1EE';
-const ACCENT = '#6FCBAA';
+const ACCENT = '#7A97B0';
 const ACCENT_SOFT = 'rgba(122,151,176,0.22)';
 const PETAL_SOFT = 'rgba(242,241,238,0.14)';
 const STROKE = 6;

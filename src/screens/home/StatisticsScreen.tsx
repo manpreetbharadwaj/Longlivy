@@ -57,7 +57,7 @@ export const StatisticsScreen: React.FC = () => {
           <AppText variant="caption" color={dashboardColors.textMuted} style={{ marginTop: theme.spacing.sm }}>
             Completed hours, last 7 days
           </AppText>
-          <AppMiniBarChart data={fasting.dailySeries} color="#6E8DBE" />
+          <AppMiniBarChart data={fasting.dailySeries} color="#8B7FA8" />
         </HeroCard>
       ) : (
         <NoData />
@@ -74,7 +74,7 @@ export const StatisticsScreen: React.FC = () => {
           <AppText variant="caption" color={dashboardColors.textMuted} style={{ marginTop: theme.spacing.sm }}>
             Calories burned, last 7 days
           </AppText>
-          <AppMiniBarChart data={activity.dailySeries} color="#D98657" />
+          <AppMiniBarChart data={activity.dailySeries} color="#6E8FAE" />
         </HeroCard>
       ) : (
         <NoData />
@@ -90,7 +90,7 @@ export const StatisticsScreen: React.FC = () => {
           <AppText variant="caption" color={dashboardColors.textMuted} style={{ marginTop: theme.spacing.sm }}>
             Active minutes, last 7 days
           </AppText>
-          <AppMiniBarChart data={meditation.dailySeries} color="#A186BD" />
+          <AppMiniBarChart data={meditation.dailySeries} color="#7A9B76" />
         </HeroCard>
       ) : (
         <NoData />

@@ -49,7 +49,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ visible, title, me
               maxWidth: 340,
               borderRadius: theme.radius.xl,
               padding: theme.spacing.lg,
-              backgroundColor: 'rgba(24,20,16,0.96)',
+              backgroundColor: 'rgba(20,24,32,0.96)',
               borderWidth: 1.5,
               borderColor: accent + '3D',
             },

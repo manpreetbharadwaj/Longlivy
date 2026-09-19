@@ -3,10 +3,6 @@ import { useAppPreferences, AppLanguage } from '@/contexts/AppPreferencesContext
 import { en } from './en';
 import { de } from './de';
 import { TranslationKey, TranslationParams } from './types';
-import { brand } from '@/config/branding';
-
-/** Merged into every `t()` call automatically — copy can use `{{appName}}` without every call site having to pass it. Per-call `params` win on a key collision. */
-const GLOBAL_PARAMS: TranslationParams = { appName: brand.name };
 
 const dictionaries: Record<AppLanguage, typeof en> = { en, de };
 
@@ -21,8 +17,8 @@ function resolve(dict: Record<string, unknown>, key: string): string | undefined
 }
 
 function interpolate(template: string, params?: TranslationParams): string {
-  const merged = params ? { ...GLOBAL_PARAMS, ...params } : GLOBAL_PARAMS;
-  return template.replace(/\{\{(\w+)\}\}/g, (match, name: string) => (name in merged ? String(merged[name]) : match));
+  if (!params) return template;
+  return template.replace(/\{\{(\w+)\}\}/g, (match, name: string) => (name in params ? String(params[name]) : match));
 }
 
 interface I18nContextValue {

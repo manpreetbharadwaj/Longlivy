@@ -26,7 +26,7 @@ function toAuthSession(apiSession: AuthApiSession): AuthSession {
 // data — it survives independently of which backend (mock or real) is
 // active. If the backend later wants to own this (e.g. as a field on the
 // user record from GET /users/me), read/write it there instead.
-const onboardingStore = new LocalStore<{ complete: boolean }>('@app/onboarding_complete', { complete: false });
+const onboardingStore = new LocalStore<{ complete: boolean }>('@longlivy/onboarding_complete', { complete: false });
 
 export class ApiAuthRepository implements AuthRepository {
   async login(email: string, password: string): Promise<AuthSession> {

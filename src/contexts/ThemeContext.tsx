@@ -11,7 +11,7 @@ interface ThemeContextValue {
   setPreference: (pref: ThemePreference) => void;
 }
 
-const STORAGE_KEY = '@app/theme_preference';
+const STORAGE_KEY = '@longlivy/theme_preference';
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 

@@ -13,7 +13,7 @@ import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { aiNutritionRecognitionService } from '@/features/nutrition/services/AiNutritionRecognitionService';
 
-const NUTRITION_GRADIENT = ['#D6A253', '#8C6423'] as const;
+const NUTRITION_GRADIENT = ['#C9974E', '#8F6A2E'] as const;
 
 export const AiPhotoEntryScreen: React.FC = () => {
   const { theme } = useTheme();
