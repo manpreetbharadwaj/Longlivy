@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Food, Meal, MealType, NutritionGoals } from './models';
 import { nutritionRepository } from './repository/MockNutritionRepository';
 import { DEMO_USER_ID } from '@/mock/demoUser';
+import { hydrateCalorieThunk, setCalorieGoal } from '@/features/calories/calorieSlice';
 
 interface NutritionState {
   todayMeals: Meal[];
@@ -65,6 +66,15 @@ const nutritionSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // The Nutrition screen's calorie target follows the computed one - when a profile or onboarding change
+      // recalculates it, and when the persisted one is read back on launch - unless the user typed their own
+      // target on the Nutrition goals screen (source 'manual'), which is never overwritten.
+      .addCase(setCalorieGoal, (state, action) => {
+        if (action.payload.source === 'auto' && state.goals.calories.source === 'auto') state.goals.calories.target = action.payload.calories;
+      })
+      .addCase(hydrateCalorieThunk.fulfilled, (state, action) => {
+        if (action.payload.calorieGoalSource === 'auto' && state.goals.calories.source === 'auto') state.goals.calories.target = action.payload.calorieGoal;
+      })
       .addCase(loadTodayMeals.pending, (state) => {
         state.status = 'loading';
       })

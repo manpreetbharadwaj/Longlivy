@@ -4,26 +4,21 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityStackParamList } from '@/navigation/types';
 import { TabHeroLayout } from '@/components/common/TabHeroLayout';
-import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
-import { AppIconTile } from '@/components/common/AppIconTile';
-import { AppIconName, MaterialCommunityIconName } from '@/components/common/AppIcon';
+import { SceneCard } from '@/components/common/SceneCard';
 import { useTheme } from '@/hooks/useTheme';
 import { ActivityType, ACTIVITY_TYPE_LABELS, SELECTABLE_ACTIVITY_TYPES } from '@/features/activity/models';
+import { ActivityArt, getActivityArtKind } from '@/features/activity/components/ActivityArt';
+import { dashboardColors } from '@/features/dashboard/dashboardTheme';
 
-// 'hiking' was previously 'trail-sign-outline' (a signpost) — it read as
-// "directions" rather than "hiking". 'terrain' (a mountain silhouette, via
-// the material-community icon family already used elsewhere in the app)
-// reads immediately as hiking/mountain/trail instead.
-const ICONS: Record<ActivityType, AppIconName | MaterialCommunityIconName> = {
-  running: 'footsteps-outline',
-  walking: 'walk-outline',
-  cycling: 'bicycle-outline',
-  hiking: 'terrain',
-  jogging: 'footsteps',
-  other: 'barbell-outline',
+const SUBTITLES: Record<ActivityType, string> = {
+  running: 'Pace and distance',
+  walking: 'Steady steps',
+  cycling: 'Distance and speed',
+  hiking: 'Routes and elevation',
+  jogging: 'Pace and distance',
+  other: 'Log any workout',
 };
-const ICON_FAMILY: Partial<Record<ActivityType, 'material-community'>> = { hiking: 'material-community' };
 
 export const SelectActivityScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -43,15 +38,21 @@ export const SelectActivityScreen: React.FC = () => {
 
   return (
     <TabHeroLayout title="Choose activity" onBack={() => navigation.goBack()}>
+      <AppText variant="bodyMedium" color={dashboardColors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
+        What are you doing today? Tracking starts after a short countdown.
+      </AppText>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -theme.spacing.xxs }}>
         {SELECTABLE_ACTIVITY_TYPES.map((type) => (
           <View key={type} style={{ width: '50%', paddingHorizontal: theme.spacing.xxs, marginBottom: theme.spacing.sm }}>
-            <HeroCard onPress={() => start(type)} style={{ alignItems: 'center' }}>
-              <AppIconTile name={ICONS[type]} family={ICON_FAMILY[type]} color="#6E8FAE" size={52} iconSize={26} style={{ marginBottom: theme.spacing.xs }} />
-              <AppText variant="headingSmall" color="#FFFFFF">
-                {ACTIVITY_TYPE_LABELS[type]}
-              </AppText>
-            </HeroCard>
+            <SceneCard
+              art={<ActivityArt kind={getActivityArtKind(type)} />}
+              title={ACTIVITY_TYPE_LABELS[type]}
+              subtitle={SUBTITLES[type]}
+              height={148}
+              onPress={() => start(type)}
+              accessibilityLabel={`${ACTIVITY_TYPE_LABELS[type]}. ${SUBTITLES[type]}`}
+              style={{ flex: undefined, width: '100%' }}
+            />
           </View>
         ))}
       </View>

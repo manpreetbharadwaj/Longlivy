@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Modal, Pressable, ScrollView, View } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { AppText } from '@/components/common/AppText';
@@ -6,7 +6,8 @@ import { AppIcon } from '@/components/common/AppIcon';
 import { useTranslation } from '@/localization';
 import { motion } from '@/theme/motion';
 import { dashboardColors } from '@/features/dashboard/dashboardTheme';
-import { AMBIENT_SOUND_CATALOG, AmbientSound } from '../ambientSounds';
+import { AmbientSound } from '../ambientSounds';
+import { getPlayableAmbientSounds } from '../meditationAmbientAudio';
 
 interface AmbientSoundPickerModalProps {
   visible: boolean;
@@ -25,9 +26,9 @@ const VOLUME_STEPS = 5;
 
 /**
  * Soundscape picker — modelled on AvatarPickerModal's themed fade/scale
- * Modal so it matches the rest of the app's picker sheets. Sounds without a
- * real asset render disabled with a Coming Soon badge; available ones are
- * selectable normally. Sound titles render through `t()` keyed by
+ * Modal so it matches the rest of the app's picker sheets. Only sounds that
+ * can actually play are listed (getPlayableAmbientSounds) - there are no
+ * disabled "Coming Soon" rows to tap. Sound titles render through `t()` keyed by
  * `sound.type`, not the catalog's own `title` field — the catalog's title is
  * CMS/content-management data, localization stays centralized the same way
  * getMeditationTopicLabel() is (Phase 6). Picking "None" closes the sheet immediately
@@ -37,7 +38,8 @@ const VOLUME_STEPS = 5;
 export const AmbientSoundPickerModal: React.FC<AmbientSoundPickerModalProps> = ({ visible, selectedId, recommendedIds, volume, onVolumeChange, onClose, onSelect }) => {
   const { t } = useTranslation();
   const progress = useSharedValue(0);
-  const selectedSound = selectedId ? AMBIENT_SOUND_CATALOG.find((sound) => sound.id === selectedId) : undefined;
+  const playableSounds = useMemo(() => getPlayableAmbientSounds(), []);
+  const selectedSound = selectedId ? playableSounds.find((sound) => sound.id === selectedId) : undefined;
 
   useEffect(() => {
     progress.value = withTiming(visible ? 1 : 0, { duration: motion.duration.base, easing: motion.easing.decelerate });
@@ -76,30 +78,21 @@ export const AmbientSoundPickerModal: React.FC<AmbientSoundPickerModalProps> = (
             <SoundRow
               label={t('meditation.ambient.none')}
               selected={selectedId === null}
-              disabled={false}
               recommended={false}
               onPress={() => {
                 onSelect(null);
                 onClose();
               }}
             />
-            {AMBIENT_SOUND_CATALOG.map((sound: AmbientSound) => {
-              const isComingSoon = sound.availability === 'coming_soon';
-              return (
-                <SoundRow
-                  key={sound.id}
-                  label={t(`meditation.ambient.sounds.${sound.type}`)}
-                  selected={selectedId === sound.id}
-                  disabled={isComingSoon}
-                  comingSoon={isComingSoon}
-                  recommended={recommendedIds.includes(sound.id)}
-                  onPress={() => {
-                    if (isComingSoon) return;
-                    onSelect(sound.id);
-                  }}
-                />
-              );
-            })}
+            {playableSounds.map((sound: AmbientSound) => (
+              <SoundRow
+                key={sound.id}
+                label={t(`meditation.ambient.sounds.${sound.type}`)}
+                selected={selectedId === sound.id}
+                recommended={recommendedIds.includes(sound.id)}
+                onPress={() => onSelect(sound.id)}
+              />
+            ))}
           </ScrollView>
 
           {selectedSound ? (
@@ -119,42 +112,32 @@ export const AmbientSoundPickerModal: React.FC<AmbientSoundPickerModalProps> = (
 const SoundRow: React.FC<{
   label: string;
   selected: boolean;
-  disabled: boolean;
-  comingSoon?: boolean;
   recommended: boolean;
   onPress: () => void;
-}> = React.memo(({ label, selected, disabled, comingSoon, recommended, onPress }) => {
+}> = React.memo(({ label, selected, recommended, onPress }) => {
   const { t } = useTranslation();
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled}
       accessibilityRole="button"
-      accessibilityLabel={comingSoon ? `${label}, ${t('meditation.ambient.comingSoon')}` : label}
-      accessibilityState={{ selected, disabled }}
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
       style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 12,
         paddingHorizontal: 4,
-        opacity: disabled ? 0.45 : pressed ? 0.75 : 1,
+        opacity: pressed ? 0.75 : 1,
       })}
     >
       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
         <AppText variant="bodyLarge" color={selected ? dashboardColors.accent : dashboardColors.textPrimary}>
           {label}
         </AppText>
-        {recommended && !comingSoon ? (
+        {recommended ? (
           <View style={{ marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, backgroundColor: dashboardColors.accent + '26' }}>
             <AppText variant="caption" color={dashboardColors.accent}>
               {t('meditation.ambient.recommended')}
-            </AppText>
-          </View>
-        ) : null}
-        {comingSoon ? (
-          <View style={{ marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.08)' }}>
-            <AppText variant="caption" color={dashboardColors.textMuted}>
-              {t('meditation.ambient.comingSoon')}
             </AppText>
           </View>
         ) : null}

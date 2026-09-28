@@ -23,11 +23,12 @@ import { store } from '@/store/store';
 import { selectMeditationContent } from '@/features/meditation/selectors';
 import { startMeditationSessionThunk, recordSessionEventThunk, completeMeditationSessionThunk } from '@/features/meditation/meditationSlice';
 import { calculateActiveSecondsFromEvents } from '@/features/meditation/services/MeditationSessionCalculator';
+import { createSessionFinisher, SessionEndStatus } from '@/features/meditation/services/meditationSessionFinisher';
 import { formatDurationHMS } from '@/features/fasting/services/FastingCalculator';
 import { resolveMeditationAudioSource } from '@/features/meditation/meditationAudio';
-import { resolveAmbientAudioSource } from '@/features/meditation/meditationAmbientAudio';
+import { resolveAmbientAudioSource, isPlayableAmbientSoundId } from '@/features/meditation/meditationAmbientAudio';
 import { getMeditationVisualThemeConfig, applyReducedMotion, useReducedMotionPreference } from '@/features/meditation/meditationVisualThemes';
-import { getAmbientSound, getRecommendedAmbientSounds, hasAnyAvailableAmbientSound } from '@/features/meditation/ambientSounds';
+import { getAmbientSound, getRecommendedAmbientSounds, hasAnyAvailableAmbientSound, DEFAULT_SOUNDSCAPE_ONLY_VOLUME } from '@/features/meditation/ambientSounds';
 import { useMeditationAudioSession } from '@/features/meditation/hooks/useMeditationAudioSession';
 import { useMeditationAmbientAudio, DEFAULT_AMBIENT_VOLUME_GUIDED, DEFAULT_AMBIENT_VOLUME_UNGUIDED } from '@/features/meditation/hooks/useMeditationAmbientAudio';
 import { useMeditationSessionLifecycle } from '@/features/meditation/hooks/useMeditationSessionLifecycle';
@@ -60,12 +61,14 @@ export const MeditationPlayerScreen: React.FC = () => {
   // Ambient selection is session/Player-local only (Section 26) — never
   // persisted to the Meditation session/history record, and reset every time
   // this screen mounts fresh.
-  const [selectedAmbientId, setSelectedAmbientId] = useState<string | null>(null);
+  const [selectedAmbientId, setSelectedAmbientId] = useState<string | null>(() =>
+    isPlayableAmbientSoundId(route.params.ambientSoundId) ? route.params.ambientSoundId! : null
+  );
   const [showSoundscapePicker, setShowSoundscapePicker] = useState(false);
   const startedRef = useRef(false);
-  const finishedRef = useRef(false);
+  const sessionIdPromiseRef = useRef<Promise<string | null>>(Promise.resolve(null));
 
-  const title = meditation?.title ?? (route.params.type === 'free' ? t('meditation.player.unguidedFallbackTitle') : t('meditation.player.fallbackTitle'));
+  const title = route.params.title ?? meditation?.title ?? (route.params.type === 'free' ? t('meditation.player.unguidedFallbackTitle') : t('meditation.player.fallbackTitle'));
   // Defense-in-depth: MeditationDetailsScreen already blocks navigating here
   // for a 'coming_soon' item, but this guard means reaching this screen with
   // one some other way (a stale deep link, a future call site) still can't
@@ -84,17 +87,35 @@ export const MeditationPlayerScreen: React.FC = () => {
   // with the voice (Phase 5 Section 13/14).
   const selectedAmbientSound = selectedAmbientId ? getAmbientSound(selectedAmbientId) : undefined;
   const ambientAudioSource = resolveAmbientAudioSource(selectedAmbientSound?.audioReference);
-  const ambientAudio = useMeditationAmbientAudio(ambientAudioSource, route.params.type === 'guided' ? DEFAULT_AMBIENT_VOLUME_GUIDED : DEFAULT_AMBIENT_VOLUME_UNGUIDED);
-  const { play: playAmbient, pause: pauseAmbient, stop: stopAmbient, volume: ambientVolume, setVolume: setAmbientVolume, error: ambientError } = ambientAudio;
+  // With no track of its own the soundscape IS the session, so it starts at a
+  // listening level rather than the quiet "layer under music or voice" default.
+  const isSoundsOnly = !meditation && route.params.ambientSoundId != null && selectedAmbientId != null;
+  const ambientAudio = useMeditationAmbientAudio(
+    ambientAudioSource,
+    isSoundsOnly ? DEFAULT_SOUNDSCAPE_ONLY_VOLUME : route.params.type === 'guided' ? DEFAULT_AMBIENT_VOLUME_GUIDED : DEFAULT_AMBIENT_VOLUME_UNGUIDED
+  );
+  const {
+    play: playAmbient,
+    pause: pauseAmbient,
+    stop: stopAmbient,
+    volume: ambientVolume,
+    setVolume: setAmbientVolume,
+    error: ambientError,
+    isLoaded: ambientIsLoaded,
+    isPlaying: ambientIsPlaying,
+  } = ambientAudio;
 
   // The two layers behave as one experience from the user's point of view
   // (Section 29): whenever the primary session's playing state changes, or a
   // different sound is picked, ambient follows — never started on its own.
+  // `ambientIsLoaded` is a dependency so a sound that was still loading when
+  // the session started (a sounds-only session begins with one selected) is
+  // told to play the moment it is ready, rather than the request being lost.
   useEffect(() => {
     if (!ambientAudioSource) return;
     if (isPlaying) playAmbient();
     else pauseAmbient();
-  }, [isPlaying, ambientAudioSource, playAmbient, pauseAmbient]);
+  }, [isPlaying, ambientAudioSource, ambientIsLoaded, playAmbient, pauseAmbient]);
 
   useMeditationSessionLifecycle(sessionId, !showCompletion);
 
@@ -116,17 +137,18 @@ export const MeditationPlayerScreen: React.FC = () => {
   useEffect(() => {
     if (startedRef.current || isComingSoon) return;
     startedRef.current = true;
-    dispatch(
+    sessionIdPromiseRef.current = dispatch(
       startMeditationSessionThunk({
         meditationId: route.params.meditationId,
         meditationTitle: title,
         type: route.params.type,
         plannedDurationSeconds: plannedSeconds,
+        templateId: route.params.templateId ?? null,
       })
     ).then((result) => {
-      if (startMeditationSessionThunk.fulfilled.match(result)) {
-        setSessionId(result.payload.id);
-      }
+      if (!startMeditationSessionThunk.fulfilled.match(result)) return null;
+      setSessionId(result.payload.id);
+      return result.payload.id;
     });
     audioSession.start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,48 +165,57 @@ export const MeditationPlayerScreen: React.FC = () => {
     }
   }, [dispatch, sessionStatus, sessionId, audioSession]);
 
-  const finish = useCallback(
-    async (status: 'completed' | 'ended_prematurely') => {
-      if (finishedRef.current) return;
-      finishedRef.current = true;
-      audioSession.stop();
-      stopAmbient();
-      if (!sessionId) {
-        navigation.popToTop();
-        return;
-      }
-      await dispatch(recordSessionEventThunk({ sessionId, type: status === 'completed' ? 'completed' : 'stopped' }));
-      // The dispatch above has just appended the final event to
-      // state.meditation.activeSession.events (recordSessionEventThunk's
-      // reducer runs synchronously as part of that await), so the store now
-      // holds the complete, real event log for this session — started, every
-      // paused/resumed in between, and the closing completed/stopped — not a
-      // synthetic stand-in. Derive active/paused seconds from that.
-      const activeSession = store.getState().meditation.activeSession;
-      const events = activeSession?.id === sessionId ? activeSession.events : [];
-      const { activeSeconds, pausedSeconds } = calculateActiveSecondsFromEvents(events);
-      await dispatch(
-        completeMeditationSessionThunk({
-          sessionId,
-          activeDurationSeconds: activeSeconds || elapsedSeconds,
-          pausedDurationSeconds: pausedSeconds,
-          status,
-        })
-      );
-      navigation.popToTop();
-    },
-    [sessionId, elapsedSeconds, dispatch, navigation, audioSession, stopAmbient]
-  );
+  // The finisher is created once and keeps its "already finishing" state for
+  // the life of the screen; everything that changes between renders is read
+  // through this ref so its callbacks never act on stale values.
+  const latestRef = useRef({ elapsedSeconds, stopPrimaryAudio: audioSession.stop, stopAmbient, popToTop: () => navigation.popToTop() });
+  latestRef.current = { elapsedSeconds, stopPrimaryAudio: audioSession.stop, stopAmbient, popToTop: () => navigation.popToTop() };
+
+  const finisherRef = useRef<ReturnType<typeof createSessionFinisher> | null>(null);
+  if (!finisherRef.current) {
+    finisherRef.current = createSessionFinisher({
+      resolveSessionId: () => sessionIdPromiseRef.current,
+      stopAudio: () => {
+        latestRef.current.stopPrimaryAudio();
+        latestRef.current.stopAmbient();
+      },
+      recordEvent: (sessionId, type) => dispatch(recordSessionEventThunk({ sessionId, type })),
+      completeSession: (sessionId, status) => {
+        // The recordEvent dispatch has just appended the final event to
+        // state.meditation.activeSession.events (the reducer runs as part of
+        // that await), so the store holds the complete, real event log for
+        // this session — started, every paused/resumed in between, and the
+        // closing completed/stopped — not a synthetic stand-in. Derive
+        // active/paused seconds from that.
+        const activeSession = store.getState().meditation.activeSession;
+        const events = activeSession?.id === sessionId ? activeSession.events : [];
+        const { activeSeconds, pausedSeconds } = calculateActiveSecondsFromEvents(events);
+        return dispatch(
+          completeMeditationSessionThunk({
+            sessionId,
+            activeDurationSeconds: activeSeconds || latestRef.current.elapsedSeconds,
+            pausedDurationSeconds: pausedSeconds,
+            status,
+          })
+        );
+      },
+      leave: () => latestRef.current.popToTop(),
+    });
+  }
+  const finish = useCallback((status: SessionEndStatus) => finisherRef.current!(status), []);
 
   // The session duration is authoritative — the instant the hook reports
   // completion (audio already stopped), let the ring settle into its "well
   // done" state for a moment before actually finishing/navigating away.
+  // `showCompletion` is deliberately not a dependency: this effect sets it, so
+  // depending on it would re-run the effect and cancel the very timer it just
+  // started, and the session would never be saved or closed.
   useEffect(() => {
-    if (sessionStatus !== 'completed' || showCompletion) return;
+    if (sessionStatus !== 'completed') return;
     setShowCompletion(true);
     const timer = setTimeout(() => finish('completed'), COMPLETION_LINGER_MS);
     return () => clearTimeout(timer);
-  }, [sessionStatus, showCompletion, finish]);
+  }, [sessionStatus, finish]);
 
   // Leaving mid-session risks losing progress the user might not have meant
   // to discard — an in-progress session confirms first; anything else (still
@@ -315,6 +346,13 @@ export const MeditationPlayerScreen: React.FC = () => {
               <AmbientAudioVisualizer playing={isPlaying} color={visualTheme.accentColor} />
               <AppText variant="bodySmall" color="rgba(255,255,255,0.4)" style={{ marginTop: theme.spacing.sm }}>
                 {formatDurationHMS(audioSession.audioPositionSeconds * 1000).replace(/^00:/, '')} / {formatDurationHMS(audioSession.audioDurationSeconds * 1000).replace(/^00:/, '')}
+              </AppText>
+            </View>
+          ) : selectedAmbientSound ? (
+            <View style={{ alignItems: 'center', marginTop: theme.spacing.md }}>
+              <AmbientAudioVisualizer playing={ambientIsPlaying} color={visualTheme.accentColor} />
+              <AppText variant="bodySmall" color="rgba(255,255,255,0.55)" style={{ marginTop: theme.spacing.sm }}>
+                {t(`meditation.ambient.sounds.${selectedAmbientSound.type}`)}
               </AppText>
             </View>
           ) : null}

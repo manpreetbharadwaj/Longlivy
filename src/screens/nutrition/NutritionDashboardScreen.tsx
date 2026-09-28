@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { View, Pressable } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NutritionStackParamList } from '@/navigation/types';
@@ -23,6 +24,7 @@ import { loadTodayMeals } from '@/features/nutrition/nutritionSlice';
 import { selectDailyNutritionTotals, selectNutritionProgress, selectTodayMeals } from '@/features/nutrition/selectors';
 import { MealType } from '@/features/nutrition/models';
 import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
+import { pillarGradients } from '@/theme/gradients';
 
 const MEAL_TYPES: { key: MealType; icon: AppIconName }[] = [
   { key: 'breakfast', icon: 'cafe-outline' },
@@ -70,6 +72,8 @@ export const NutritionDashboardScreen: React.FC = () => {
         </AppText>
         <CardShimmer delay={400} />
       </HeroCard>
+
+      <FoodEntryActions onOpen={(route) => navigation.navigate(route as never)} />
 
       <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
         <MacroTile index={0} label={t('nutrition.macros.protein')} icon="egg-outline" progress={progress.protein} color="#C9974E" />
@@ -161,6 +165,95 @@ export const NutritionDashboardScreen: React.FC = () => {
     </SectionHeroLayout>
   );
 };
+
+const AI_ENTRIES: { labelKey: TranslationKey; icon: AppIconName; route: keyof NutritionStackParamList }[] = [
+  { labelKey: 'nutrition.aiEntry.photo', icon: 'camera-outline', route: 'AiPhotoEntry' },
+  { labelKey: 'nutrition.aiEntry.voice', icon: 'mic-outline', route: 'AiVoiceEntry' },
+  { labelKey: 'nutrition.aiEntry.text', icon: 'chatbubble-ellipses-outline', route: 'AiTextEntry' },
+];
+
+/**
+ * The two fastest ways to log food, placed ahead of the meal list where a
+ * thumb reaches them without scrolling: AI entry (photo, voice or text - each
+ * button opens its existing screen) and the barcode scanner. Targets are tall
+ * and full-width-ish on purpose; the manual per-meal "+" cards below are
+ * untouched.
+ */
+const FoodEntryActions: React.FC<{ onOpen: (route: keyof NutritionStackParamList) => void }> = React.memo(({ onOpen }) => {
+  const { theme } = useTheme();
+  const { t } = useTranslation();
+  return (
+    <FadeSlideIn delay={0} fromY={8}>
+      <View style={{ marginBottom: theme.spacing.md }}>
+        <LinearGradient
+          colors={pillarGradients.nutrition}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ borderRadius: 22, padding: theme.spacing.sm, marginBottom: theme.spacing.sm }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm, paddingHorizontal: theme.spacing.xxs }}>
+            <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginRight: theme.spacing.sm }}>
+              <AppIcon name="sparkles" size={20} color="#FFFFFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <AppText variant="headingSmall" color="#FFFFFF">
+                {t('nutrition.aiEntry.title')}
+              </AppText>
+              <AppText variant="caption" color="rgba(255,255,255,0.8)">
+                {t('nutrition.aiEntry.subtitle')}
+              </AppText>
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row' }}>
+            {AI_ENTRIES.map((entry, index) => (
+              <Pressable
+                key={entry.route}
+                onPress={() => onOpen(entry.route)}
+                accessibilityRole="button"
+                accessibilityLabel={`${t('nutrition.aiEntry.title')}: ${t(entry.labelKey)}`}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  height: 64,
+                  borderRadius: 16,
+                  marginRight: index === AI_ENTRIES.length - 1 ? 0 : theme.spacing.xs,
+                  backgroundColor: pressed ? 'rgba(255,255,255,0.32)' : 'rgba(255,255,255,0.2)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                })}
+              >
+                <AppIcon name={entry.icon} size={22} color="#FFFFFF" />
+                <AppText variant="label" color="#FFFFFF" style={{ marginTop: 3 }}>
+                  {t(entry.labelKey)}
+                </AppText>
+              </Pressable>
+            ))}
+          </View>
+        </LinearGradient>
+
+        <Pressable
+          onPress={() => onOpen('BarcodeScanner')}
+          accessibilityRole="button"
+          accessibilityLabel={t('nutrition.aiEntry.barcodeTitle')}
+          style={({ pressed }) => [dashboardCardStyle, { height: 64, flexDirection: 'row', alignItems: 'center', paddingHorizontal: theme.spacing.sm, opacity: pressed ? 0.85 : 1 }]}
+        >
+          <View style={{ width: 40, height: 40, borderRadius: 14, backgroundColor: dashboardColors.surfaceSecondary, borderWidth: 1, borderColor: dashboardColors.border, alignItems: 'center', justifyContent: 'center', marginRight: theme.spacing.sm }}>
+            <AppIcon name="barcode-outline" size={22} color="#C9974E" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <AppText variant="bodyLarge" weight="600" color={dashboardColors.textPrimary}>
+              {t('nutrition.aiEntry.barcodeTitle')}
+            </AppText>
+            <AppText variant="caption" color={dashboardColors.textMuted}>
+              {t('nutrition.aiEntry.barcodeSubtitle')}
+            </AppText>
+          </View>
+          <AppIcon name="chevron-forward" size={18} color={dashboardColors.textMuted} />
+        </Pressable>
+      </View>
+    </FadeSlideIn>
+  );
+});
+FoodEntryActions.displayName = 'FoodEntryActions';
 
 const MacroTile: React.FC<{ index: number; label: string; icon: AppIconName; progress: { current: number; target: number; percentage: number; exceeded: boolean }; color: string; isLast?: boolean }> = React.memo(
   ({ index, label, icon, progress, color, isLast }) => {

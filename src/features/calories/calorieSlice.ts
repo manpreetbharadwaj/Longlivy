@@ -1,8 +1,9 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, current, PayloadAction } from '@reduxjs/toolkit';
 import { BodyProfile } from './models';
 import { DEMO_USER } from '@/mock/demoUser';
+import { createCalorieRepository } from './repository';
 
-interface CalorieState {
+export interface CalorieState {
   calorieGoal: number;
   calorieGoalSource: 'auto' | 'manual';
   /** Which BMR strategy produced `calorieGoal` when `calorieGoalSource === 'auto'` — e.g. `{ method: 'Mifflin-St Jeor', version: '1.0' }` from `CalorieCalculationEngine`. Undefined for a manually-entered goal, where no calculation method applies. Exists specifically to satisfy the requirement that any auto-calculated target record which method/version produced it. */
@@ -28,6 +29,11 @@ const initialState: CalorieState = {
   },
 };
 
+const calorieRepository = createCalorieRepository(initialState);
+
+/** Reads the persisted calorie target and body profile on launch - dispatched next to `hydrateProfileThunk`. */
+export const hydrateCalorieThunk = createAsyncThunk('calorie/hydrate', async () => calorieRepository.get());
+
 interface SetCalorieGoalPayload {
   calories: number;
   /** Was this typed in by the user, or produced by `CalorieCalculationEngine`? Previously this reducer hardcoded 'manual' unconditionally — even for onboarding's own auto-calculated goal — which silently mis-tagged every user's initial target. */
@@ -45,10 +51,17 @@ const calorieSlice = createSlice({
       state.calorieGoalSource = action.payload.source;
       state.calculationMethod = action.payload.source === 'auto' ? action.payload.calculationMethod : undefined;
       state.calculationVersion = action.payload.source === 'auto' ? action.payload.calculationVersion : undefined;
+      // `current` hands the store a plain snapshot: a draft (even nested inside a spread copy) is revoked when this reducer returns, and the store keeps what it is given.
+      // Best-effort, like profileSlice: a failed write just means the next launch reads the last good copy.
+      calorieRepository.save(current(state)).catch(() => {});
     },
     setBodyProfile(state, action: PayloadAction<Partial<BodyProfile>>) {
       state.bodyProfile = { ...state.bodyProfile, ...action.payload };
+      calorieRepository.save(current(state)).catch(() => {});
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(hydrateCalorieThunk.fulfilled, (_state, action) => action.payload);
   },
 });
 

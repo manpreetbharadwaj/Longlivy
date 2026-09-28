@@ -101,3 +101,14 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
 ];
 
 export const ALL_TIMELINE_MILESTONES: TimelineMilestone[] = TIMELINE_PHASES.flatMap((phase) => phase.milestones);
+
+/**
+ * The timeline as it applies to one particular fast: only milestones that fall
+ * within the fast's own length, so a 16-hour fast never shows what "can happen"
+ * on day two or three. Phases left with no milestone are dropped.
+ */
+export function limitTimelinePhases(phases: TimelinePhase[], maxHours: number): TimelinePhase[] {
+  return phases
+    .map((phase) => ({ ...phase, milestones: phase.milestones.filter((milestone) => milestone.hours <= maxHours) }))
+    .filter((phase) => phase.milestones.length > 0);
+}

@@ -16,3 +16,6 @@ web-build/
 # Generated native projects (managed Expo workflow — regenerate via `npx expo prebuild`)
 /android
 /ios
+
+# Compiled output of `npm test`
+.test-build/

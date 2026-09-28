@@ -44,13 +44,15 @@ export function useMeditationAmbientAudio(audioSource: AudioSource | null, initi
     player.volume = volume;
   }, [player, volume]);
 
-  // A source change (including going back to null) or unmount must never
-  // leave the previous instance still playing underneath.
-  useEffect(() => {
-    return () => {
-      player.pause();
-    };
-  }, [audioSource, player]);
+  // Deliberately NO cleanup that touches `player`. `useAudioPlayer` releases the
+  // native player itself — on unmount and whenever the source changes (including
+  // back to null) — which also stops playback, so nothing is left playing
+  // underneath. React runs an unmount's cleanups in declaration order, and that
+  // release is registered before any effect declared here, so a cleanup calling
+  // `player.pause()` would hit an already-released native object and throw
+  // ("Unable to find the native shared object…"), taking the whole Player screen
+  // down every time a session ended. Any pause that IS wanted happens while the
+  // screen is alive (`pause`/`stop` below, called by the Player).
 
   const play = useCallback(() => {
     if (!isAvailable) return; // Coming Soon / unresolved source — never attempt a load, per Section 30.

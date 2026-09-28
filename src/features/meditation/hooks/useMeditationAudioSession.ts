@@ -109,24 +109,30 @@ export function useMeditationAudioSession(audioSource: AudioSource | null, sessi
     }
   }, [status, elapsedSeconds, sessionDurationSeconds, hasAudio, player]);
 
+  // Native player calls are made here, not inside a `setStatus` updater:
+  // updaters must be pure — React may run them again or defer them into a
+  // later render — and a native call that throws there would surface as a
+  // render error instead of at the tap that caused it.
+  const statusRef = useRef(status);
+  statusRef.current = status;
+
   const pause = useCallback(() => {
-    setStatus((prev) => {
-      if (prev !== 'playing') return prev;
-      if (hasAudio) player.pause();
-      return 'paused';
-    });
+    if (statusRef.current !== 'playing') return;
+    statusRef.current = 'paused';
+    if (hasAudio) player.pause();
+    setStatus('paused');
   }, [hasAudio, player]);
 
   const resume = useCallback(() => {
-    setStatus((prev) => {
-      if (prev !== 'paused') return prev;
-      if (hasAudio) player.play();
-      return 'playing';
-    });
+    if (statusRef.current !== 'paused') return;
+    statusRef.current = 'playing';
+    if (hasAudio) player.play();
+    setStatus('playing');
   }, [hasAudio, player]);
 
   const stop = useCallback(() => {
     wantsToStartRef.current = false;
+    statusRef.current = 'idle';
     if (hasAudio) {
       player.pause();
       player.seekTo(0).catch(() => {});

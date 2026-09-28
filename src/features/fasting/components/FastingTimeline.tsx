@@ -3,10 +3,12 @@ import { View } from 'react-native';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
-import { TIMELINE_PHASES } from '../fastingTimelineContent';
+import { TIMELINE_PHASES, limitTimelinePhases } from '../fastingTimelineContent';
 
 interface FastingTimelineProps {
   elapsedHours: number;
+  /** The fast's own length in hours - milestones beyond it are not shown. Omit to show the whole reference timeline. */
+  maxHours?: number;
 }
 
 /**
@@ -15,8 +17,9 @@ interface FastingTimelineProps {
  * milestones per phase instead of a single point every ~4 hours. See
  * fastingTimelineContent.ts for why the language stays hedged throughout.
  */
-export const FastingTimeline: React.FC<FastingTimelineProps> = React.memo(({ elapsedHours }) => {
+export const FastingTimeline: React.FC<FastingTimelineProps> = React.memo(({ elapsedHours, maxHours }) => {
   const { theme } = useTheme();
+  const phases = maxHours == null ? TIMELINE_PHASES : limitTimelinePhases(TIMELINE_PHASES, maxHours);
 
   return (
     <View>
@@ -27,7 +30,7 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = React.memo(({ ela
         General, educational information — not a live measurement of your body. Individual timing varies and isn't scientifically pin-pointable.
       </AppText>
 
-      {TIMELINE_PHASES.map((phase, phaseIndex) => {
+      {phases.map((phase, phaseIndex) => {
         const phaseReached = elapsedHours >= phase.milestones[0].hours;
         return (
           <View key={phase.key} style={{ marginBottom: theme.spacing.md }}>
@@ -43,7 +46,7 @@ export const FastingTimeline: React.FC<FastingTimelineProps> = React.memo(({ ela
 
             {phase.milestones.map((point, index) => {
               const reached = elapsedHours >= point.hours;
-              const isLastOverall = phaseIndex === TIMELINE_PHASES.length - 1 && index === phase.milestones.length - 1;
+              const isLastOverall = phaseIndex === phases.length - 1 && index === phase.milestones.length - 1;
               return (
                 <View key={point.title} style={{ flexDirection: 'row' }}>
                   <View style={{ alignItems: 'center', marginRight: theme.spacing.sm }}>

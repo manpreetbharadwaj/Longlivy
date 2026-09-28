@@ -10,6 +10,7 @@ const engine = new CalorieCalculationEngine();
 
 export const selectCalorieGoal = (state: RootState) => state.calorie.calorieGoal;
 export const selectBodyProfile = (state: RootState) => state.calorie.bodyProfile;
+export const selectCalorieGoalSource = (state: RootState) => state.calorie.calorieGoalSource;
 
 export const selectBmr = createSelector(selectBodyProfile, (profile) => engine.calculateBmr(profile));
 

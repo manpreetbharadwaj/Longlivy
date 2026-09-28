@@ -1,6 +1,7 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
 import type { ActivityType } from '@/features/activity/models';
 import type { MeditationTopic, UnguidedSoundCategory } from '@/features/meditation/models';
+import type { MeditationCollectionId } from '@/features/meditation/meditationCollections';
 
 export type OnboardingStackParamList = {
   Welcome: undefined;
@@ -54,9 +55,8 @@ export type ProfileStackParamList = {
 
 export type FastingStackParamList = {
   FastingHome: undefined;
-  SelectFastingMethod: undefined;
-  CustomFasting: undefined;
-  CreateFastingPlan: undefined;
+  /** 'start' (default) begins fasting - or saves the schedule when its window isn't open yet; 'edit' changes the saved schedule. */
+  SelectFastingMethod: { mode?: 'start' | 'edit' } | undefined;
   FastingPlans: undefined;
   FastingStarted: undefined;
   ActiveFast: undefined;
@@ -108,9 +108,32 @@ export type MeditationStackParamList = {
    * `mode`/`durationSeconds`/`soundCategory` are typed now but not yet
    * consumed by the screen — reserved for the fuller Unguided browsing pass.
    */
-  MeditationCategories: { mode?: 'guided' | 'free'; topic?: MeditationTopic; durationSeconds?: number; soundCategory?: UnguidedSoundCategory } | undefined;
+  MeditationCategories:
+    | {
+        mode?: 'guided' | 'free';
+        topic?: MeditationTopic;
+        durationSeconds?: number;
+        soundCategory?: UnguidedSoundCategory;
+        /** Opens discovery scoped to one landing collection (Sleep, Stress & Relaxation, Focus & Concentration). */
+        collection?: MeditationCollectionId;
+        /** Unguided only - which audio to browse: instrumental music, or pure sounds. */
+        audio?: 'music' | 'sounds';
+      }
+    | undefined;
+  /** Pure nature soundscapes - no music, no voice. Reached from the landing, Short Sessions and Nature. */
+  MeditationSoundscapes: { durationSeconds?: number; soundId?: string; allowSilence?: boolean } | undefined;
   MeditationDetails: { meditationId: string };
-  MeditationPlayer: { meditationId: string | null; type: 'guided' | 'free' | 'breathing'; durationSeconds: number };
+  MeditationPlayer: {
+    meditationId: string | null;
+    type: 'guided' | 'free' | 'breathing';
+    durationSeconds: number;
+    /** An AmbientSound id to start with. On a session with no track of its own this is a sounds-only session. */
+    ambientSoundId?: string | null;
+    /** Overrides the session title (soundscape name, custom meditation name) in the Player and in history. */
+    title?: string;
+    /** Links the session to the saved custom meditation it was started from. */
+    templateId?: string | null;
+  };
   BreathingExercise: { schemeId: string };
   MeditationFavorites: undefined;
   MeditationTemplates: undefined;

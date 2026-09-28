@@ -9,10 +9,10 @@ import { AppProgressRing } from '@/components/common/AppProgressRing';
 import { AppBadge } from '@/components/common/AppBadge';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
-import { useAppSelector } from '@/store/hooks';
-import { selectActiveFast } from '@/features/fasting/selectors';
-import { useFastingTimer } from '@/features/fasting/hooks/useFastingTimer';
+import { useFastingCycle } from '@/features/fasting/hooks/useFastingCycle';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
+import { sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
+import { formatDayClock, formatSpan } from '@/features/fasting/services/fastingFormat';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
@@ -23,12 +23,13 @@ const FASTING_ACCENT = '#8B7FA8';
 export const FastingCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
-  const activeFast = useAppSelector(selectActiveFast);
-  const progress = useFastingTimer(activeFast);
+  const { state, activeFast, now } = useFastingCycle({ settle: true });
+  const isEating = state.phase === 'eating';
+  const isRunning = state.phase !== 'idle';
   // Eases toward each new tick rather than snapping — reads as the ring
   // "filling" on mount and gliding forward each second instead of a
   // robotic per-second jump.
-  const animatedProgress = useAnimatedProgress(progress?.progress ?? 0);
+  const animatedProgress = useAnimatedProgress(isRunning ? Math.min(state.progress, 1) : 0);
   const goToFasting = () => navigation.navigate('FastingTab', { screen: 'FastingHome' });
 
   return (
@@ -42,35 +43,40 @@ export const FastingCard: React.FC = React.memo(() => {
             <AppText variant="label" color={FASTING_ACCENT} style={{ letterSpacing: 0.5 }}>
               FASTING
             </AppText>
-            {activeFast ? (
+            {isRunning ? (
               <FadeSlideIn delay={250} fromY={4}>
                 <View style={{ marginLeft: theme.spacing.xxs }}>
-                  <AppBadge label="Active" tone="success" />
+                  <AppBadge label={isEating ? 'Eating window' : 'Active'} tone="success" />
                 </View>
               </FadeSlideIn>
             ) : null}
           </View>
-          {activeFast && progress ? (
+          {isRunning ? (
             <>
               <AppText variant="metricMedium" color={dashboardColors.textPrimary}>
-                {formatDurationHM(progress.elapsedMs)}
+                {isEating ? formatSpan(state.remainingMs) : formatDurationHM(state.elapsedMs)}
               </AppText>
               <AppText variant="bodySmall" color={dashboardColors.textMuted}>
-                {progress.isOverdue ? 'Goal time reached' : `${formatDurationHM(progress.remainingMs)} remaining`} · {activeFast.method}
+                {isEating
+                  ? `until fasting begins ${state.nextFastStart ? formatDayClock(state.nextFastStart, now) : ''}`
+                  : state.goalReached
+                    ? 'Goal time reached'
+                    : `${formatSpan(state.remainingMs)} left${state.nextTransition?.kind === 'eating_begins' ? ` · eating ${formatDayClock(state.nextTransition.at, now)}` : ''}`}
+                {activeFast ? ` · ${sessionModelLabel(activeFast)}` : ''}
               </AppText>
             </>
           ) : (
             <>
               <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
-                Ready when you are
+                {state.nextFastStart ? 'Next fast' : 'Ready when you are'}
               </AppText>
               <AppText variant="bodySmall" color={dashboardColors.textMuted} style={{ marginTop: 1 }}>
-                Start a fast to begin your journey.
+                {state.nextFastStart ? `Begins ${formatDayClock(state.nextFastStart, now)}` : 'Start a fast to begin your journey.'}
               </AppText>
             </>
           )}
         </View>
-        {!activeFast ? (
+        {!isRunning ? (
           <Pressable
             onPress={goToFasting}
             accessibilityRole="button"

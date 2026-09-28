@@ -10,9 +10,12 @@ import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { selectActiveFast } from '@/features/fasting/selectors';
-import { useFastingTimer } from '@/features/fasting/hooks/useFastingTimer';
-import { formatDurationHM, calculateEnergySourceMix } from '@/features/fasting/services/FastingCalculator';
+import { selectFastingPlan } from '@/features/fasting/selectors';
+import { useFastingCycle } from '@/features/fasting/hooks/useFastingCycle';
+import { formatDurationHMS, calculateEnergySourceMix } from '@/features/fasting/services/FastingCalculator';
+import { isMultiDayFast } from '@/features/fasting/services/FastingSchedule';
+import { formatModelLabel, sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
+import { formatDayClock, formatSpan } from '@/features/fasting/services/fastingFormat';
 import { endFastThunk, extendFastThunk } from '@/features/fasting/fastingSlice';
 import { FastingTimeline } from '@/features/fasting/components/FastingTimeline';
 import { AutophagyInfoCard } from '@/features/fasting/components/AutophagyInfoCard';
@@ -22,6 +25,9 @@ import { TIMELINE_PHASES } from '@/features/fasting/fastingTimelineContent';
 import { useAppPreferences } from '@/contexts/AppPreferencesContext';
 import { FastingHeroLayout } from './FastingHeroLayout';
 
+const HOUR = 3_600_000;
+const EATING_COLOR = '#7FA88B';
+
 function currentPhaseColor(elapsedHours: number): string {
   for (let i = TIMELINE_PHASES.length - 1; i >= 0; i--) {
     if (elapsedHours >= TIMELINE_PHASES[i].milestones[0].hours) return TIMELINE_PHASES[i].color;
@@ -29,12 +35,18 @@ function currentPhaseColor(elapsedHours: number): string {
   return TIMELINE_PHASES[0].color;
 }
 
+const TRANSITION_LABEL = {
+  eating_begins: 'Eating window begins',
+  fasting_begins: 'Fasting begins',
+  goal_reached: 'Goal reached',
+} as const;
+
 export const ActiveFastScreen: React.FC = () => {
   const { theme } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<FastingStackParamList>>();
   const dispatch = useAppDispatch();
-  const activeFast = useAppSelector(selectActiveFast);
-  const progress = useFastingTimer(activeFast);
+  const plan = useAppSelector(selectFastingPlan);
+  const { state, schedule, activeFast, now } = useFastingCycle({ settle: true });
   const [showExtend, setShowExtend] = useState(false);
   const [extendHours, setExtendHours] = useState('2');
   const { preferences } = useAppPreferences();
@@ -45,8 +57,9 @@ export const ActiveFastScreen: React.FC = () => {
     setDismissedMilestones(new Set());
   }, [activeFast?.id]);
 
-  const activeMilestone = preferences.liveMomentsEnabled
-    ? MILESTONE_THRESHOLDS.find((m) => (progress?.progress ?? 0) >= m && !dismissedMilestones.has(m))
+  const isFasting = state.phase === 'fasting';
+  const activeMilestone = isFasting && preferences.liveMomentsEnabled
+    ? MILESTONE_THRESHOLDS.find((m) => state.progress >= m && !dismissedMilestones.has(m))
     : undefined;
 
   const handleEnd = useCallback(async () => {
@@ -65,9 +78,12 @@ export const ActiveFastScreen: React.FC = () => {
     setShowExtend(false);
   }, [activeFast, dispatch, extendHours]);
 
-  if (!activeFast || !progress) {
+  const editSchedule = useCallback(() => navigation.navigate('SelectFastingMethod', { mode: 'edit' }), [navigation]);
+  const startFast = useCallback(() => navigation.navigate('SelectFastingMethod', { mode: 'start' }), [navigation]);
+
+  if (state.phase === 'idle') {
     return (
-      <FastingHeroLayout title="Active fast" onBack={() => navigation.goBack()} scroll={false}>
+      <FastingHeroLayout title={schedule ? 'Your schedule' : 'Active fast'} onBack={() => navigation.goBack()} scroll={false}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: theme.spacing.lg }}>
           <View
             style={{
@@ -83,54 +99,81 @@ export const ActiveFastScreen: React.FC = () => {
             <AppIcon name="timer-outline" size={30} color="rgba(255,255,255,0.5)" />
           </View>
           <AppText variant="headingSmall" color="#FFFFFF" align="center">
-            No active fast
+            {state.nextFastStart ? 'No fast running' : 'No active fast'}
           </AppText>
-          <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.xxs }}>
-            Start a fast from the Fasting home screen.
+          <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.xxs, marginBottom: theme.spacing.lg }}>
+            {state.nextFastStart
+              ? `Your next fast begins ${formatDayClock(state.nextFastStart, now)}, in ${formatSpan(state.nextFastStart.getTime() - now.getTime())}.`
+              : 'Start a fast from the Fasting home screen.'}
           </AppText>
+          <View style={{ alignSelf: 'stretch' }}>
+            <AppGradientButton label="Start a fast" onPress={startFast} colors={['#5C7A94', '#3D5266']} />
+            {schedule ? <GhostButton label="Edit schedule" onPress={editSchedule} /> : null}
+          </View>
         </View>
       </FastingHeroLayout>
     );
   }
 
-  const elapsedHours = progress.elapsedMs / (1000 * 60 * 60);
-  const ringColor = currentPhaseColor(elapsedHours);
-  const energyMix = calculateEnergySourceMix(elapsedHours);
+  const fastingHours = state.fastStart && state.fastEnd ? (state.fastEnd.getTime() - state.fastStart.getTime()) / HOUR : 0;
+  const fastingElapsedHours = isFasting ? state.elapsedMs / HOUR : fastingHours;
+  const daily = state.eatingStart != null;
+  const modelLabel = activeFast
+    ? sessionModelLabel(activeFast)
+    : schedule && plan
+      ? formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours })
+      : formatModelLabel({ method: 'individual', fastingHours: Math.round(fastingHours), eatingHours: 8 });
+
+  const ringColor = isFasting ? currentPhaseColor(fastingElapsedHours) : EATING_COLOR;
+  const phaseLabel = isFasting ? (state.goalReached ? 'GOAL REACHED' : 'FASTING') : 'EATING WINDOW';
+  const countdownMs = state.goalReached ? state.elapsedMs : Math.max(state.remainingMs, 0);
+  const countdownCaption = state.goalReached ? 'fasting time' : isFasting ? (daily ? 'until your eating window begins' : 'until your goal') : 'until fasting begins';
+  const transition = state.nextTransition;
 
   return (
-    <FastingHeroLayout title={`${activeFast.method} Fast`} onBack={() => navigation.goBack()}>
+    <FastingHeroLayout title={isFasting ? `${modelLabel} Fast` : 'Eating window'} onBack={() => navigation.goBack()}>
       {activeMilestone ? (
         <LiveMomentCard milestone={activeMilestone} onDismiss={() => setDismissedMilestones((prev) => new Set(prev).add(activeMilestone))} />
       ) : null}
 
-      <View style={{ alignItems: 'center', marginBottom: theme.spacing.lg }}>
-        <AppProgressRing progress={progress.progress} size={240} strokeWidth={18} color={ringColor} trackColor="rgba(255,255,255,0.12)" glow>
-          <AppText variant="metricLarge" color="#FFFFFF">
-            {Math.round(Math.min(progress.progress, 1) * 100)}%
+      <View style={{ alignItems: 'center', marginBottom: theme.spacing.md }}>
+        <AppProgressRing progress={state.progress} size={240} strokeWidth={18} color={ringColor} trackColor="rgba(255,255,255,0.12)" glow>
+          <AppText variant="label" color={ringColor} style={{ letterSpacing: 1.2 }}>
+            {phaseLabel}
           </AppText>
-          <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
-            Day {progress.currentFastingDay}
+          <AppText variant="metricLarge" color="#FFFFFF" style={{ marginTop: 2 }} accessibilityLabel={`${phaseLabel}, ${formatSpan(countdownMs)} ${countdownCaption}`}>
+            {formatDurationHMS(countdownMs)}
           </AppText>
+          <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" align="center" style={{ paddingHorizontal: theme.spacing.md }}>
+            {countdownCaption}
+          </AppText>
+          {isFasting && isMultiDayFast(fastingHours) ? (
+            <AppText variant="caption" color="rgba(255,255,255,0.5)" style={{ marginTop: 2 }}>
+              Day {Math.max(1, Math.ceil(state.elapsedMs / (24 * HOUR)))}
+            </AppText>
+          ) : null}
         </AppProgressRing>
 
-        <View style={{ flexDirection: 'row', marginTop: theme.spacing.md, width: '100%', justifyContent: 'space-around' }}>
-          <View style={{ alignItems: 'center' }}>
-            <AppText variant="headingMedium" color="#FFFFFF">
-              {formatDurationHM(progress.elapsedMs)}
-            </AppText>
-            <AppText variant="caption" color="rgba(255,255,255,0.5)">
-              Elapsed
+        {transition ? (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: theme.spacing.md,
+              paddingHorizontal: theme.spacing.md,
+              paddingVertical: theme.spacing.xs,
+              borderRadius: theme.radius.pill,
+              backgroundColor: 'rgba(255,255,255,0.08)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.14)',
+            }}
+          >
+            <AppIcon name="arrow-forward" size={14} color="rgba(255,255,255,0.7)" />
+            <AppText variant="bodyMedium" color="#FFFFFF" style={{ marginLeft: 6 }}>
+              {TRANSITION_LABEL[transition.kind]} · {formatDayClock(transition.at, now)}
             </AppText>
           </View>
-          <View style={{ alignItems: 'center' }}>
-            <AppText variant="headingMedium" color={progress.isOverdue ? '#6FA085' : '#FFFFFF'}>
-              {progress.isOverdue ? 'Reached' : formatDurationHM(progress.remainingMs)}
-            </AppText>
-            <AppText variant="caption" color="rgba(255,255,255,0.5)">
-              {progress.isOverdue ? 'Goal' : 'Remaining'}
-            </AppText>
-          </View>
-        </View>
+        ) : null}
       </View>
 
       <View
@@ -143,25 +186,26 @@ export const ActiveFastScreen: React.FC = () => {
           marginBottom: theme.spacing.md,
         }}
       >
-        <EnergySourceVisualization mix={energyMix} />
+        {isFasting ? <Row label="Elapsed" value={formatSpan(state.elapsedMs)} /> : null}
+        {daily && state.fastStart && state.fastEnd && state.eatingStart && state.eatingEnd ? (
+          <>
+            <Row label="Fasting begins" value={formatDayClock(state.fastStart, now)} />
+            <Row label="Fasting duration" value={formatSpan(state.fastEnd.getTime() - state.fastStart.getTime())} />
+            <Row label="Eating window begins" value={formatDayClock(state.eatingStart, now)} />
+            <Row label="Eating window" value={formatSpan(state.eatingEnd.getTime() - state.eatingStart.getTime())} />
+            <Row label="Next fasting phase" value={state.nextFastStart ? formatDayClock(state.nextFastStart, now) : '-'} last={!activeFast || activeFast.extensionCount === 0} />
+          </>
+        ) : state.fastStart && state.fastEnd ? (
+          <>
+            <Row label="Started" value={formatDayClock(state.fastStart, now)} />
+            <Row label="Fast length" value={formatSpan(state.fastEnd.getTime() - state.fastStart.getTime())} />
+            <Row label="Planned end" value={formatDayClock(state.fastEnd, now)} last={!activeFast || activeFast.extensionCount === 0} />
+          </>
+        ) : null}
+        {activeFast && activeFast.extensionCount > 0 ? <Row label="Extensions" value={`${activeFast.extensionCount}`} last /> : null}
       </View>
 
-      <View
-        style={{
-          backgroundColor: 'rgba(255,255,255,0.08)',
-          borderWidth: 1.5,
-          borderColor: 'rgba(255,255,255,0.14)',
-          borderRadius: theme.radius.lg,
-          padding: theme.spacing.md,
-          marginBottom: theme.spacing.md,
-        }}
-      >
-        <Row label="Started" value={new Date(activeFast.startTimestamp).toLocaleString()} />
-        <Row label="Planned end" value={new Date(activeFast.plannedEndTimestamp).toLocaleString()} />
-        <Row label="Extensions" value={`${activeFast.extensionCount}`} last />
-      </View>
-
-      {showExtend ? (
+      {activeFast && showExtend ? (
         <View
           style={{
             backgroundColor: 'rgba(255,255,255,0.08)',
@@ -180,21 +224,44 @@ export const ActiveFastScreen: React.FC = () => {
           <GhostButton label="Cancel" onPress={() => setShowExtend(false)} />
         </View>
       ) : (
-        <View style={{ flexDirection: 'row', marginBottom: theme.spacing.lg, gap: theme.spacing.sm }}>
-          <View style={{ flex: 1 }}>
-            <OutlineButton label="Extend" onPress={() => setShowExtend(true)} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <AppGradientButton label="End fast" onPress={handleEnd} colors={['#DD7A68', '#C4463A']} />
-          </View>
+        <View style={{ marginBottom: theme.spacing.md }}>
+          {activeFast ? (
+            <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+              <View style={{ flex: 1 }}>
+                <OutlineButton label="Extend" onPress={() => setShowExtend(true)} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <AppGradientButton label="End fast" onPress={handleEnd} colors={['#DD7A68', '#C4463A']} />
+              </View>
+            </View>
+          ) : null}
+          <OutlineButton label="Edit schedule" onPress={editSchedule} style={{ marginTop: activeFast ? theme.spacing.sm : 0 }} />
         </View>
       )}
 
-      <View style={{ marginBottom: theme.spacing.md }}>
-        <AutophagyInfoCard />
-      </View>
+      {isFasting ? (
+        <View
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.08)',
+            borderWidth: 1.5,
+            borderColor: 'rgba(255,255,255,0.14)',
+            borderRadius: theme.radius.lg,
+            padding: theme.spacing.md,
+            marginBottom: theme.spacing.md,
+          }}
+        >
+          <EnergySourceVisualization mix={calculateEnergySourceMix(fastingElapsedHours)} />
+        </View>
+      ) : null}
 
-      <FastingTimeline elapsedHours={elapsedHours} />
+      {isFasting ? (
+        <>
+          <View style={{ marginBottom: theme.spacing.md }}>
+            <AutophagyInfoCard />
+          </View>
+          <FastingTimeline elapsedHours={fastingElapsedHours} maxHours={Math.max(fastingHours, 1)} />
+        </>
+      ) : null}
     </FastingHeroLayout>
   );
 };
@@ -223,22 +290,25 @@ const Row: React.FC<{ label: string; value: string; last?: boolean }> = React.me
 Row.displayName = 'Row';
 
 /** Secondary action on the fasting hero screens — translucent border, no fill, dims on press. */
-const OutlineButton: React.FC<{ label: string; onPress: () => void }> = React.memo(({ label, onPress }) => {
+const OutlineButton: React.FC<{ label: string; onPress: () => void; style?: object }> = React.memo(({ label, onPress, style }) => {
   const { theme } = useTheme();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => ({
-        height: theme.componentSizes.buttonHeight,
-        borderRadius: theme.radius.md,
-        borderWidth: 1.5,
-        borderColor: 'rgba(255,255,255,0.3)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        opacity: pressed ? 0.7 : 1,
-      })}
+      style={({ pressed }) => [
+        {
+          height: theme.componentSizes.buttonHeight,
+          borderRadius: theme.radius.md,
+          borderWidth: 1.5,
+          borderColor: 'rgba(255,255,255,0.3)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: pressed ? 0.7 : 1,
+        },
+        style,
+      ]}
     >
       <AppText variant="headingSmall" color="#FFFFFF">
         {label}

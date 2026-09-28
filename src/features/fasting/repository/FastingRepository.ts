@@ -24,12 +24,20 @@ export interface FastingRepository {
     startTimestamp: string;
     plannedEndTimestamp: string;
     fastingPlanId?: string | null;
+    eatingHours?: number;
   }): Promise<{ session: FastingSession; alreadyActive: boolean }>;
   endFastPrematurely(id: string): Promise<FastingSession>;
-  completeFast(id: string): Promise<FastingSession>;
+  /** `endedAt` (ISO) records the fast as having ended at that instant rather than now - used to settle a daily-cycle fast at its planned end even when nobody opened the app until later. */
+  completeFast(id: string, endedAt?: string): Promise<FastingSession>;
+  /** Re-plans a fast that is still open (start, planned end, model) and clears any extension - the "apply my edit to the current fast" path. */
+  rescheduleFast(
+    id: string,
+    changes: { startTimestamp: string; plannedEndTimestamp: string; method: FastingSession['method']; category: FastingSession['category']; eatingHours: number }
+  ): Promise<FastingSession>;
   extendFast(id: string, newPlannedEndTimestamp: string): Promise<FastingSession>;
   cancelFast(id: string): Promise<FastingSession>;
   getPlans(userId: string): Promise<FastingPlan[]>;
+  /** Saves a plan; a plan saved as `active` becomes the only active one. */
   savePlan(plan: FastingPlan): Promise<FastingPlan>;
   getPlanOverrides(planId: string): Promise<FastingPlanDayOverride[]>;
   setPlanDayOverride(input: Omit<FastingPlanDayOverride, 'id' | 'createdAt'>): Promise<FastingPlanDayOverride>;

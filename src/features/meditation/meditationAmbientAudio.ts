@@ -1,4 +1,5 @@
 import type { AudioSource } from 'expo-audio';
+import { AMBIENT_SOUND_CATALOG, AmbientSound } from './ambientSounds';
 
 /**
  * Central map of bundled ambient-sound MP3s — mirrors meditationAudio.ts's
@@ -23,4 +24,17 @@ export type MeditationAmbientAudioKey = keyof typeof MEDITATION_AMBIENT_AUDIO_SO
 export function resolveAmbientAudioSource(audioReference: string | null | undefined): AudioSource | null {
   if (!audioReference) return null;
   return MEDITATION_AMBIENT_AUDIO_SOURCES[audioReference as MeditationAmbientAudioKey] ?? null;
+}
+
+/**
+ * The sounds a listener can actually be offered: available in the catalog AND
+ * backed by a bundled file. Every picker and soundscape screen reads this, so
+ * a sound that cannot play is never shown as a choice.
+ */
+export function getPlayableAmbientSounds(): AmbientSound[] {
+  return AMBIENT_SOUND_CATALOG.filter((sound) => sound.availability === 'available' && resolveAmbientAudioSource(sound.audioReference) != null);
+}
+
+export function isPlayableAmbientSoundId(id: string | null | undefined): boolean {
+  return !!id && getPlayableAmbientSounds().some((sound) => sound.id === id);
 }

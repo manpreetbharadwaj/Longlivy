@@ -81,7 +81,10 @@ export interface MeditationTemplate {
   type: MeditationType;
   breathingEnabled: boolean;
   closingSoundEnabled: boolean;
+  /** An AmbientSound id. With no `contentId` this is a sounds-only session; with one it is the optional layer under the music. */
   backgroundSound?: string;
+  /** The Unguided music track (a Meditation id) this custom meditation plays. Omitted for sounds-only and silent sessions - and on every template saved before custom meditations existed. */
+  contentId?: string;
 }
 
 export interface MeditationSessionEvent {

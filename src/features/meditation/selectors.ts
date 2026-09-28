@@ -13,8 +13,14 @@ export const selectMeditationReminders = (state: RootState) => state.meditation.
 export interface MeditationFilters {
   mode?: MeditationType;
   topic?: MeditationTopic;
+  /** Matches any of these topics - for collections that group several (e.g. Stress & Relaxation). `topic`, when also given, narrows further. */
+  topics?: MeditationTopic[];
   durationSeconds?: number;
+  /** Keeps only sessions at most this long - the "Short sessions" cut. Unlike `durationSeconds`, not an exact match. */
+  maxDurationSeconds?: number;
   soundCategory?: UnguidedSoundCategory;
+  /** Matches any of these sound categories (Unguided rows only) - "Sounds only" is nature + ambient. */
+  soundCategories?: UnguidedSoundCategory[];
   /** Discovery shows Coming Soon rows by default (badged, non-playable) — pass false to hide them entirely. */
   includeComingSoon?: boolean;
 }
@@ -32,8 +38,11 @@ export function selectMeditationsByFilters(content: Meditation[], filters: Medit
   return content.filter((m) => {
     if (filters.mode && m.type !== filters.mode) return false;
     if (filters.topic && m.category !== filters.topic) return false;
+    if (filters.topics && filters.topics.length > 0 && !filters.topics.includes(m.category)) return false;
     if (filters.durationSeconds != null && m.durationSeconds !== filters.durationSeconds) return false;
+    if (filters.maxDurationSeconds != null && m.durationSeconds > filters.maxDurationSeconds) return false;
     if (filters.soundCategory && m.type === 'free' && m.soundCategory !== filters.soundCategory) return false;
+    if (filters.soundCategories && m.type === 'free' && (!m.soundCategory || !filters.soundCategories.includes(m.soundCategory))) return false;
     if (filters.includeComingSoon === false && m.availability === 'coming_soon') return false;
     return true;
   });

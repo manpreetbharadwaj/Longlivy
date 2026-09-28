@@ -14,12 +14,14 @@ import { useTheme } from '@/hooks/useTheme';
 import { fastingRepository } from '@/features/fasting/repository/MockFastingRepository';
 import { DEMO_USER_ID } from '@/mock/demoUser';
 import { FastingPlan, FastingPlanDayOverride } from '@/features/fasting/models';
+import { scheduleFromPlan, formatModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const UPCOMING_DAYS = 14;
 
+/** The local calendar date (yyyy-mm-dd). `toISOString()` would give the UTC date, which is the previous day for a local midnight east of UTC. */
 function toDateKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 /**
@@ -74,9 +76,9 @@ export const FastingPlansScreen: React.FC = () => {
           <AppEmptyState
             icon="calendar-outline"
             title="No recurring plans yet"
-            message="Create a plan to repeat an intermittent fasting rhythm on chosen weekdays."
-            actionLabel="Create a plan"
-            onAction={() => navigation.navigate('CreateFastingPlan')}
+            message="Choose a fasting model and when it begins - it repeats every day."
+            actionLabel="Set up a schedule"
+            onAction={() => navigation.navigate('SelectFastingMethod', { mode: 'edit' })}
           />
         ) : (
           <>
@@ -89,7 +91,7 @@ export const FastingPlansScreen: React.FC = () => {
             ))}
           </>
         )}
-        <AppButton label="Create another plan" variant="outline" onPress={() => navigation.navigate('CreateFastingPlan')} style={{ marginTop: theme.spacing.sm }} />
+        <AppButton label="Change schedule" variant="outline" onPress={() => navigation.navigate('SelectFastingMethod', { mode: 'edit' })} style={{ marginTop: theme.spacing.sm }} />
       </AppScreen>
     </>
   );
@@ -103,6 +105,8 @@ const PlanCard: React.FC<{
 }> = ({ plan, overrides, busyKey, onToggleSkip }) => {
   const { theme } = useTheme();
   const skippedDates = useMemo(() => new Set(overrides.filter((o) => o.action === 'skip').map((o) => o.date)), [overrides]);
+
+  const schedule = useMemo(() => scheduleFromPlan(plan), [plan]);
 
   const upcoming = useMemo(() => {
     const days: Date[] = [];
@@ -119,7 +123,9 @@ const PlanCard: React.FC<{
   return (
     <AppCard style={{ marginBottom: theme.spacing.md }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.xs }}>
-        <AppText variant="headingSmall">{plan.method} · {plan.startTime}–{plan.endTime}</AppText>
+        <AppText variant="headingSmall">
+          {schedule ? `${formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours })} · ${plan.startTime}–${plan.endTime}` : plan.method}
+        </AppText>
         <AppBadge label={plan.active ? 'Active' : 'Paused'} tone={plan.active ? 'success' : 'neutral'} />
       </View>
       <AppText variant="caption" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.sm }}>

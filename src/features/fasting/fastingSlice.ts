@@ -1,6 +1,6 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { FastingMethodId, FastingSession } from './models';
-import { FastingService } from './services/FastingService';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { FastingPlan, FastingSession } from './models';
+import { FastingService, ScheduleRequest } from './services/FastingService';
 import { fastingRepository } from './repository/MockFastingRepository';
 import { DEMO_USER_ID } from '@/mock/demoUser';
 
@@ -8,6 +8,8 @@ const fastingService = new FastingService(fastingRepository);
 
 interface FastingState {
   activeFast: FastingSession | null;
+  /** The saved schedule the timer follows (the one active plan). Null until the user has chosen a daily model. */
+  plan: FastingPlan | null;
   history: FastingSession[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   actionStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -27,6 +29,7 @@ interface FastingState {
 
 const initialState: FastingState = {
   activeFast: null,
+  plan: null,
   history: [],
   status: 'idle',
   actionStatus: 'idle',
@@ -40,22 +43,24 @@ const initialState: FastingState = {
 type FastingThunkApi = { state: { fasting: FastingState } };
 
 export const loadFastingData = createAsyncThunk<
-  { active: FastingSession | null; history: FastingSession[]; seqAtStart: number },
+  { active: FastingSession | null; history: FastingSession[]; plan: FastingPlan | null; seqAtStart: number },
   void,
   FastingThunkApi
 >('fasting/loadFastingData', async (_, { getState }) => {
   const seqAtStart = getState().fasting.mutationSeq;
-  const [active, history] = await Promise.all([
-    fastingService.getActiveFast(DEMO_USER_ID),
-    fastingService.getHistory(DEMO_USER_ID),
-  ]);
-  return { active, history, seqAtStart };
+  // Read sequentially: getActiveFast settles a fast that reached its planned
+  // end, and the history and plan must be read after that has happened.
+  const active = await fastingService.getActiveFast(DEMO_USER_ID);
+  const [history, plan] = await Promise.all([fastingService.getHistory(DEMO_USER_ID), fastingService.getActivePlan(DEMO_USER_ID)]);
+  return { active, history, plan, seqAtStart };
 });
 
-export const startFastThunk = createAsyncThunk(
-  'fasting/startFast',
-  async (input: { method: FastingMethodId; customHours?: number }) =>
-    fastingService.startFast(DEMO_USER_ID, input.method, input.customHours)
+export const startFastThunk = createAsyncThunk('fasting/startFast', async (input: ScheduleRequest) => fastingService.startFast(DEMO_USER_ID, input));
+
+export const saveFastingScheduleThunk = createAsyncThunk(
+  'fasting/saveSchedule',
+  async (input: ScheduleRequest & { applyToCurrent: boolean }) =>
+    fastingService.saveSchedule(DEMO_USER_ID, { methodId: input.methodId, schedule: input.schedule }, { applyToCurrent: input.applyToCurrent })
 );
 
 export const endFastThunk = createAsyncThunk('fasting/endFast', async (session: FastingSession) =>
@@ -84,6 +89,7 @@ const fastingSlice = createSlice({
       .addCase(loadFastingData.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.history = action.payload.history;
+        state.plan = action.payload.plan;
         // See `mutationSeq`'s doc comment: only apply `active` if nothing
         // else changed the active-fast state while this load was reading.
         if (action.payload.seqAtStart === state.mutationSeq) {
@@ -97,14 +103,28 @@ const fastingSlice = createSlice({
       .addCase(startFastThunk.pending, (state) => {
         state.actionStatus = 'loading';
       })
-      .addCase(startFastThunk.fulfilled, (state, action: PayloadAction<{ session: FastingSession; alreadyActive: boolean }>) => {
+      .addCase(startFastThunk.fulfilled, (state, action) => {
         state.actionStatus = 'succeeded';
-        state.activeFast = action.payload.session;
+        state.activeFast = action.payload.session ?? state.activeFast;
+        state.plan = action.payload.plan ?? state.plan;
         state.mutationSeq += 1;
       })
       .addCase(startFastThunk.rejected, (state, action) => {
         state.actionStatus = 'failed';
         state.error = action.error.message ?? 'Failed to start fast';
+      })
+      .addCase(saveFastingScheduleThunk.pending, (state) => {
+        state.actionStatus = 'loading';
+      })
+      .addCase(saveFastingScheduleThunk.fulfilled, (state, action) => {
+        state.actionStatus = 'succeeded';
+        state.plan = action.payload.plan ?? state.plan;
+        state.activeFast = action.payload.session ?? state.activeFast;
+        state.mutationSeq += 1;
+      })
+      .addCase(saveFastingScheduleThunk.rejected, (state, action) => {
+        state.actionStatus = 'failed';
+        state.error = action.error.message ?? 'Failed to save the schedule';
       })
       .addCase(endFastThunk.fulfilled, (state, action) => {
         state.activeFast = null;

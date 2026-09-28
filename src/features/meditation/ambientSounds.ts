@@ -97,3 +97,6 @@ export function getRecommendedAmbientSounds(topic: MeditationTopic): AmbientSoun
 export function hasAnyAvailableAmbientSound(): boolean {
   return AMBIENT_SOUND_CATALOG.some((sound) => sound.availability === 'available');
 }
+
+/** Default level for a session whose only audio is the soundscape - unlike a layer under music or voice, it is the whole experience. */
+export const DEFAULT_SOUNDSCAPE_ONLY_VOLUME = 0.8;

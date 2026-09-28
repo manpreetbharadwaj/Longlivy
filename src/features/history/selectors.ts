@@ -8,6 +8,7 @@ import { selectTodayMeals } from '@/features/nutrition/selectors';
 import { HistoryItem } from './models';
 import { ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
+import { sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
 
 export const selectHistoryActiveFilters = (state: RootState) => state.history.activeFilters;
 
@@ -26,7 +27,7 @@ export const selectUnifiedHistory = createSelector(
         items.push({
           id: `h_fast_${f.id}`,
           category: 'fasting',
-          title: `${f.method} fast`,
+          title: `${sessionModelLabel(f)} fast`,
           subtitle: `${f.status.replace('_', ' ')} · ${formatDurationHM(f.actualDuration ?? f.plannedDuration)}`,
           timestamp: f.startTimestamp,
           refId: f.id,

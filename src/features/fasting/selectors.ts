@@ -1,16 +1,28 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '@/store/store';
 import { calculateFastingProgress } from './services/FastingCalculator';
+import { scheduleFromPlan } from './services/fastingPlanSchedule';
 
 export const selectActiveFast = (state: RootState) => state.fasting.activeFast;
 export const selectFastingHistory = (state: RootState) => state.fasting.history;
 export const selectFastingStatus = (state: RootState) => state.fasting.status;
 export const selectFastingActionStatus = (state: RootState) => state.fasting.actionStatus;
+export const selectFastingPlan = (state: RootState) => state.fasting.plan;
+
+/** The schedule the live timer follows, read from the active plan. Null when there is no plan, or it can't be read as a valid schedule. */
+export const selectActiveSchedule = createSelector(selectFastingPlan, (plan) => (plan ? scheduleFromPlan(plan) : null));
+
+/**
+ * The most recent finished fast, if it ran to completion - what keeps the eating window that follows it on screen once it has left the
+ * active slot. Only the newest session counts: a fast ended early (or cancelled) after an older completed one means the user is no
+ * longer in that older fast's eating window.
+ */
+export const selectLastCompletedFast = createSelector(selectFastingHistory, (history) => (history[0]?.status === 'completed' ? history[0] : null));
 
 /**
  * NOTE: this selector is deliberately NOT re-derived every second. Components
  * that render a live countdown should call calculateFastingProgress() inside
- * their own local render loop (see useFastingTimer), not through Redux state.
+ * their own local render loop (see useFastingCycle), not through Redux state.
  */
 export const selectActiveFastStaticProgress = createSelector(selectActiveFast, (activeFast) => {
   if (!activeFast) return null;

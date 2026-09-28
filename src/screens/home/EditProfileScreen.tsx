@@ -6,16 +6,20 @@ import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
+import { HeroOptionCard } from '@/components/common/HeroOptionCard';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUserProfile } from '@/features/profile/selectors';
-import { updateProfile } from '@/features/profile/profileSlice';
-import { setBodyProfile } from '@/features/calories/calorieSlice';
+import { saveProfileChangesThunk } from '@/features/profile/profileThunks';
+import { selectCalorieGoalSource } from '@/features/calories/selectors';
 import { UserAvatar } from '@/features/profile/components/UserAvatar';
 import { AvatarPickerModal } from '@/features/profile/components/AvatarPickerModal';
 import { getAvatarPreset } from '@/features/profile/avatars';
 import type { DemoUserProfile } from '@/mock/demoUser';
+
+const ACTIVITY_LEVELS: DemoUserProfile['activityLevel'][] = ['sedentary', 'light', 'moderate', 'active', 'very_active'];
+const GOALS: DemoUserProfile['goal'][] = ['weight_loss', 'maintenance', 'muscle_gain'];
 
 export const EditProfileScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -23,11 +27,14 @@ export const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const profile = useAppSelector(selectUserProfile);
+  const goalSource = useAppSelector(selectCalorieGoalSource);
 
   const [firstName, setFirstName] = useState(profile.firstName);
   const [lastName, setLastName] = useState(profile.lastName);
   const [heightCm, setHeightCm] = useState(String(profile.heightCm));
   const [weightKg, setWeightKg] = useState(String(profile.weightKg));
+  const [activityLevel, setActivityLevel] = useState<DemoUserProfile['activityLevel']>(profile.activityLevel);
+  const [goal, setGoal] = useState<DemoUserProfile['goal']>(profile.goal);
   const [avatarId, setAvatarId] = useState<string | undefined>(profile.avatarId);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -37,12 +44,16 @@ export const EditProfileScreen: React.FC = () => {
       lastName,
       heightCm: Number(heightCm),
       weightKg: Number(weightKg),
+      activityLevel,
+      goal,
     };
     if (avatarId) payload.avatarId = avatarId;
-    dispatch(updateProfile(payload));
-    dispatch(setBodyProfile({ heightCm: Number(heightCm), weightKg: Number(weightKg) }));
+    dispatch(saveProfileChangesThunk(payload));
     navigation.goBack();
-  }, [dispatch, firstName, lastName, heightCm, weightKg, avatarId, navigation]);
+  }, [dispatch, firstName, lastName, heightCm, weightKg, activityLevel, goal, avatarId, navigation]);
+
+  // A profile can already hold a goal onboarding never offers (general wellness) - keep it selectable so opening this screen never silently changes it.
+  const goalOptions = GOALS.includes(profile.goal) ? GOALS : [profile.goal, ...GOALS];
 
   const avatarLabel = getAvatarPreset(avatarId)?.label ?? t('editProfile.initial');
 
@@ -89,6 +100,38 @@ export const EditProfileScreen: React.FC = () => {
           <HeroTextField label={t('editProfile.weightKg')} value={weightKg} onChangeText={setWeightKg} keyboardType="numeric" />
         </View>
       </View>
+
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
+        {t('editProfile.activityLevel')}
+      </AppText>
+      {ACTIVITY_LEVELS.map((level) => (
+        <HeroOptionCard
+          key={level}
+          title={t(`enums.activityLevel.${level}`)}
+          description={t(`onboarding.activityLevel.options.${level}.desc`)}
+          selected={activityLevel === level}
+          onPress={() => setActivityLevel(level)}
+          style={{ marginBottom: theme.spacing.xs }}
+        />
+      ))}
+
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.xs }}>
+        {t('editProfile.goal')}
+      </AppText>
+      {goalOptions.map((option) => (
+        <HeroOptionCard
+          key={option}
+          title={option === 'general_wellness' ? t('enums.goal.general_wellness') : t(`onboarding.goal.options.${option}.title`)}
+          description={option === 'general_wellness' ? undefined : t(`onboarding.goal.options.${option}.outcome`)}
+          selected={goal === option}
+          onPress={() => setGoal(option)}
+          style={{ marginBottom: theme.spacing.xs }}
+        />
+      ))}
+
+      <AppText variant="caption" color="rgba(255,255,255,0.6)" style={{ marginTop: theme.spacing.xs, marginBottom: theme.spacing.md }}>
+        {goalSource === 'manual' ? t('editProfile.manualTargetNote') : t('editProfile.targetNote')}
+      </AppText>
       <AppGradientButton label={t('editProfile.save')} onPress={save} />
 
       <AvatarPickerModal

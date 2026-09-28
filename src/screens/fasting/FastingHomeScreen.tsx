@@ -14,9 +14,11 @@ import { useTranslation } from '@/localization';
 import { motion } from '@/theme/motion';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadFastingData } from '@/features/fasting/fastingSlice';
-import { selectActiveFast, selectFastingStats, selectFastingStatus } from '@/features/fasting/selectors';
-import { useFastingTimer } from '@/features/fasting/hooks/useFastingTimer';
+import { selectFastingPlan, selectFastingStats, selectFastingStatus } from '@/features/fasting/selectors';
+import { useFastingCycle } from '@/features/fasting/hooks/useFastingCycle';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
+import { formatModelLabel, sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
+import { formatClock, formatDayClock, formatSpan } from '@/features/fasting/services/fastingFormat';
 import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 import { FastingHeroLayout } from './FastingHeroLayout';
 
@@ -25,16 +27,19 @@ import { FastingHeroLayout } from './FastingHeroLayout';
 // moment the ring/CTA render, not just once the atmosphere gradient behind
 // them is noticed.
 const FASTING_ACCENT = '#8B7FA8';
+const EATING_ACCENT = '#7FA88B';
 
 export const FastingHomeScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<FastingStackParamList>>();
   const dispatch = useAppDispatch();
-  const activeFast = useAppSelector(selectActiveFast);
   const status = useAppSelector(selectFastingStatus);
   const stats = useAppSelector(selectFastingStats);
-  const progress = useFastingTimer(activeFast);
+  const plan = useAppSelector(selectFastingPlan);
+  const { state, schedule, activeFast, now } = useFastingCycle({ settle: true });
+  const isRunning = state.phase !== 'idle';
+  const accent = state.phase === 'eating' ? EATING_ACCENT : FASTING_ACCENT;
 
   useEffect(() => {
     dispatch(loadFastingData());
@@ -46,27 +51,39 @@ export const FastingHomeScreen: React.FC = () => {
         <AppLoader label={t('common.loading')} />
       ) : (
         <>
-          {activeFast && progress ? (
+          {isRunning ? (
             <HeroCard onPress={() => navigation.navigate('ActiveFast')} style={[dashboardCardStyle, { alignItems: 'center', marginBottom: theme.spacing.md }]} scaleOnPress>
-              <AppProgressRing progress={progress.progress} size={180} strokeWidth={12} color={FASTING_ACCENT} trackColor={dashboardColors.border} glow>
+              <AppProgressRing progress={state.progress} size={180} strokeWidth={12} color={accent} trackColor={dashboardColors.border} glow>
+                <AppText variant="label" color={accent} style={{ letterSpacing: 1.2 }}>
+                  {state.phase === 'eating' ? 'EATING' : state.goalReached ? 'GOAL REACHED' : 'FASTING'}
+                </AppText>
                 <AppText variant="metricLarge" color={dashboardColors.textPrimary}>
-                  {Math.round(Math.min(progress.progress, 1) * 100)}%
+                  {Math.round(Math.min(state.progress, 1) * 100)}%
                 </AppText>
-                <AppText variant="bodySmall" color={dashboardColors.textMuted}>
-                  {activeFast.method}
-                </AppText>
+                {schedule || activeFast ? (
+                  <AppText variant="bodySmall" color={dashboardColors.textMuted}>
+                    {activeFast
+                      ? sessionModelLabel(activeFast)
+                      : formatModelLabel({ method: plan?.method ?? 'individual', fastingHours: schedule?.fastingHours ?? 0, eatingHours: schedule?.eatingHours ?? 0 })}
+                  </AppText>
+                ) : null}
               </AppProgressRing>
-              <AppText variant="bodyMedium" color={dashboardColors.textPrimary} style={{ marginTop: theme.spacing.sm }}>
-                {t('fasting.elapsed', { duration: formatDurationHM(progress.elapsedMs) })}
+              <AppText variant="bodyMedium" color={dashboardColors.textPrimary} style={{ marginTop: theme.spacing.sm }} align="center">
+                {state.nextTransition
+                  ? `${state.nextTransition.kind === 'eating_begins' ? 'Eating window begins' : state.nextTransition.kind === 'fasting_begins' ? 'Fasting begins' : 'Goal reached'} ${formatDayClock(state.nextTransition.at, now)}`
+                  : t('fasting.elapsed', { duration: formatDurationHM(state.elapsedMs) })}
+              </AppText>
+              <AppText variant="bodySmall" color={dashboardColors.textMuted} align="center" style={{ marginTop: 2 }}>
+                {state.nextTransition ? `in ${formatSpan(state.remainingMs)}` : ''}
               </AppText>
               <Pressable
                 onPress={() => navigation.navigate('ActiveFast')}
                 accessibilityRole="button"
-                accessibilityLabel={t('fasting.viewActiveFast')}
+                accessibilityLabel={state.phase === 'eating' ? 'View eating window' : t('fasting.viewActiveFast')}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: FASTING_ACCENT,
+                  backgroundColor: accent,
                   paddingHorizontal: theme.spacing.md,
                   paddingVertical: 10,
                   borderRadius: theme.radius.pill,
@@ -74,9 +91,22 @@ export const FastingHomeScreen: React.FC = () => {
                 }}
               >
                 <AppText variant="bodyMedium" weight="700" color={dashboardColors.background}>
-                  {t('fasting.viewActiveFast')}
+                  {state.phase === 'eating' ? 'View eating window' : t('fasting.viewActiveFast')}
                 </AppText>
               </Pressable>
+              {state.phase === 'eating' ? (
+                <Pressable
+                  onPress={() => navigation.navigate('SelectFastingMethod', { mode: 'start' })}
+                  accessibilityRole="button"
+                  accessibilityLabel="Start your next fast early"
+                  hitSlop={8}
+                  style={{ paddingVertical: theme.spacing.sm }}
+                >
+                  <AppText variant="bodySmall" color={dashboardColors.textSecondary}>
+                    Start next fast early
+                  </AppText>
+                </Pressable>
+              ) : null}
             </HeroCard>
           ) : (
             <HeroCard style={[dashboardCardStyle, { alignItems: 'center', marginBottom: theme.spacing.md, paddingVertical: theme.spacing.lg }]}>
@@ -96,13 +126,15 @@ export const FastingHomeScreen: React.FC = () => {
                 <AppIcon name="timer-outline" size={32} color={FASTING_ACCENT} />
               </View>
               <AppText variant="headingMedium" color={dashboardColors.textPrimary}>
-                {t('fasting.noActiveFast')}
+                {state.nextFastStart ? 'Next fast' : t('fasting.noActiveFast')}
               </AppText>
               <AppText variant="bodyMedium" color={dashboardColors.textSecondary} align="center" style={{ marginVertical: theme.spacing.sm }}>
-                {t('fasting.noActiveFastBody')}
+                {state.nextFastStart
+                  ? `Fasting begins ${formatDayClock(state.nextFastStart, now)}, in ${formatSpan(state.nextFastStart.getTime() - now.getTime())}.`
+                  : t('fasting.noActiveFastBody')}
               </AppText>
               <Pressable
-                onPress={() => navigation.navigate('SelectFastingMethod')}
+                onPress={() => navigation.navigate('SelectFastingMethod', { mode: 'start' })}
                 accessibilityRole="button"
                 accessibilityLabel={t('fasting.startFast')}
                 style={{
@@ -120,6 +152,30 @@ export const FastingHomeScreen: React.FC = () => {
               </Pressable>
             </HeroCard>
           )}
+
+          {schedule && plan ? (
+            <Pressable
+              onPress={() => navigation.navigate('SelectFastingMethod', { mode: 'edit' })}
+              accessibilityRole="button"
+              accessibilityLabel="Edit fasting schedule"
+              style={({ pressed }) => [dashboardCardStyle, { flexDirection: 'row', alignItems: 'center', padding: theme.spacing.sm, marginBottom: theme.spacing.md, opacity: pressed ? 0.85 : 1 }]}
+            >
+              <View style={{ flex: 1 }}>
+                <AppText variant="caption" color={dashboardColors.textMuted}>
+                  Your schedule
+                </AppText>
+                <AppText variant="bodyLarge" weight="600" color={dashboardColors.textPrimary}>
+                  {formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours })} · fasting from {formatClock(new Date(2000, 0, 1, 0, schedule.startMinutes))}
+                </AppText>
+                <AppText variant="bodySmall" color={dashboardColors.textSecondary}>
+                  Eating window opens {formatClock(new Date(2000, 0, 1, 0, schedule.startMinutes + schedule.fastingHours * 60))}
+                </AppText>
+              </View>
+              <AppText variant="bodySmall" weight="700" color={FASTING_ACCENT}>
+                Edit
+              </AppText>
+            </Pressable>
+          ) : null}
 
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -theme.spacing.xxs }}>
             <StatTile index={0} label={t('fasting.stats.currentStreak')} value={`${stats.currentStreak}${t('units.daysShort')}`} />

@@ -3,8 +3,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FastingStackParamList } from './types';
 import { FastingHomeScreen } from '@/screens/fasting/FastingHomeScreen';
 import { SelectFastingMethodScreen } from '@/screens/fasting/SelectFastingMethodScreen';
-import { CustomFastingScreen } from '@/screens/fasting/CustomFastingScreen';
-import { CreateFastingPlanScreen } from '@/screens/fasting/CreateFastingPlanScreen';
 import { FastingPlansScreen } from '@/screens/fasting/FastingPlansScreen';
 import { FastingStartedScreen } from '@/screens/fasting/FastingStartedScreen';
 import { ActiveFastScreen } from '@/screens/fasting/ActiveFastScreen';
@@ -20,8 +18,6 @@ export const FastingNavigator: React.FC = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="FastingHome" component={FastingHomeScreen} />
     <Stack.Screen name="SelectFastingMethod" component={SelectFastingMethodScreen} />
-    <Stack.Screen name="CustomFasting" component={CustomFastingScreen} />
-    <Stack.Screen name="CreateFastingPlan" component={CreateFastingPlanScreen} />
     <Stack.Screen name="FastingPlans" component={FastingPlansScreen} />
     <Stack.Screen name="FastingStarted" component={FastingStartedScreen} />
     <Stack.Screen name="ActiveFast" component={ActiveFastScreen} />

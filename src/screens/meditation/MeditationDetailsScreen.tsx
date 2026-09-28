@@ -8,7 +8,7 @@ import { sectionEnvironments } from '@/theme/environments';
 import { AppText } from '@/components/common/AppText';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppIcon } from '@/components/common/AppIcon';
-import { GlowOrb } from '@/components/common/GlowOrb';
+import { LinearGradient } from 'expo-linear-gradient';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
@@ -19,6 +19,8 @@ import { selectMeditationContent, selectMeditationFavorites } from '@/features/m
 import { toggleMeditationFavoriteThunk } from '@/features/meditation/meditationSlice';
 import { getMeditationTopicLabel, getMeditationModeLabel, getUnguidedSoundCategoryLabel } from '@/features/meditation/meditationTaxonomy';
 import { dashboardColors } from '@/features/dashboard/dashboardTheme';
+import { MeditationArt, getMeditationArtKind } from '@/features/meditation/components/MeditationArt';
+import { Meditation } from '@/features/meditation/models';
 
 // Same "gentle departure" duration used before the Start button actually
 // navigates — long enough to read as a deliberate transition into a new
@@ -95,7 +97,7 @@ export const MeditationDetailsScreen: React.FC = () => {
       }
     >
       <FadeSlideIn fromScale={0.95} fromY={0}>
-        <MeditationArtwork />
+        <MeditationBanner meditation={meditation} />
       </FadeSlideIn>
 
       <FadeSlideIn delay={1 * motion.staggerStepMs}>
@@ -126,29 +128,16 @@ export const MeditationDetailsScreen: React.FC = () => {
   );
 };
 
-/** A quiet preview of the session's central visual — same seated-figure mark and ring language the Player screen uses, so tapping Start feels like a continuation rather than a jump to something new. */
-const MeditationArtwork: React.FC = React.memo(() => {
-  const size = 160;
-  return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', height: size, marginTop: 4 }}>
-      <GlowOrb size={size * 1.4} color={dashboardColors.accent} opacity={0.2} pulse style={{ top: (size - size * 1.4) / 2, left: (size - size * 1.4) / 2 }} />
-      <View
-        style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderWidth: 1.5,
-          borderColor: dashboardColors.accent + '40',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <AppIcon name="meditation" family="material-community" size={64} color={dashboardColors.accent} />
-      </View>
+/** The session's own scene as a banner - the same artwork family as the browse rows, so opening an item feels like zooming in on it. */
+const MeditationBanner: React.FC<{ meditation: Meditation }> = React.memo(({ meditation }) => (
+  <View style={{ height: 190, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: dashboardColors.border, backgroundColor: dashboardColors.surface }}>
+    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+      <MeditationArt kind={getMeditationArtKind(meditation)} seed={meditation.id} />
     </View>
-  );
-});
-MeditationArtwork.displayName = 'MeditationArtwork';
+    <LinearGradient colors={['rgba(6,8,10,0)', 'rgba(6,8,10,0.55)']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '55%' }} pointerEvents="none" />
+  </View>
+));
+MeditationBanner.displayName = 'MeditationBanner';
 
 const Tag: React.FC<{ label: string }> = ({ label }) => {
   const { theme } = useTheme();

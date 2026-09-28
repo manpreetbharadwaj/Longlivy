@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MeditationStackParamList } from './types';
 import { MeditationHomeScreen } from '@/screens/meditation/MeditationHomeScreen';
 import { MeditationCategoriesScreen } from '@/screens/meditation/MeditationCategoriesScreen';
+import { MeditationSoundscapesScreen } from '@/screens/meditation/MeditationSoundscapesScreen';
 import { MeditationDetailsScreen } from '@/screens/meditation/MeditationDetailsScreen';
 import { MeditationPlayerScreen } from '@/screens/meditation/MeditationPlayerScreen';
 import { BreathingExerciseScreen } from '@/screens/meditation/BreathingExerciseScreen';
@@ -19,6 +20,7 @@ export const MeditationNavigator: React.FC = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="MeditationHome" component={MeditationHomeScreen} />
     <Stack.Screen name="MeditationCategories" component={MeditationCategoriesScreen} />
+    <Stack.Screen name="MeditationSoundscapes" component={MeditationSoundscapesScreen} />
     <Stack.Screen name="MeditationDetails" component={MeditationDetailsScreen} />
     {/* gestureEnabled: false — both screens have a live audio session +
         in-progress Meditation record; an iOS edge-swipe dismissal would

@@ -14,6 +14,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { fastingRepository } from '@/features/fasting/repository/MockFastingRepository';
 import { FastingSession } from '@/features/fasting/models';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
+import { sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
 
 export const FastSummaryScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -46,7 +47,7 @@ export const FastSummaryScreen: React.FC = () => {
       </View>
 
       <AppCard>
-        <Row label="Method" value={session.method} />
+        <Row label="Method" value={sessionModelLabel(session)} />
         <Row label="Category" value={session.category} />
         <Row label="Planned duration" value={formatDurationHM(session.plannedDuration)} />
         <Row label="Actual duration" value={formatDurationHM(session.actualDuration ?? 0)} />

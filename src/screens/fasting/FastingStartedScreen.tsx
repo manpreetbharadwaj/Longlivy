@@ -12,6 +12,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
 import { selectActiveFast } from '@/features/fasting/selectors';
 import { motion } from '@/theme/motion';
+import { sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
+import { formatDayClock } from '@/features/fasting/services/fastingFormat';
 import { FastingHeroLayout } from './FastingHeroLayout';
 
 const AUTO_ADVANCE_MS = 1900;
@@ -50,7 +52,8 @@ export const FastingStartedScreen: React.FC = () => {
 
   const markStyle = useAnimatedStyle(() => ({ opacity: opacity.value, transform: [{ scale: scale.value }] }));
 
-  const methodLabel = activeFast?.method === 'individual' ? 'Individual fast' : activeFast?.method;
+  const eatingHours = activeFast?.eatingHours ?? 0;
+  const methodLabel = activeFast ? sessionModelLabel(activeFast) : null;
   const plannedEnd = activeFast ? new Date(activeFast.plannedEndTimestamp) : null;
 
   return (
@@ -87,7 +90,7 @@ export const FastingStartedScreen: React.FC = () => {
             <FadeSlideIn delay={motion.duration.base + motion.staggerStepMs * 2}>
               <AppText variant="bodyLarge" color="rgba(255,255,255,0.7)" align="center" style={{ marginTop: theme.spacing.xs }}>
                 {methodLabel}
-                {plannedEnd ? ` · planned end ${plannedEnd.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })}` : ''}
+                {plannedEnd ? ` · ${eatingHours > 0 ? 'eating window begins' : 'planned end'} ${formatDayClock(plannedEnd, new Date())}` : ''}
               </AppText>
             </FadeSlideIn>
           ) : null}

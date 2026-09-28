@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { bootstrapSession } from '@/features/auth/authSlice';
 import { selectAuthBootstrapped, selectIsAuthenticated, selectOnboardingComplete } from '@/features/auth/selectors';
 import { hydrateProfileThunk } from '@/features/profile/profileSlice';
+import { hydrateCalorieThunk } from '@/features/calories/calorieSlice';
 import { selectHasAddress, selectProfileHydrated } from '@/features/profile/selectors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -36,6 +37,7 @@ export const RootNavigator: React.FC = () => {
     // again on every cold launch, judged against the fresh-process
     // DEMO_USER default for the instant before hydration resolves.
     dispatch(hydrateProfileThunk());
+    dispatch(hydrateCalorieThunk());
     const timer = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
     return () => clearTimeout(timer);
   }, [dispatch]);

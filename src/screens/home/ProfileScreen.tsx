@@ -67,8 +67,8 @@ export const ProfileScreen: React.FC = () => {
       <View style={[dashboardCardStyle, { marginTop: theme.spacing.xl, padding: theme.spacing.sm }]}>
         <StatRow index={0} icon="resize-outline" label={t('profile.height')} value={`${profile.heightCm} ${t('units.cm')}`} />
         <StatRow index={1} icon="scale-outline" label={t('profile.weight')} value={`${profile.weightKg} ${t('units.kg')}`} />
-        <StatRow index={2} icon="walk-outline" label={t('profile.activityLevel')} value={t(`enums.activityLevel.${profile.activityLevel}`)} />
-        <StatRow index={3} icon="flag-outline" label={t('profile.goal')} value={t(`enums.goal.${profile.goal}`)} isLast />
+        <StatRow index={2} icon="walk-outline" label={t('profile.activityLevel')} value={t(`enums.activityLevel.${profile.activityLevel}`)} onPress={() => navigation.navigate('EditProfile')} />
+        <StatRow index={3} icon="flag-outline" label={t('profile.goal')} value={t(`enums.goal.${profile.goal}`)} onPress={() => navigation.navigate('EditProfile')} isLast />
       </View>
 
       <View style={{ marginTop: theme.spacing.lg }}>
@@ -152,11 +152,16 @@ const ProfileAvatar: React.FC<{ avatarId?: string; name: string }> = React.memo(
 });
 ProfileAvatar.displayName = 'ProfileAvatar';
 
-const StatRow: React.FC<{ index: number; icon: AppIconName; label: string; value: string; capitalize?: boolean; isLast?: boolean }> = React.memo(({ index, icon, label, value, capitalize, isLast }) => {
+const StatRow: React.FC<{ index: number; icon: AppIconName; label: string; value: string; capitalize?: boolean; isLast?: boolean; onPress?: () => void }> = React.memo(({ index, icon, label, value, capitalize, isLast, onPress }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   return (
     <FadeSlideIn delay={index * motion.staggerStepMs} fromY={6}>
-      <View
+      <Pressable
+        onPress={onPress}
+        disabled={!onPress}
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={onPress ? `${label}, ${value}. ${t('common.edit')}` : undefined}
         style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -186,7 +191,12 @@ const StatRow: React.FC<{ index: number; icon: AppIconName; label: string; value
         <AppText variant="bodyLarge" weight="600" color={dashboardColors.accent} style={capitalize ? { textTransform: 'capitalize' } : undefined}>
           {value}
         </AppText>
-      </View>
+        {onPress ? (
+          <View style={{ marginLeft: theme.spacing.xs }}>
+            <AppIcon name="chevron-forward" size={16} color={dashboardColors.textMuted} />
+          </View>
+        ) : null}
+      </Pressable>
     </FadeSlideIn>
   );
 });

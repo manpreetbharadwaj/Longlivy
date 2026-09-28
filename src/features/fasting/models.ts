@@ -43,6 +43,13 @@ export interface FastingPlan {
   endDate?: string;
   timezone: string;
   active: boolean;
+  /**
+   * The schedule's own fasting/eating split. Optional because plans saved
+   * before custom splits existed carry only `method` - read them through
+   * `scheduleFromPlan` (selectors), which falls back to the method's table.
+   */
+  fastingHours?: number;
+  eatingHours?: number;
   notificationSettings: {
     fastingBegins: boolean;
     fastingEnds: boolean;
@@ -84,6 +91,8 @@ export interface FastingSession {
   originalPlannedEnd: string;
   extensionCount: number;
   source: 'manual' | 'plan';
+  /** Hours of eating window that follow this fast (a daily model). Absent or 0 for a single long fast - and on sessions recorded before this existed. */
+  eatingHours?: number;
 }
 
 export const FASTING_METHODS: FastingMethodDefinition[] = [
