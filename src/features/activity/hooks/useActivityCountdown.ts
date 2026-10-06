@@ -39,7 +39,7 @@ interface UseActivityCountdownResult {
  * out of sync with the displayed number.
  */
 export function useActivityCountdown(activityType: ActivityType | null, onGo: () => void): UseActivityCountdownResult {
-  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
+  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(() => (activityType ? PRE_START_COUNTDOWN_SECONDS : null));
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastAnnouncedRef = useRef<number | null>(null);
   const onGoRef = useRef(onGo);

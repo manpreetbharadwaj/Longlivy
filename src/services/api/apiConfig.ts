@@ -7,17 +7,22 @@ import { env } from '@/config/env';
  */
 export const API_ENDPOINTS = {
   auth: {
-    login: '/auth/login',
-    register: '/auth/register',
-    refresh: '/auth/refresh',
-    logout: '/auth/logout',
-    resetPassword: '/auth/reset-password',
-    verifyEmail: '/auth/verify-email',
+    login: '/login',
+    register: '/register',
+    me: '/me',
   },
   user: {
-    me: '/users/me',
-    updateProfile: '/users/me',
-    search: '/users/search',
+    me: '/me',
+  },
+  goals: {
+    collection: '/goals',
+    show: (id: string) => `/show/${encodeURIComponent(id)}`,
+    byId: (id: string) => `/goals/${encodeURIComponent(id)}`,
+    progress: (id: string) => `/goals/${encodeURIComponent(id)}/progress`,
+  },
+  streaks: {
+    collection: '/streaks',
+    byType: (type: string) => `/streaks/${encodeURIComponent(type)}`,
   },
 } as const;
 

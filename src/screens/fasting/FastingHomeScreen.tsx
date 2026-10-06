@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Pressable } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FastingStackParamList } from '@/navigation/types';
@@ -16,10 +17,13 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loadFastingData } from '@/features/fasting/fastingSlice';
 import { selectFastingPlan, selectFastingStats, selectFastingStatus } from '@/features/fasting/selectors';
 import { useFastingCycle } from '@/features/fasting/hooks/useFastingCycle';
+import { FastingPlan } from '@/features/fasting/models';
+import { FastingSchedule } from '@/features/fasting/services/FastingSchedule';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
 import { formatModelLabel, sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
 import { formatClock, formatDayClock, formatSpan } from '@/features/fasting/services/fastingFormat';
 import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
+import { pillarGradients } from '@/theme/gradients';
 import { FastingHeroLayout } from './FastingHeroLayout';
 
 // Fasting's own identity color — muted violet — rather than the generic
@@ -109,48 +113,13 @@ export const FastingHomeScreen: React.FC = () => {
               ) : null}
             </HeroCard>
           ) : (
-            <HeroCard style={[dashboardCardStyle, { alignItems: 'center', marginBottom: theme.spacing.md, paddingVertical: theme.spacing.lg }]}>
-              <View
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: 36,
-                  backgroundColor: dashboardColors.surfaceSecondary,
-                  borderWidth: 1,
-                  borderColor: dashboardColors.borderStrong,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: theme.spacing.sm,
-                }}
-              >
-                <AppIcon name="timer-outline" size={32} color={FASTING_ACCENT} />
-              </View>
-              <AppText variant="headingMedium" color={dashboardColors.textPrimary}>
-                {state.nextFastStart ? 'Next fast' : t('fasting.noActiveFast')}
-              </AppText>
-              <AppText variant="bodyMedium" color={dashboardColors.textSecondary} align="center" style={{ marginVertical: theme.spacing.sm }}>
-                {state.nextFastStart
-                  ? `Fasting begins ${formatDayClock(state.nextFastStart, now)}, in ${formatSpan(state.nextFastStart.getTime() - now.getTime())}.`
-                  : t('fasting.noActiveFastBody')}
-              </AppText>
-              <Pressable
-                onPress={() => navigation.navigate('SelectFastingMethod', { mode: 'start' })}
-                accessibilityRole="button"
-                accessibilityLabel={t('fasting.startFast')}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: FASTING_ACCENT,
-                  paddingHorizontal: theme.spacing.xl,
-                  paddingVertical: 12,
-                  borderRadius: theme.radius.pill,
-                }}
-              >
-                <AppText variant="bodyMedium" weight="700" color={dashboardColors.background}>
-                  {t('fasting.startFast')}
-                </AppText>
-              </Pressable>
-            </HeroCard>
+            <IdleFastHero
+              nextFastStart={state.nextFastStart}
+              now={now}
+              schedule={schedule}
+              plan={plan}
+              onStart={() => navigation.navigate('SelectFastingMethod', { mode: 'start' })}
+            />
           )}
 
           {schedule && plan ? (
@@ -196,6 +165,114 @@ export const FastingHomeScreen: React.FC = () => {
     </FastingHeroLayout>
   );
 };
+
+interface IdleFastHeroProps {
+  nextFastStart: Date | null;
+  now: Date;
+  schedule: FastingSchedule | null;
+  plan: FastingPlan | null;
+  onStart: () => void;
+}
+
+const IdleFastHero: React.FC<IdleFastHeroProps> = React.memo(({ nextFastStart, now, schedule, plan, onStart }) => {
+  const { theme } = useTheme();
+  const { t } = useTranslation();
+  const hasSchedule = Boolean(schedule && plan);
+  const protocolLabel = hasSchedule && schedule && plan
+    ? formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours })
+    : null;
+
+  return (
+    <HeroCard style={[dashboardCardStyle, { padding: 0, overflow: 'hidden', marginBottom: theme.spacing.md }]}>
+      <LinearGradient
+        colors={pillarGradients.fasting}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ padding: theme.spacing.lg }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <AppText variant="caption" color="rgba(255,255,255,0.72)" style={{ letterSpacing: 1.4 }}>
+              {hasSchedule ? 'UP NEXT' : 'FASTING MODE'}
+            </AppText>
+            <AppText variant="headingLarge" color="#FFFFFF" style={{ marginTop: 2 }}>
+              {nextFastStart ? 'Next fast' : t('fasting.noActiveFast')}
+            </AppText>
+          </View>
+          <View style={{ width: 44, height: 44, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+            <AppIcon name="timer-outline" size={24} color="#FFFFFF" />
+          </View>
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: theme.spacing.lg }}>
+          <AppProgressRing progress={0} size={132} strokeWidth={10} color="#E5DDF4" trackColor="rgba(255,255,255,0.18)" glow icon="timer-outline" iconSize={34} iconColor="#FFFFFF" />
+          <View style={{ flex: 1, marginLeft: theme.spacing.md }}>
+            {nextFastStart ? (
+              <>
+                <AppText variant="label" color="rgba(255,255,255,0.72)">
+                  Scheduled start
+                </AppText>
+                <AppText variant="headingMedium" color="#FFFFFF" style={{ marginTop: 3 }}>
+                  {formatDayClock(nextFastStart, now)}
+                </AppText>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: theme.spacing.xs }}>
+                  <AppIcon name="time-outline" size={15} color="#E5DDF4" />
+                  <AppText variant="bodySmall" color="rgba(255,255,255,0.82)" style={{ marginLeft: 5 }}>
+                    Starts in {formatSpan(nextFastStart.getTime() - now.getTime())}
+                  </AppText>
+                </View>
+              </>
+            ) : (
+              <AppText variant="bodyMedium" color="rgba(255,255,255,0.82)">
+                {t('fasting.noActiveFastBody')}
+              </AppText>
+            )}
+          </View>
+        </View>
+
+        {hasSchedule && schedule && protocolLabel ? (
+          <View style={{ marginTop: theme.spacing.lg, padding: theme.spacing.sm, borderRadius: theme.radius.md, backgroundColor: 'rgba(0,0,0,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)' }}>
+            <AppText variant="caption" color="rgba(255,255,255,0.68)" style={{ letterSpacing: 1.2 }}>
+              YOUR PROTOCOL
+            </AppText>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 3 }}>
+              <AppText variant="bodyLarge" weight="700" color="#FFFFFF">
+                {protocolLabel}
+              </AppText>
+              <AppText variant="bodySmall" color="rgba(255,255,255,0.82)">
+                Starts {formatClock(new Date(2000, 0, 1, 0, schedule.startMinutes))}
+              </AppText>
+            </View>
+            <AppText variant="caption" color="rgba(255,255,255,0.68)" style={{ marginTop: 2 }}>
+              {schedule.eatingHours > 0 ? `${schedule.fastingHours}h fasting · ${schedule.eatingHours}h eating window` : `${schedule.fastingHours}h single fast`}
+            </AppText>
+          </View>
+        ) : null}
+
+        <Pressable
+          onPress={onStart}
+          accessibilityRole="button"
+          accessibilityLabel={t('fasting.startFast')}
+          style={({ pressed }) => ({
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: pressed ? '#D4C9EB' : '#E5DDF4',
+            minHeight: 52,
+            borderRadius: theme.radius.lg,
+            marginTop: theme.spacing.lg,
+          })}
+        >
+          <AppIcon name="play" size={17} color={FASTING_ACCENT} />
+          <AppText variant="headingSmall" color="#4B3E63" style={{ marginLeft: 8 }}>
+            {t('fasting.startFast')}
+          </AppText>
+        </Pressable>
+      </LinearGradient>
+    </HeroCard>
+  );
+});
+IdleFastHero.displayName = 'IdleFastHero';
 
 const StatTile: React.FC<{ index: number; label: string; value: string }> = React.memo(({ index, label, value }) => {
   const { theme } = useTheme();

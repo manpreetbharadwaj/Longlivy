@@ -9,8 +9,8 @@ import { MainTabNavigator } from './MainTabNavigator';
 import { useAppPreferences } from '@/contexts/AppPreferencesContext';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { bootstrapSession } from '@/features/auth/authSlice';
-import { selectAuthBootstrapped, selectIsAuthenticated, selectOnboardingComplete } from '@/features/auth/selectors';
-import { hydrateProfileThunk } from '@/features/profile/profileSlice';
+import { selectAuthBootstrapped, selectAuthUser, selectIsAuthenticated, selectOnboardingComplete } from '@/features/auth/selectors';
+import { hydrateProfileThunk, updateProfile } from '@/features/profile/profileSlice';
 import { hydrateCalorieThunk } from '@/features/calories/calorieSlice';
 import { selectHasAddress, selectProfileHydrated } from '@/features/profile/selectors';
 
@@ -23,6 +23,7 @@ export const RootNavigator: React.FC = () => {
   const bootstrapped = useAppSelector(selectAuthBootstrapped);
   const profileHydrated = useAppSelector(selectProfileHydrated);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const authUser = useAppSelector(selectAuthUser);
   const onboardingComplete = useAppSelector(selectOnboardingComplete);
   const hasAddress = useAppSelector(selectHasAddress);
   const { hydrated: prefsHydrated, preferences } = useAppPreferences();
@@ -41,6 +42,14 @@ export const RootNavigator: React.FC = () => {
     const timer = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
     return () => clearTimeout(timer);
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!authUser) return;
+    // The documented auth response is the only verified source for identity
+    // fields. Keep the rest of the profile local until the backend documents
+    // a profile-read/update contract.
+    dispatch(updateProfile({ id: authUser.id, firstName: authUser.firstName, lastName: authUser.lastName, email: authUser.email }));
+  }, [authUser, dispatch]);
 
   // `prefsHydrated` joins the splash gate so the persisted language is in
   // place before the first user-facing screen renders — no English→German

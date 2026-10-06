@@ -1,45 +1,50 @@
 import * as SecureStore from 'expo-secure-store';
 
-/**
- * The single place authentication tokens are persisted. Uses the platform
- * keychain/keystore via expo-secure-store rather than AsyncStorage — tokens
- * are more sensitive than the rest of this app's locally-mocked data and
- * deserve encrypted-at-rest storage.
- *
- * Nothing outside this module should read/write these SecureStore keys
- * directly — that's what keeps "where is the token actually stored" a
- * one-file answer.
- */
-
+/** SecureStore is the sole persistence boundary for the access token. */
 const ACCESS_TOKEN_KEY = 'longlivy.auth.accessToken';
-const REFRESH_TOKEN_KEY = 'longlivy.auth.refreshToken';
+const USER_KEY = 'longlivy.auth.user';
 
 export interface TokenPair {
   accessToken: string;
-  refreshToken: string | null;
+}
+
+export interface StoredAuthUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  emailVerified: boolean;
 }
 
 async function getAccessToken(): Promise<string | null> {
   return SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
 }
 
-async function getRefreshToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
-}
-
 async function getTokens(): Promise<TokenPair | null> {
-  const [accessToken, refreshToken] = await Promise.all([getAccessToken(), getRefreshToken()]);
-  if (!accessToken) return null;
-  return { accessToken, refreshToken };
+  const accessToken = await getAccessToken();
+  return accessToken ? { accessToken } : null;
 }
 
 async function saveTokens(tokens: TokenPair): Promise<void> {
-  const writes = [SecureStore.setItemAsync(ACCESS_TOKEN_KEY, tokens.accessToken)];
-  if (tokens.refreshToken) writes.push(SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokens.refreshToken));
-  await Promise.all(writes);
+  await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, tokens.accessToken);
 }
 
-/** Updates only the access token — used after a successful refresh when the backend doesn't rotate the refresh token. */
+async function saveUser(user: StoredAuthUser): Promise<void> {
+  await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+}
+
+async function getUser(): Promise<StoredAuthUser | null> {
+  const raw = await SecureStore.getItemAsync(USER_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as StoredAuthUser;
+    if (!parsed.id || !parsed.email) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 async function updateAccessToken(accessToken: string): Promise<void> {
   await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
 }
@@ -47,15 +52,16 @@ async function updateAccessToken(accessToken: string): Promise<void> {
 async function clearTokens(): Promise<void> {
   await Promise.all([
     SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY).catch(() => undefined),
-    SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY).catch(() => undefined),
+    SecureStore.deleteItemAsync(USER_KEY).catch(() => undefined),
   ]);
 }
 
 export const tokenStorage = {
   getAccessToken,
-  getRefreshToken,
   getTokens,
   saveTokens,
+  saveUser,
+  getUser,
   updateAccessToken,
   clearTokens,
 };

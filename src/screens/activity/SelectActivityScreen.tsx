@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Alert, Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityStackParamList } from '@/navigation/types';
@@ -7,7 +7,8 @@ import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { AppText } from '@/components/common/AppText';
 import { SceneCard } from '@/components/common/SceneCard';
 import { useTheme } from '@/hooks/useTheme';
-import { ActivityType, ACTIVITY_TYPE_LABELS, SELECTABLE_ACTIVITY_TYPES } from '@/features/activity/models';
+import { ActivityType, ACTIVITY_TYPE_LABELS, GPS_BASED_TYPES, SELECTABLE_ACTIVITY_TYPES } from '@/features/activity/models';
+import { prepareActivityLocation } from '@/features/activity/services/LocationPermissionService';
 import { ActivityArt, getActivityArtKind } from '@/features/activity/components/ActivityArt';
 import { dashboardColors } from '@/features/dashboard/dashboardTheme';
 
@@ -23,6 +24,7 @@ const SUBTITLES: Record<ActivityType, string> = {
 export const SelectActivityScreen: React.FC = () => {
   const { theme } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
+  const [startingType, setStartingType] = useState<ActivityType | null>(null);
 
   // Choosing a type no longer starts the real Activity — it only hands the
   // type to the pre-start countdown on ActiveActivityScreen. The workout
@@ -30,10 +32,33 @@ export const SelectActivityScreen: React.FC = () => {
   // useActivityCountdown / ActiveActivityScreen), so tapping "Start Run"
   // here must not itself mean duration has begun.
   const start = useCallback(
-    (type: ActivityType) => {
+    async (type: ActivityType) => {
+      if (startingType) return;
+      setStartingType(type);
+
+      if (GPS_BASED_TYPES.includes(type)) {
+        const preparation = await prepareActivityLocation();
+        if (!preparation.ready) {
+          setStartingType(null);
+          Alert.alert('Location required', preparation.message, [
+            { text: 'Cancel', style: 'cancel' },
+            preparation.canOpenSettings
+              ? {
+                  text: 'Open Settings',
+                  onPress: () => {
+                    Linking.openSettings().catch(() => undefined);
+                  },
+                }
+              : { text: 'OK' },
+          ]);
+          return;
+        }
+      }
+
+      setStartingType(null);
       navigation.replace('ActiveActivity', { pendingType: type });
     },
-    [navigation]
+    [navigation, startingType]
   );
 
   return (

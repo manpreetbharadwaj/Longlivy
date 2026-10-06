@@ -75,12 +75,14 @@ export const NutritionDashboardScreen: React.FC = () => {
 
       <FoodEntryActions onOpen={(route) => navigation.navigate(route as never)} />
 
+      <SectionTitle title="Macros" />
       <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
         <MacroTile index={0} label={t('nutrition.macros.protein')} icon="egg-outline" progress={progress.protein} color="#C9974E" />
         <MacroTile index={1} label={t('nutrition.macros.carbs')} icon="pizza-outline" progress={progress.carbohydrates} color="#6E8FAE" />
         <MacroTile index={2} label={t('nutrition.macros.fat')} icon="water-outline" progress={progress.fat} color="#8B7FA8" isLast />
       </View>
 
+      <SectionTitle title="Today's meals" />
       {MEAL_TYPES.map((mt, index) => {
         const meal = mealFor(mt.key);
         return (
@@ -132,9 +134,7 @@ export const NutritionDashboardScreen: React.FC = () => {
         </View>
       ) : null}
 
-      <AppText variant="headingSmall" color={dashboardColors.textPrimary} style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
-        {t('nutrition.quickAddTitle')}
-      </AppText>
+      <SectionTitle title={t('nutrition.quickAddTitle')} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: theme.spacing.md, marginHorizontal: -theme.spacing.xxs }}>
         {QUICK_LINKS.map((link, index) => (
           <View key={link.nav} style={{ width: '50%', paddingHorizontal: theme.spacing.xxs, marginBottom: theme.spacing.xs }}>
@@ -189,7 +189,7 @@ const FoodEntryActions: React.FC<{ onOpen: (route: keyof NutritionStackParamList
           colors={pillarGradients.nutrition}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={{ borderRadius: 22, padding: theme.spacing.sm, marginBottom: theme.spacing.sm }}
+          style={{ borderRadius: dashboardCardStyle.borderRadius ?? theme.radius.lg, padding: theme.spacing.sm, marginBottom: theme.spacing.sm }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm, paddingHorizontal: theme.spacing.xxs }}>
             <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginRight: theme.spacing.sm }}>
@@ -254,6 +254,18 @@ const FoodEntryActions: React.FC<{ onOpen: (route: keyof NutritionStackParamList
   );
 });
 FoodEntryActions.displayName = 'FoodEntryActions';
+
+const SectionTitle: React.FC<{ title: string }> = React.memo(({ title }) => {
+  const { theme } = useTheme();
+  return (
+    <View style={{ marginTop: theme.spacing.xl, marginBottom: theme.spacing.sm }}>
+      <AppText variant="headingMedium" color={dashboardColors.textPrimary}>
+        {title}
+      </AppText>
+    </View>
+  );
+});
+SectionTitle.displayName = 'SectionTitle';
 
 const MacroTile: React.FC<{ index: number; label: string; icon: AppIconName; progress: { current: number; target: number; percentage: number; exceeded: boolean }; color: string; isLast?: boolean }> = React.memo(
   ({ index, label, icon, progress, color, isLast }) => {

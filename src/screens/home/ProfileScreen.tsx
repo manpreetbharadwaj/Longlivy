@@ -74,9 +74,9 @@ export const ProfileScreen: React.FC = () => {
       <View style={{ marginTop: theme.spacing.lg }}>
         <ActionRow index={0} icon="person-outline" label={t('profile.editProfile')} onPress={() => navigation.navigate('EditProfile')} />
         <ActionRow index={1} icon="settings-outline" label={t('profile.settings')} onPress={() => navigation.navigate('Settings')} />
-        <ActionRow index={2} icon="heart-outline" label={t('profile.healthIntegrations')} onPress={() => navigation.navigate('HealthIntegrations')} />
-        <ActionRow index={3} icon="chatbox-ellipses-outline" label={t('profile.sendFeedback')} onPress={() => navigation.navigate('Feedback')} />
-        <ActionRow index={4} icon="shield-checkmark-outline" label={t('profile.privacy')} onPress={() => navigation.navigate('Privacy')} isLast />
+        {/* Temporarily disabled from Profile UI. Keep Health Integration implementation for possible future use. */}
+        {/* <ActionRow index={2} icon="heart-outline" label={t('profile.healthIntegrations')} onPress={() => navigation.navigate('HealthIntegrations')} /> */}
+        <ActionRow index={2} icon="shield-checkmark-outline" label={t('profile.privacy')} onPress={() => navigation.navigate('Privacy')} isLast />
       </View>
 
       <Pressable

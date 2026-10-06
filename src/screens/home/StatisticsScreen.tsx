@@ -1,6 +1,5 @@
 import React from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { SectionHeroLayout } from '@/components/common/SectionHeroLayout';
 import { sectionEnvironments } from '@/theme/environments';
 import { HeroCard } from '@/components/common/HeroCard';
@@ -30,7 +29,6 @@ const PERIODS: { key: StatisticsPeriod; label: string }[] = [
 
 export const StatisticsScreen: React.FC = () => {
   const { theme } = useTheme();
-  const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const period = useAppSelector(selectStatisticsPeriod);
   const fasting = useAppSelector(selectFastingStatisticsForPeriod);
@@ -42,7 +40,6 @@ export const StatisticsScreen: React.FC = () => {
     <SectionHeroLayout
       environment={sectionEnvironments.statistics}
       title="Statistics"
-      onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
     >
       <AppSegmentedControl variant="hero" segments={PERIODS} selectedKey={period} onChange={(k) => dispatch(setStatisticsPeriod(k as StatisticsPeriod))} />
 

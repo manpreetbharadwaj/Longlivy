@@ -49,10 +49,12 @@ export const ActivityDetailsScreen: React.FC = () => {
           <Row label="Break time" value={`${Math.round(activity.pauseDuration / 60000)} min`} />
           <Row label="Distance" value={activity.distanceMeters != null ? `${(activity.distanceMeters / 1000).toFixed(2)} km` : 'Unavailable (no GPS)'} />
           <Row label="Pace" value={activity.pace ? `${activity.pace.toFixed(1)} min/km` : '—'} />
+          <Row label="Average speed" value={activity.speed != null ? `${activity.speed.toFixed(1)} km/h` : '—'} />
           <Row label="Elevation gain" value={activity.elevationGainMeters != null ? `${activity.elevationGainMeters} m` : '—'} />
           <Row label="Route points" value={activity.route ? `${activity.route.length}` : '—'} />
           <Row label="Calories" value={`${activity.calories ?? '—'} kcal`} />
-          <Row label="Source" value={activity.calorieSource ?? activity.source} last />
+          <Row label="Calorie estimate" value={activity.calorieSource ?? '—'} />
+          <Row label="Source" value={activity.source} last />
         </HeroCard>
       )}
       {activity?.gpsUnavailableReason ? (

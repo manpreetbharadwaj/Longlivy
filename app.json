@@ -14,7 +14,7 @@
         "NSCameraUsageDescription": "Longlivy uses the camera to scan food barcodes and photograph meals for AI-assisted logging.",
         "NSPhotoLibraryUsageDescription": "Longlivy can use photos from your library to log a meal with AI-assisted recognition.",
         "NSMicrophoneUsageDescription": "Longlivy uses the microphone so you can dictate a meal description using your keyboard's voice input.",
-        "NSLocationWhenInUseUsageDescription": "Longlivy uses your location to record the route, distance and pace of GPS-based activities like running or cycling.",
+        "NSLocationWhenInUseUsageDescription": "Longlivy uses your location to record the route, distance and pace of GPS-based activities like walking, running, hiking or cycling.",
         "NSBluetoothAlwaysUsageDescription": "Longlivy uses Bluetooth to connect to your Noise smartwatch and read live activity data."
       }
     },
@@ -68,7 +68,13 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Longlivy uses your location to record the route, distance and pace of GPS-based activities like running or cycling."
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "locationWhenInUsePermission": "Longlivy uses your location to record the route, distance and pace of GPS-based activities like walking, running, hiking or cycling.",
+          "motionUsagePermission": false,
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
         }
       ],
       "expo-secure-store",

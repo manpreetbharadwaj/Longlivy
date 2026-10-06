@@ -14,6 +14,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginThunk } from '@/features/auth/authSlice';
 import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
 import { DEMO_LOGIN_EMAIL, DEMO_LOGIN_PASSWORD } from '@/mock/demoUser';
+import { env } from '@/config/env';
 import { AuthHeroLayout } from './AuthHeroLayout';
 
 // Deliberately permissive (not RFC 5322) — this only needs to catch "clearly
@@ -29,15 +30,11 @@ export const LoginScreen: React.FC = () => {
   const status = useAppSelector(selectAuthStatus);
   const error = useAppSelector(selectAuthError);
 
-  // Pre-filled with a genuinely fictitious demo credential (DEMO_LOGIN_EMAIL,
-  // not any real person's address — see demoUser.ts) so this prototype can
-  // be entered in one tap. Deliberately not DEMO_USER.email, which is the
-  // actual signed-in developer's real address and must never appear as a
-  // form default (see the [[demo-user-had-real-email]] fix this reverses
-  // the *shape* of, not the substance — that one removed a real personal
-  // email from a pre-filled field; this restores pre-filling with fake data).
-  const [email, setEmail] = useState(DEMO_LOGIN_EMAIL);
-  const [password, setPassword] = useState(DEMO_LOGIN_PASSWORD);
+  // Only the explicit local-mock build is pre-filled with the fictitious demo
+  // credential. Backend-enabled builds start blank and never embed a test
+  // account in the real sign-in flow.
+  const [email, setEmail] = useState(env.useMockApi ? DEMO_LOGIN_EMAIL : '');
+  const [password, setPassword] = useState(env.useMockApi ? DEMO_LOGIN_PASSWORD : '');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
@@ -142,9 +139,11 @@ export const LoginScreen: React.FC = () => {
           </Pressable>
         </View>
 
-        <AppText variant="caption" color="rgba(255,255,255,0.4)" align="center" style={{ marginTop: theme.spacing.lg }}>
-          {t('auth.mockNotice')}
-        </AppText>
+        {env.useMockApi ? (
+          <AppText variant="caption" color="rgba(255,255,255,0.4)" align="center" style={{ marginTop: theme.spacing.lg }}>
+            {t('auth.mockNotice')}
+          </AppText>
+        ) : null}
       </FadeSlideIn>
     </AuthHeroLayout>
   );

@@ -8,7 +8,11 @@ export interface GpsPoint {
   timestamp: string;
   accuracy: number;
   elevation?: number;
+  /** Expo altitude accuracy in meters; absent/unreliable altitude is never summed. */
+  altitudeAccuracy?: number;
   speed?: number;
+  /** The first fix after a pause, signal gap or screen change is not connected to the previous fix. */
+  segmentStart?: boolean;
 }
 
 export interface Activity {
@@ -19,6 +23,14 @@ export interface Activity {
   endTimestamp: string | null;
   activeDuration: number; // ms, excludes pauses
   pauseDuration: number; // ms
+  /** Set while a persisted activity is paused so a restart can exclude the open pause. */
+  pauseStartedTimestamp?: string | null;
+  /** Duration of accepted moving GPS segments, in ms. */
+  movingDuration?: number;
+  /** Integrated MET × hours for accepted moving segments (not a calorie constant). */
+  metHours?: number;
+  /** Real profile weight captured at GO. Missing weight means unavailable calories. */
+  trackingWeightKg?: number | null;
   distanceMeters: number | null;
   pace: number | null; // min/km
   speed: number | null; // km/h

@@ -6,6 +6,7 @@ import Animated, { AnimatedRef, ScrollHandlerProcessed } from 'react-native-rean
 import { AppText } from './AppText';
 import { AppIcon } from './AppIcon';
 import { GlowOrb } from './GlowOrb';
+import { ScreenHeader } from './ScreenHeader';
 import { useTheme } from '@/hooks/useTheme';
 import { SectionEnvironment } from '@/theme/environments';
 import { useFloatingTabBarSpacing } from '@/navigation/components/useFloatingTabBarSpacing';
@@ -71,8 +72,8 @@ export const SectionHeroLayout: React.FC<SectionHeroLayoutProps> = ({
   const measuredTabBarSpacing = useFloatingTabBarSpacing();
   const tabBarSpacing = applyTabBarSpacing ? measuredTabBarSpacing : 0;
 
-  const defaultHeader =
-    onBack || title || rightElement ? (
+  const backHeader =
+    onBack || rightElement ? (
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.md }}>
         {onBack ? (
           <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Go back" hitSlop={12} style={{ width: 32 }}>
@@ -91,6 +92,8 @@ export const SectionHeroLayout: React.FC<SectionHeroLayoutProps> = ({
         <View style={{ width: 32, alignItems: 'flex-end' }}>{rightElement}</View>
       </View>
     ) : null;
+
+  const defaultHeader = !onBack && title ? <ScreenHeader title={title} /> : backHeader;
 
   const headerContent = header !== undefined ? header : defaultHeader;
 

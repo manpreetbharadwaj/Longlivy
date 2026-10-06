@@ -78,6 +78,11 @@ const authSlice = createSlice({
     setOnboardingComplete(state, action: { payload: boolean }) {
       state.onboardingComplete = action.payload;
     },
+    markSessionExpired(state) {
+      state.session = null;
+      state.status = 'failed';
+      state.error = 'Your session has expired. Please sign in again.';
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -124,5 +129,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setOnboardingComplete } = authSlice.actions;
+export const { setOnboardingComplete, markSessionExpired } = authSlice.actions;
 export default authSlice.reducer;

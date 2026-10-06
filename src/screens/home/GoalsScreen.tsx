@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AppScreen } from '@/components/common/AppScreen';
@@ -7,11 +7,20 @@ import { AppCard } from '@/components/common/AppCard';
 import { AppText } from '@/components/common/AppText';
 import { AppSwitch } from '@/components/common/AppSwitch';
 import { AppInput } from '@/components/common/AppInput';
+import { AppEmptyState } from '@/components/common/AppEmptyState';
+import { AppErrorState } from '@/components/common/AppErrorState';
+import { AppLoader } from '@/components/common/AppLoader';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { selectAllGoals } from '@/features/goals/selectors';
-import { toggleGoal, upsertGoal } from '@/features/goals/goalsSlice';
+import {
+  selectAllGoals,
+  selectGoalsError,
+  selectGoalsMutationError,
+  selectGoalsMutationStatus,
+  selectGoalsStatus,
+} from '@/features/goals/selectors';
+import { fetchGoalsThunk, updateGoalThunk } from '@/features/goals/goalsSlice';
 
 export const GoalsScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -19,39 +28,88 @@ export const GoalsScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const goals = useAppSelector(selectAllGoals);
+  const status = useAppSelector(selectGoalsStatus);
+  const error = useAppSelector(selectGoalsError);
+  const mutationStatus = useAppSelector(selectGoalsMutationStatus);
+  const mutationError = useAppSelector(selectGoalsMutationError);
+  const [targetDrafts, setTargetDrafts] = useState<Record<string, string>>({});
 
-  const setTarget = useCallback(
-    (id: string, value: string) => {
-      const goal = goals.find((g) => g.id === id);
-      if (goal) dispatch(upsertGoal({ ...goal, target: Number(value) || 0, source: 'manual' }));
+  const loadGoals = useCallback(() => {
+    void dispatch(fetchGoalsThunk());
+  }, [dispatch]);
+
+  useEffect(() => {
+    loadGoals();
+  }, [loadGoals]);
+
+  // Draft text remains editable while a PUT is in flight, but is reset to the
+  // Redux/server value when that request succeeds or fails.
+  useEffect(() => {
+    if (mutationStatus === 'loading') return;
+    setTargetDrafts((previous) => {
+      const next: Record<string, string> = {};
+      goals.forEach((goal) => {
+        next[goal.id] = previous[goal.id] ?? String(goal.target);
+      });
+      return next;
+    });
+  }, [goals, mutationStatus]);
+
+  const updateTarget = useCallback(
+    (id: string) => {
+      const value = Number(targetDrafts[id]);
+      if (!Number.isFinite(value)) return;
+      void dispatch(updateGoalThunk({ id, changes: { target: value, source: 'manual' } }));
     },
-    [dispatch, goals]
+    [dispatch, targetDrafts]
   );
+
+  const toggle = useCallback(
+    (id: string, active: boolean) => {
+      void dispatch(updateGoalThunk({ id, changes: { active: !active } }));
+    },
+    [dispatch]
+  );
+
+  const isInitialLoading = status === 'loading' && goals.length === 0;
+  const isEmpty = status === 'succeeded' && goals.length === 0;
+  const isError = status === 'failed' && goals.length === 0;
 
   return (
     <>
       <AppHeader title={t('history.allGoals')} onBack={() => navigation.goBack()} />
-      <AppScreen>
-        {goals.map((goal) => (
-          <AppCard key={goal.id} style={{ marginBottom: theme.spacing.sm }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.xs }}>
-              <AppText variant="headingSmall" style={{ textTransform: 'capitalize' }}>
-                {goal.type.replace(/_/g, ' ')}
-              </AppText>
-              <AppSwitch value={goal.active} onValueChange={() => dispatch(toggleGoal(goal.id))} />
-            </View>
-            <AppInput
-              value={String(goal.target)}
-              onChangeText={(v) => setTarget(goal.id, v)}
-              keyboardType="numeric"
-              editable={goal.active}
-              label={`Target (${goal.unit}, per ${goal.period})`}
-            />
-            <AppText variant="caption" color={theme.colors.textTertiary} style={{ marginTop: theme.spacing.xxs }}>
-              Source: {goal.source}
-            </AppText>
-          </AppCard>
-        ))}
+      <AppScreen refreshing={status === 'loading'} onRefresh={loadGoals}>
+        {isInitialLoading ? <AppLoader label="Loading goals…" /> : null}
+        {isError ? <AppErrorState message={error ?? undefined} onRetry={loadGoals} /> : null}
+        {isEmpty ? <AppEmptyState title={t('states.emptyTitle')} message="Create a goal to start tracking your progress." /> : null}
+        {mutationError ? (
+          <AppText color={theme.colors.danger} style={{ marginBottom: theme.spacing.sm }}>
+            {mutationError}
+          </AppText>
+        ) : null}
+        {!isInitialLoading && !isError && !isEmpty
+          ? goals.map((goal) => (
+              <AppCard key={goal.id} style={{ marginBottom: theme.spacing.sm }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.xs }}>
+                  <AppText variant="headingSmall" style={{ textTransform: 'capitalize' }}>
+                    {goal.type.replace(/_/g, ' ')}
+                  </AppText>
+                  <AppSwitch value={goal.active} onValueChange={() => toggle(goal.id, goal.active)} disabled={mutationStatus === 'loading'} />
+                </View>
+                <AppInput
+                  value={targetDrafts[goal.id] ?? String(goal.target)}
+                  onChangeText={(value) => setTargetDrafts((previous) => ({ ...previous, [goal.id]: value }))}
+                  onEndEditing={() => updateTarget(goal.id)}
+                  keyboardType="numeric"
+                  editable={goal.active && mutationStatus !== 'loading'}
+                  label={`Target (${goal.unit}, per ${goal.period})`}
+                />
+                <AppText variant="caption" color={theme.colors.textTertiary} style={{ marginTop: theme.spacing.xxs }}>
+                  Source: {goal.source}
+                </AppText>
+              </AppCard>
+            ))
+          : null}
       </AppScreen>
     </>
   );

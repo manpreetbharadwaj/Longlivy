@@ -12,7 +12,8 @@ npm install
 npm run start   # then press i (iOS), a (Android), or w (web)
 ```
 
-Demo login is pre-filled on the login screen:
+When local mock mode is enabled (`EXPO_PUBLIC_USE_MOCK_API=true`), demo login is
+pre-filled on the login screen:
 
 - Email: whatever you registered with, or the seeded demo account
 - Password: `demo1234`

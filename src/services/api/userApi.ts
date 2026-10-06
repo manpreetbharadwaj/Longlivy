@@ -1,51 +1,71 @@
-import { apiRequest } from './apiClient';
+import { apiRequestParsed } from './apiClient';
 import { API_ENDPOINTS } from './apiConfig';
+import { AuthApiUser } from './authApi';
+import { ApiError } from '@/utils/apiError';
 
-/**
- * Example of the pattern to follow for every new API added later: one
- * function per endpoint, typed request/response shapes, no Axios calls
- * anywhere outside `apiClient.ts`. Copy this file's shape for the next
- * feature (e.g. `nutritionApi.ts`, `activityApi.ts`, ...).
- */
-
-export interface UserApiProfile {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  emailVerified: boolean;
-}
+export type UserApiProfile = AuthApiUser;
 
 export interface UpdateProfilePayload {
   firstName?: string;
   lastName?: string;
 }
 
-function getCurrentUser(): Promise<UserApiProfile> {
-  return apiRequest<UserApiProfile>({ method: 'GET', url: API_ENDPOINTS.user.me });
+export interface ReauthenticatePayload {
+  email: string;
+  password: string;
 }
 
-function updateProfile(payload: UpdateProfilePayload): Promise<UserApiProfile> {
-  return apiRequest<UserApiProfile>({ method: 'PATCH', url: API_ENDPOINTS.user.updateProfile, data: payload });
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function stringValue(value: unknown): string | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function unwrapUser(value: unknown): Record<string, unknown> {
+  if (!isRecord(value)) throw new ApiError({ kind: 'malformed' });
+  const data = isRecord(value.data) ? value.data : value;
+  const user = isRecord(data.user) ? data.user : isRecord(data.profile) ? data.profile : data;
+  return user;
+}
+
+/** Converts the documented `/me` response without trusting its JSON shape. */
+export function normalizeUserProfile(value: unknown): UserApiProfile {
+  const user = unwrapUser(value);
+  const id = stringValue(user.id) ?? stringValue(user.userId);
+  const email = stringValue(user.email);
+  const firstName = stringValue(user.firstName) ?? stringValue(user.first_name);
+  const lastName = stringValue(user.lastName) ?? stringValue(user.last_name);
+  if (!id || !email || firstName === undefined || lastName === undefined) {
+    throw new ApiError({ kind: 'malformed' });
+  }
+  return {
+    id,
+    email,
+    firstName,
+    lastName,
+    emailVerified: user.emailVerified === true || user.email_verified === true,
+  };
+}
+
+/** The documented `/me` call is a credentialed reauthentication request. */
+function reauthenticate(payload: ReauthenticatePayload): Promise<UserApiProfile> {
+  return apiRequestParsed({ method: 'POST', url: API_ENDPOINTS.user.me, data: payload, skipAuth: true }, normalizeUserProfile);
 }
 
 /**
- * Cancellation example — pass an AbortSignal through for any request that
- * can be superseded by a newer one (search-as-you-type, a filter changing,
- * a screen unmounting mid-request). Axios maps `signal` straight onto the
- * underlying fetch/XHR abort machinery; no extra library needed.
- *
- * Usage in a screen/hook:
- *
- *   const controller = new AbortController();
- *   userApi.searchUsers(query, controller.signal).then(setResults).catch((e) => {
- *     if (e.kind !== 'cancelled') showError(e);
- *   });
- *   // on next keystroke or unmount:
- *   controller.abort();
+ * Kept for the repository interface, but intentionally does not guess an
+ * update route. The documented `/me` contract is read-only until specified.
  */
-function searchUsers(query: string, signal?: AbortSignal): Promise<UserApiProfile[]> {
-  return apiRequest<UserApiProfile[]>({ method: 'GET', url: API_ENDPOINTS.user.search, params: { q: query }, signal });
+function updateProfile(_payload: UpdateProfilePayload): Promise<UserApiProfile> {
+  return Promise.reject(new ApiError({ kind: 'unknown', message: 'Profile updates are not supported by the documented API.' }));
 }
 
-export const userApi = { getCurrentUser, updateProfile, searchUsers };
+/** Search has no documented route; avoid retaining the old `/users/search` assumption. */
+function searchUsers(_query: string, _signal?: AbortSignal): Promise<UserApiProfile[]> {
+  return Promise.reject(new ApiError({ kind: 'unknown', message: 'User search is not supported by the documented API.' }));
+}
+
+export const userApi = { reauthenticate, updateProfile, searchUsers };

@@ -23,9 +23,6 @@ import { getPlayableAmbientSounds } from '@/features/meditation/meditationAmbien
 import { getMeditationArtKind, getAmbientArtKind, MeditationArt, MeditationArtKind } from '@/features/meditation/components/MeditationArt';
 import { MeditationArtCard } from '@/features/meditation/components/MeditationArtCard';
 import { getMeditationModeLabel } from '@/features/meditation/meditationTaxonomy';
-import { selectUserProfile } from '@/features/profile/selectors';
-import { UserAvatar } from '@/features/profile/components/UserAvatar';
-import { selectUnreadNotificationCount } from '@/features/notifications/selectors';
 import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 
 type Nav = CompositeNavigationProp<NativeStackNavigationProp<MeditationStackParamList>, BottomTabNavigationProp<MainTabParamList>>;
@@ -40,8 +37,6 @@ export const MeditationHomeScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const todaySeconds = useAppSelector(selectTodayMeditationSeconds);
   const streak = useAppSelector(selectMeditationStreak);
-  const profile = useAppSelector(selectUserProfile);
-  const unread = useAppSelector(selectUnreadNotificationCount);
   const content = useAppSelector(selectMeditationContent);
   const sounds = useMemo(() => getPlayableAmbientSounds(), []);
   const shortSessions = useMemo(
@@ -59,48 +54,7 @@ export const MeditationHomeScreen: React.FC = () => {
   };
 
   return (
-    <SectionHeroLayout environment={sectionEnvironments.meditation}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: theme.spacing.md }}>
-        <AppText variant="headingLarge" weight="700" color={dashboardColors.textPrimary}>
-          {t('meditation.title')}
-        </AppText>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Pressable
-            onPress={() => navigation.navigate('HomeTab', { screen: 'Notifications' })}
-            accessibilityRole="button"
-            accessibilityLabel={t('notifications.title')}
-            style={{ marginRight: theme.spacing.sm }}
-          >
-            <View>
-              <AppIcon name="notifications-outline" size={22} color={dashboardColors.textPrimary} />
-              {unread > 0 ? (
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: -2,
-                    right: -4,
-                    backgroundColor: dashboardColors.accent,
-                    borderRadius: 8,
-                    minWidth: 16,
-                    height: 16,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingHorizontal: 2,
-                  }}
-                >
-                  <AppText variant="caption" color={dashboardColors.background} weight="700">
-                    {unread}
-                  </AppText>
-                </View>
-              ) : null}
-            </View>
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })} accessibilityRole="button" accessibilityLabel={t('profile.title')}>
-            <UserAvatar size={40} avatarId={profile.avatarId} name={profile.firstName} />
-          </Pressable>
-        </View>
-      </View>
-
+    <SectionHeroLayout environment={sectionEnvironments.meditation} title={t('meditation.title')}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flex: 1, marginRight: theme.spacing.md }}>
           <AppText variant="headingMedium" color={dashboardColors.textPrimary}>

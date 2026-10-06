@@ -21,4 +21,6 @@ export interface RegisterInput {
   gender: 'female' | 'male' | 'diverse';
   heightCm: number;
   weightKg: number;
+  /** Collected after registration in the current app flow, so optional here. */
+  address?: string;
 }

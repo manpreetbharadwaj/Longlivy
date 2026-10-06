@@ -1,5 +1,6 @@
 import { LocalStore } from '@/services/storage/LocalStore';
 import { DemoUserProfile, DEMO_USER } from '@/mock/demoUser';
+import { env } from '@/config/env';
 
 /**
  * `profileSlice` was previously pure in-memory Redux state — correct for a
@@ -10,7 +11,16 @@ import { DemoUserProfile, DEMO_USER } from '@/mock/demoUser';
  * repository (see `MockAuthRepository`, `MockWeightRepository`, …) — this
  * gives `profile` the same treatment.
  */
-const store = new LocalStore<DemoUserProfile>('@longlivy/profile', DEMO_USER);
+const API_PROFILE_DEFAULT: DemoUserProfile = {
+  ...DEMO_USER,
+  id: '',
+  firstName: '',
+  lastName: '',
+  email: '',
+  address: undefined,
+};
+
+const store = new LocalStore<DemoUserProfile>(env.useMockApi ? '@longlivy/profile' : '@longlivy/profile/api', env.useMockApi ? DEMO_USER : API_PROFILE_DEFAULT);
 
 export const profileRepository = {
   get: (): Promise<DemoUserProfile> => store.read(),

@@ -13,7 +13,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { registerThunk } from '@/features/auth/authSlice';
 import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
 import { updateProfile } from '@/features/profile/profileSlice';
-import { useOnboardingDraft, ageToDateOfBirth } from '@/features/onboarding/OnboardingContext';
+import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
 import { AuthHeroLayout } from './AuthHeroLayout';
 
 export const RegisterScreen: React.FC = () => {
@@ -32,19 +32,20 @@ export const RegisterScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const valid = firstName && lastName && email.includes('@') && password.length >= 6;
+  const valid = Boolean(firstName && lastName && email.includes('@') && password.length >= 6 && draft.dateOfBirth && draft.gender && draft.heightCm && draft.weightKg);
 
   const handleRegister = useCallback(() => {
+    if (!draft.dateOfBirth || !draft.gender || draft.heightCm == null || draft.weightKg == null) return;
     dispatch(
       registerThunk({
         firstName,
         lastName,
         email,
         password,
-        dateOfBirth: draft.dateOfBirth ?? (draft.age ? ageToDateOfBirth(draft.age) : '1995-01-01'),
-        gender: draft.gender ?? 'diverse',
-        heightCm: draft.heightCm ?? 175,
-        weightKg: draft.weightKg ?? 75,
+        dateOfBirth: draft.dateOfBirth,
+        gender: draft.gender,
+        heightCm: draft.heightCm,
+        weightKg: draft.weightKg,
       })
     );
     // The `profile` slice (read by ProfileScreen etc.) was seeded with a

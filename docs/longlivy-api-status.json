@@ -1,0 +1,51 @@
+{
+  "baseUrl": "https://longlivy.digitallhut.com/api/v1",
+  "testedAt": "2026-10-06T07:11:43Z",
+  "documentationSource": "https://docs.google.com/document/d/1T1GW9kGYKZ2K3fsdklniPYQezb2m9uIbbGaBzbLZZtQ/edit?tab=t.0",
+  "documentationFetch": {
+    "status": "blocked",
+    "httpStatus": 401,
+    "note": "Google Docs export/edit URLs required authentication in the worker; endpoint list supplied in the task was used."
+  },
+  "authentication": {
+    "implementation": "present",
+    "status": "blocked",
+    "tokenStorage": "expo-secure-store",
+    "authorizationHeader": "Bearer access token when present",
+    "liveResult": "POST /register, /login, and /me each returned 404",
+    "refresh": "not documented; not implemented",
+    "logout": "not documented; local token/session clear only"
+  },
+  "endpoints": [
+    { "path": "/register", "method": "POST", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "route not found" },
+    { "path": "/login", "method": "POST", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "route not found" },
+    { "path": "/me", "method": "POST", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "route not found; reauthentication behavior unknown" },
+    { "path": "/goals", "method": "GET", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "route not found" },
+    { "path": "/goals", "method": "POST", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "route not found; no goal created" },
+    { "path": "/show/{goalId}", "method": "GET", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "candidate detail route not found" },
+    { "path": "/goals/{goalId}", "method": "GET", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "alternate detail route not found" },
+    { "path": "/goals/{goalId}", "method": "PUT", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "safe nonexistent id; route not found" },
+    { "path": "/goals/{goalId}", "method": "DELETE", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "safe nonexistent id; no existing data deleted" },
+    { "path": "/goals/{goalId}/progress", "method": "GET", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "route not found" },
+    { "path": "/goals/{goalId}/progress", "method": "POST", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "route not found; no progress created" },
+    { "path": "/streaks", "method": "GET", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "route not found" },
+    { "path": "/streaks/{type}", "method": "GET", "implemented": true, "tested": true, "httpStatus": 404, "status": "blocked", "result": "route not found; valid type unknown" }
+  ],
+  "modules": {
+    "auth": "implemented but live-blocked",
+    "goals": "implemented but live-blocked",
+    "goalProgress": "implemented but live-blocked and not UI-bound",
+    "streaks": "service implemented but live-blocked",
+    "fasting": "backend API missing",
+    "nutrition": "backend API missing",
+    "activity": "backend API missing",
+    "meditation": "backend API missing",
+    "statistics": "no dedicated backend API"
+  },
+  "testSafety": {
+    "temporaryAccountCreated": false,
+    "existingGoalDeleted": false,
+    "credentialsLogged": false,
+    "tokensLogged": false
+  }
+}

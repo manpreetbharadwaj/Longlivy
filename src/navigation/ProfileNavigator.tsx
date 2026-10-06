@@ -8,7 +8,6 @@ import { HealthIntegrationsScreen } from '@/screens/home/HealthIntegrationsScree
 import { NoiseDeviceScreen } from '@/screens/home/NoiseDeviceScreen';
 import { PrivacyScreen } from '@/screens/home/PrivacyScreen';
 import { DataManagementScreen } from '@/screens/home/DataManagementScreen';
-import { FeedbackScreen } from '@/screens/home/FeedbackScreen';
 import { withErrorBoundary } from '@/components/hoc/withErrorBoundary';
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
@@ -29,6 +28,5 @@ export const ProfileNavigator: React.FC = () => (
     <Stack.Screen name="NoiseDevice" component={NoiseDevice} />
     <Stack.Screen name="Privacy" component={PrivacyScreen} />
     <Stack.Screen name="DataManagement" component={DataManagementScreen} />
-    <Stack.Screen name="Feedback" component={FeedbackScreen} />
   </Stack.Navigator>
 );

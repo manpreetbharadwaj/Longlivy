@@ -19,4 +19,5 @@ export * from './AppSwitch';
 export * from './AppSegmentedControl';
 export * from './AppInput';
 export * from './AppHeader';
+export * from './ScreenHeader';
 export * from './AppScreen';

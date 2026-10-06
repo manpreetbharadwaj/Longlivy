@@ -1,9 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Activity, ActivityType } from './models';
 import { activityRepository } from './repository/MockActivityRepository';
-import { EndActivityGpsSnapshot } from './repository/ActivityRepository';
+import { ActivityTrackingSnapshot, EndActivityGpsSnapshot } from './repository/ActivityRepository';
 import { DEMO_USER_ID } from '@/mock/demoUser';
-import { DEMO_USER } from '@/mock/demoUser';
 
 interface ActivityState {
   activeActivity: Activity | null;
@@ -29,22 +28,31 @@ export const loadActivityData = createAsyncThunk('activity/loadActivityData', as
 
 export const startActivityThunk = createAsyncThunk(
   'activity/start',
-  async (input: { type: ActivityType; gpsAvailable: boolean }) =>
-    activityRepository.startActivity(DEMO_USER_ID, input.type, input.gpsAvailable)
+  async (input: { type: ActivityType; gpsAvailable: boolean; startedAt?: string; weightKg?: number | null }) =>
+    activityRepository.startActivity(DEMO_USER_ID, input.type, input.gpsAvailable, {
+      startedAt: input.startedAt,
+      weightKg: input.weightKg,
+    })
 );
 
-export const pauseActivityThunk = createAsyncThunk('activity/pause', async (id: string) =>
-  activityRepository.pauseActivity(id)
+export const pauseActivityThunk = createAsyncThunk(
+  'activity/pause',
+  async (input: { id: string; snapshot?: ActivityTrackingSnapshot }) => activityRepository.pauseActivity(input.id, { snapshot: input.snapshot })
 );
 
 export const resumeActivityThunk = createAsyncThunk('activity/resume', async (id: string) =>
   activityRepository.resumeActivity(id)
 );
 
+export const updateActivityTrackingSnapshotThunk = createAsyncThunk(
+  'activity/updateTrackingSnapshot',
+  async (input: { id: string; snapshot: ActivityTrackingSnapshot }) => activityRepository.updateTrackingSnapshot(input.id, input.snapshot)
+);
+
 export const endActivityThunk = createAsyncThunk(
   'activity/end',
-  async (input: { id: string; gps?: EndActivityGpsSnapshot }) =>
-    activityRepository.endActivity(input.id, { weightKg: DEMO_USER.weightKg, gps: input.gps })
+  async (input: { id: string; weightKg?: number | null; gps?: EndActivityGpsSnapshot }) =>
+    activityRepository.endActivity(input.id, { weightKg: input.weightKg, gps: input.gps })
 );
 
 const activitySlice = createSlice({
@@ -72,6 +80,9 @@ const activitySlice = createSlice({
       })
       .addCase(resumeActivityThunk.fulfilled, (state, action) => {
         state.activeActivity = action.payload;
+      })
+      .addCase(updateActivityTrackingSnapshotThunk.fulfilled, (state, action) => {
+        if (state.activeActivity?.id === action.payload.id) state.activeActivity = action.payload;
       })
       .addCase(endActivityThunk.fulfilled, (state, action) => {
         state.activeActivity = null;

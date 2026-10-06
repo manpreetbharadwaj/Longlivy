@@ -58,6 +58,7 @@ export const ActivitySummaryScreen: React.FC = () => {
         <Row label="Duration" value={`${Math.round(activity.activeDuration / 60000)} min`} />
         <Row label="Distance" value={activity.distanceMeters != null ? `${(activity.distanceMeters / 1000).toFixed(2)} km` : 'Unavailable (no GPS)'} />
         {activity.pace ? <Row label="Pace" value={`${activity.pace.toFixed(1)} min/km`} /> : null}
+        {activity.speed ? <Row label="Average speed" value={`${activity.speed.toFixed(1)} km/h`} /> : null}
         {activity.elevationGainMeters ? <Row label="Elevation gain" value={`${activity.elevationGainMeters} m`} /> : null}
         <Row label="Calories" value={`${activity.calories ?? '—'} kcal (${activity.calorieSource ?? 'unknown'})`} />
         <Row label="Source" value={activity.source} last />

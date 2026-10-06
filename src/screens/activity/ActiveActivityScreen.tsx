@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { View, Pressable } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Linking, View, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityStackParamList } from '@/navigation/types';
@@ -12,14 +12,27 @@ import { useTheme } from '@/hooks/useTheme';
 import { motion } from '@/theme/motion';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectActiveActivity } from '@/features/activity/selectors';
-import { pauseActivityThunk, resumeActivityThunk, endActivityThunk, startActivityThunk } from '@/features/activity/activitySlice';
+import {
+  pauseActivityThunk,
+  resumeActivityThunk,
+  endActivityThunk,
+  startActivityThunk,
+  updateActivityTrackingSnapshotThunk,
+} from '@/features/activity/activitySlice';
 import { useActivityTimer } from '@/features/activity/hooks/useActivityTimer';
 import { useGpsTracking } from '@/features/activity/hooks/useGpsTracking';
 import { useActivityCountdown } from '@/features/activity/hooks/useActivityCountdown';
 import { useVoiceCoach } from '@/features/activity/hooks/useVoiceCoach';
-import { formatDurationHMS } from '@/features/fasting/services/FastingCalculator';
 import { ActivityType, ACTIVITY_TYPE_LABELS, GPS_BASED_TYPES } from '@/features/activity/models';
-import { calculatePace, calculateSpeed } from '@/features/activity/services/ActivityCalculator';
+import {
+  calculatePace,
+  calculateSpeed,
+  caloriesFromMetHours,
+  estimateActivityCalories,
+  formatActivityDuration,
+} from '@/features/activity/services/ActivityCalculator';
+import { selectUserProfile } from '@/features/profile/selectors';
+import { prepareActivityLocation } from '@/features/activity/services/LocationPermissionService';
 import { ActivityFigure } from '@/features/activity/components/ActivityFigure';
 import { getActivityImage } from '@/features/activity/activityImages';
 import { ActivityHeroLayout } from './ActivityHeroLayout';
@@ -32,6 +45,8 @@ export const ActiveActivityScreen: React.FC = () => {
   const route = useRoute<RouteProp<ActivityStackParamList, 'ActiveActivity'>>();
   const dispatch = useAppDispatch();
   const activity = useAppSelector(selectActiveActivity);
+  const profile = useAppSelector(selectUserProfile);
+  const lastSnapshotRef = useRef<{ routeLength: number; savedAt: number }>({ routeLength: 0, savedAt: 0 });
 
   // Set only when arriving straight from SelectActivityScreen with a type
   // still to be confirmed by the countdown — never persisted, never touches
@@ -46,34 +61,127 @@ export const ActiveActivityScreen: React.FC = () => {
     // Only now does a real Activity record exist: real startTimestamp, and
     // only from here on do duration/distance/calories/GPS route actually
     // accumulate — nothing during the countdown above touched the store.
-    dispatch(startActivityThunk({ type: pendingType, gpsAvailable: GPS_BASED_TYPES.includes(pendingType) }));
-  }, [dispatch, pendingType]);
+    dispatch(
+      startActivityThunk({
+        type: pendingType,
+        gpsAvailable: GPS_BASED_TYPES.includes(pendingType),
+        startedAt: new Date().toISOString(),
+        weightKg: profile.weightKg,
+      })
+    );
+  }, [dispatch, pendingType, profile.weightKg]);
 
   const countdown = useActivityCountdown(activity ? null : pendingType, handleGo);
 
   const { activeDurationMs } = useActivityTimer(activity);
-  const gps = useGpsTracking(activity?.gpsAvailable ?? false, activity?.status === 'active');
+  const gps = useGpsTracking(
+    activity?.gpsAvailable ?? false,
+    activity?.status === 'active',
+    null,
+    activity?.route,
+    activity?.type ?? 'running',
+    {
+      distanceMeters: activity?.distanceMeters,
+      movingDuration: activity?.movingDuration,
+      metHours: activity?.metHours,
+      elevationGainMeters: activity?.elevationGainMeters,
+    }
+  );
   useVoiceCoach(activity, activeDurationMs);
 
-  const pace = gps.distanceMeters ? calculatePace(gps.distanceMeters, activeDurationMs) : null;
-  const speed = gps.distanceMeters ? calculateSpeed(gps.distanceMeters, activeDurationMs) : null;
+  const metricDurationMs = gps.movingDuration > 0 ? gps.movingDuration : activeDurationMs;
+  const averagePace = gps.distanceMeters != null ? calculatePace(gps.distanceMeters, metricDurationMs) : null;
+  const averageSpeed = gps.distanceMeters != null ? calculateSpeed(gps.distanceMeters, metricDurationMs) : null;
+  const currentSpeed = gps.currentSpeedKmh;
+  const currentPace = currentSpeed != null && currentSpeed > 0.1 ? 60 / currentSpeed : null;
+  const calories = activity?.gpsAvailable && gps.metHours > 0
+    ? caloriesFromMetHours(gps.metHours, profile.weightKg)
+    : estimateActivityCalories(activity?.type ?? 'other', activeDurationMs, {
+        weightKg: profile.weightKg,
+        speedKmh: averageSpeed ?? currentSpeed,
+        distanceMeters: gps.distanceMeters,
+      });
+
+  // Keep an active session resumable if the user leaves the screen. The final
+  // stop action still sends the complete in-memory route, while this throttled
+  // snapshot protects the already-recorded route in local persistence.
+  useEffect(() => {
+    if (!activity?.id || !activity.gpsAvailable || gps.route.length === 0) return;
+    const now = Date.now();
+    const previous = lastSnapshotRef.current;
+    if (previous.savedAt !== 0 && gps.route.length === previous.routeLength && now - previous.savedAt < 5000) return;
+    if (activity.status !== 'paused' && previous.savedAt !== 0 && now - previous.savedAt < 5000 && gps.route.length - previous.routeLength < 5) return;
+    lastSnapshotRef.current = { routeLength: gps.route.length, savedAt: now };
+    dispatch(
+      updateActivityTrackingSnapshotThunk({
+        id: activity.id,
+        snapshot: {
+          distanceMeters: gps.distanceMeters,
+          elevationGainMeters: gps.elevationGainMeters,
+          route: gps.route,
+          gpsUnavailableReason: gps.message,
+          movingDuration: gps.movingDuration,
+          metHours: gps.metHours,
+        },
+      })
+    );
+  }, [activity?.id, activity?.gpsAvailable, activity?.status, dispatch, gps.distanceMeters, gps.elevationGainMeters, gps.message, gps.metHours, gps.movingDuration, gps.route.length]);
 
   const cancelCountdown = useCallback(() => {
     countdown.cancel();
     navigation.goBack();
   }, [countdown, navigation]);
 
+  const handlePause = useCallback(() => {
+    if (!activity) return;
+    dispatch(
+      pauseActivityThunk({
+        id: activity.id,
+        snapshot: activity.gpsAvailable
+          ? {
+              distanceMeters: gps.distanceMeters,
+              elevationGainMeters: gps.elevationGainMeters,
+              route: gps.route.length > 0 ? gps.route : null,
+              gpsUnavailableReason: gps.message,
+              movingDuration: gps.movingDuration,
+              metHours: gps.metHours,
+            }
+          : undefined,
+      })
+    );
+  }, [activity, dispatch, gps]);
+
+  const handleResume = useCallback(async () => {
+    if (!activity) return;
+    if (activity.gpsAvailable) {
+      const preparation = await prepareActivityLocation();
+      if (!preparation.ready) {
+        Alert.alert('Location required', preparation.message, [
+          { text: 'Cancel', style: 'cancel' },
+          preparation.canOpenSettings
+            ? { text: 'Open Settings', onPress: () => Linking.openSettings().catch(() => undefined) }
+            : { text: 'OK' },
+        ]);
+        return;
+      }
+    }
+    dispatch(resumeActivityThunk(activity.id));
+  }, [activity, dispatch]);
+
   const handleEnd = useCallback(async () => {
     if (!activity) return;
     const result = await dispatch(
       endActivityThunk({
         id: activity.id,
+        weightKg: profile.weightKg,
         gps: activity.gpsAvailable
           ? {
               distanceMeters: gps.distanceMeters,
               elevationGainMeters: gps.elevationGainMeters,
               route: gps.route.length > 0 ? gps.route : null,
-              gpsUnavailableReason: gps.status === 'denied' || gps.status === 'unavailable' ? gps.message : null,
+              gpsUnavailableReason: gps.status === 'denied' || gps.status === 'unavailable' || gps.status === 'poor_signal' ? gps.message : null,
+              movingDuration: gps.movingDuration,
+              metHours: gps.metHours,
             }
           : undefined,
       })
@@ -81,7 +189,7 @@ export const ActiveActivityScreen: React.FC = () => {
     if (endActivityThunk.fulfilled.match(result)) {
       navigation.replace('ActivitySummary', { activityId: result.payload.id });
     }
-  }, [activity, dispatch, navigation, gps]);
+  }, [activity, dispatch, navigation, profile.weightKg, gps]);
 
   // Countdown owns the screen until the real Activity exists — no timer,
   // distance, calories or GPS collection have started yet (see the guards
@@ -165,7 +273,14 @@ export const ActiveActivityScreen: React.FC = () => {
           <AppText variant="displayLarge" weight="800" color="#FFFFFF" style={{ letterSpacing: 1 }}>
             {ACTIVITY_TYPE_LABELS[activity.type].toUpperCase()}
           </AppText>
-          {!isPaused ? <GpsStatusLine gpsAvailable={activity.gpsAvailable} status={gps.status} message={gps.message} /> : null}
+          {!isPaused ? (
+            <GpsStatusLine
+              gpsAvailable={activity.gpsAvailable}
+              status={gps.status}
+              message={gps.message}
+              onOpenSettings={() => Linking.openSettings().catch(() => undefined)}
+            />
+          ) : null}
         </FadeSlideIn>
 
         <FadeSlideIn delay={motion.staggerStepMs * 3} style={{ marginTop: theme.spacing.lg, alignItems: 'center' }}>
@@ -173,30 +288,31 @@ export const ActiveActivityScreen: React.FC = () => {
             ELAPSED
           </AppText>
           <AppText variant="metricLarge" color="#FFFFFF" style={{ marginTop: 2 }}>
-            {formatDurationHMS(activeDurationMs)}
+            {formatActivityDuration(activeDurationMs)}
           </AppText>
         </FadeSlideIn>
 
-        {/* Distance/pace/speed metrics only appear once there's something real
-            to show — GPS-less activities (or a fix not acquired yet) simply
-            skip this row rather than showing a row of dashes. */}
-        {activity.gpsAvailable && gps.distanceMeters != null ? (
-          <FadeSlideIn delay={motion.staggerStepMs * 5} style={{ marginTop: theme.spacing.xl, width: '100%', flexDirection: 'row', justifyContent: 'space-around' }}>
-            <MiniStat label="Distance" value={`${(gps.distanceMeters / 1000).toFixed(2)} km`} />
-            <MiniStat label="Pace" value={pace ? `${pace.toFixed(1)} /km` : '—'} />
-            <MiniStat label="Speed" value={speed ? `${speed.toFixed(1)} km/h` : '—'} />
-          </FadeSlideIn>
-        ) : null}
+        <FadeSlideIn
+          delay={motion.staggerStepMs * 5}
+          style={{ marginTop: theme.spacing.xl, width: '100%', flexDirection: 'row', flexWrap: 'wrap', rowGap: theme.spacing.md }}
+        >
+          <MiniStat label="Distance" value={gps.distanceMeters != null ? `${(gps.distanceMeters / 1000).toFixed(2)} km` : '—'} />
+          <MiniStat label="Current pace" value={formatPace(currentPace)} />
+          <MiniStat label="Avg pace" value={formatPace(averagePace)} />
+          <MiniStat label="Speed" value={currentSpeed != null ? `${currentSpeed.toFixed(1)} km/h` : '—'} />
+          <MiniStat label="Avg speed" value={averageSpeed != null ? `${averageSpeed.toFixed(1)} km/h` : '—'} />
+          <MiniStat label="Calories" value={calories != null ? `${calories} kcal` : '—'} />
+        </FadeSlideIn>
       </View>
 
       <View style={{ flexDirection: 'row', marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
         {isPaused ? (
           <View style={{ flex: 1 }}>
-            <AppGradientButton label="Resume" onPress={() => dispatch(resumeActivityThunk(activity.id))} colors={['#6E8FAE', '#3D5266']} />
+            <AppGradientButton label="Resume" onPress={handleResume} colors={['#6E8FAE', '#3D5266']} />
           </View>
         ) : (
           <View style={{ flex: 1 }}>
-            <OutlineButton label="Pause" onPress={() => dispatch(pauseActivityThunk(activity.id))} />
+            <OutlineButton label="Pause" onPress={handlePause} />
           </View>
         )}
         <View style={{ flex: 1 }}>
@@ -207,10 +323,16 @@ export const ActiveActivityScreen: React.FC = () => {
   );
 };
 
-const GpsStatusLine: React.FC<{ gpsAvailable: boolean; status: ReturnType<typeof useGpsTracking>['status']; message: string | null }> = ({
+const GpsStatusLine: React.FC<{
+  gpsAvailable: boolean;
+  status: ReturnType<typeof useGpsTracking>['status'];
+  message: string | null;
+  onOpenSettings: () => void;
+}> = ({
   gpsAvailable,
   status,
   message,
+  onOpenSettings,
 }) => {
   if (!gpsAvailable) {
     return (
@@ -221,11 +343,18 @@ const GpsStatusLine: React.FC<{ gpsAvailable: boolean; status: ReturnType<typeof
   }
   if (status === 'denied' || status === 'unavailable') {
     return (
-      <View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: 280, marginTop: 4 }}>
-        <AppIcon name="warning-outline" size={14} color="#DFA860" />
-        <AppText variant="caption" color="#DFA860" style={{ marginLeft: 6, flexShrink: 1 }}>
-          {message ?? 'GPS unavailable — duration still recorded'}
-        </AppText>
+      <View style={{ alignItems: 'center', maxWidth: 300, marginTop: 4 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <AppIcon name="warning-outline" size={14} color="#DFA860" />
+          <AppText variant="caption" color="#DFA860" style={{ marginLeft: 6, flexShrink: 1 }}>
+            {message ?? 'GPS unavailable — duration still recorded'}
+          </AppText>
+        </View>
+        <Pressable onPress={onOpenSettings} accessibilityRole="button" accessibilityLabel="Open location settings">
+          <AppText variant="caption" color="#FFFFFF" weight="700" style={{ marginTop: 3 }}>
+            Open Settings
+          </AppText>
+        </Pressable>
       </View>
     );
   }
@@ -235,6 +364,16 @@ const GpsStatusLine: React.FC<{ gpsAvailable: boolean; status: ReturnType<typeof
         <AppIcon name="navigate" size={14} color="#6FA085" />
         <AppText variant="caption" color="rgba(255,255,255,0.6)" style={{ marginLeft: 6 }}>
           GPS tracking active
+        </AppText>
+      </View>
+    );
+  }
+  if (status === 'poor_signal') {
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: 300, marginTop: 4 }}>
+        <AppIcon name="warning-outline" size={14} color="#DFA860" />
+        <AppText variant="caption" color="#DFA860" style={{ marginLeft: 6, flexShrink: 1 }}>
+          {message ?? 'Waiting for an accurate GPS signal…'}
         </AppText>
       </View>
     );
@@ -261,6 +400,10 @@ const CountdownView: React.FC<{ type: ActivityType; secondsRemaining: number | n
 }) => {
   const { theme } = useTheme();
   const showGo = secondsRemaining == null || secondsRemaining <= 0;
+  const subject = COUNTDOWN_SUBJECTS[type];
+  const countdownLabel = showGo
+    ? 'GO!'
+    : `${subject} starts in ${secondsRemaining} ${secondsRemaining === 1 ? 'second' : 'seconds'}`;
   return (
     <ActivityHeroLayout onBack={onCancel} scroll={false} backgroundImageSource={getActivityImage(type)} backgroundImageGradientOpacity={0.7}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -274,7 +417,10 @@ const CountdownView: React.FC<{ type: ActivityType; secondsRemaining: number | n
             {ACTIVITY_TYPE_LABELS[type].toUpperCase()}
           </AppText>
         </FadeSlideIn>
-        <AppText variant="metricLarge" color="#FFFFFF" style={{ marginTop: theme.spacing.xl }}>
+        <AppText variant="bodyLarge" color="rgba(255,255,255,0.7)" align="center" style={{ marginTop: theme.spacing.xl }}>
+          {countdownLabel}
+        </AppText>
+        <AppText variant="metricLarge" color="#FFFFFF" style={{ marginTop: theme.spacing.xs }}>
           {showGo ? 'GO!' : secondsRemaining}
         </AppText>
       </View>
@@ -286,7 +432,7 @@ const CountdownView: React.FC<{ type: ActivityType; secondsRemaining: number | n
 };
 
 const MiniStat: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <View style={{ alignItems: 'center' }}>
+  <View style={{ width: '33.333%', alignItems: 'center' }}>
     <AppText variant="headingMedium" color="#FFFFFF">
       {value}
     </AppText>
@@ -295,6 +441,23 @@ const MiniStat: React.FC<{ label: string; value: string }> = ({ label, value }) 
     </AppText>
   </View>
 );
+
+const COUNTDOWN_SUBJECTS: Record<ActivityType, string> = {
+  running: 'Run',
+  walking: 'Walk',
+  cycling: 'Cycle',
+  hiking: 'Hike',
+  jogging: 'Jog',
+  other: 'Activity',
+};
+
+function formatPace(paceMinutesPerKm: number | null): string {
+  if (paceMinutesPerKm == null || !Number.isFinite(paceMinutesPerKm) || paceMinutesPerKm <= 0 || paceMinutesPerKm > 120) return '-- /km';
+  const totalSeconds = Math.round(paceMinutesPerKm * 60);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} /km`;
+}
 
 /** Secondary action on the activity hero screens — translucent border, no fill, dims on press. Matches ActiveFastScreen's OutlineButton. */
 const OutlineButton: React.FC<{ label: string; onPress: () => void }> = React.memo(({ label, onPress }) => {

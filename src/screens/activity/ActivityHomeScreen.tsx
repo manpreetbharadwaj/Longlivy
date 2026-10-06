@@ -22,10 +22,6 @@ import { ActivityEmptyState } from '@/features/activity/components/ActivityEmpty
 import { dashboardColors, dashboardCardStyle, dashboardCardElevated } from '@/features/dashboard/dashboardTheme';
 import { ActivityHeroLayout } from './ActivityHeroLayout';
 
-// Room the scrolling content leaves for the Start Activity footer, so the last
-// list item is never hidden behind it.
-const STICKY_CTA_ROOM = 108;
-
 export const ActivityHomeScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -44,67 +40,69 @@ export const ActivityHomeScreen: React.FC = () => {
 
   return (
     <View style={{ flex: 1 }}>
-    <ActivityHeroLayout title={t('activity.title')} contentContainerStyle={{ paddingBottom: theme.spacing.xxxl + tabBarSpacing + STICKY_CTA_ROOM }}>
-      {/* Activity summary — one unified metrics card */}
-      <FadeSlideIn delay={0 * motion.staggerStepMs}>
-        <ActivitySummaryCard activities={stats.totalActivities} distanceKm={stats.totalDistanceMeters / 1000} calories={stats.totalCalories} />
-      </FadeSlideIn>
-
-      {/* 3. Log manually — secondary action */}
-      <FadeSlideIn delay={2 * motion.staggerStepMs}>
-        <View style={{ marginBottom: theme.spacing.md }}>
-          <LogManuallyButton onPress={() => navigation.navigate('ManualActivity')} />
-        </View>
-      </FadeSlideIn>
-
-      {/* 4. Recent activity */}
-      <FadeSlideIn delay={3 * motion.staggerStepMs}>
-        <AppText variant="headingSmall" color={dashboardColors.textPrimary} style={{ marginBottom: theme.spacing.sm }}>
-          {t('activity.recentActivities')}
-        </AppText>
-      </FadeSlideIn>
-
-      {recent.length === 0 ? (
-        <FadeSlideIn delay={4 * motion.staggerStepMs}>
-          <ActivityEmptyState onStart={() => navigation.navigate('SelectActivity')} />
+      <ActivityHeroLayout title={t('activity.title')} contentContainerStyle={{ paddingBottom: theme.spacing.xxxl + tabBarSpacing }}>
+        {/* Activity summary — one unified metrics card */}
+        <FadeSlideIn delay={0 * motion.staggerStepMs}>
+          <ActivitySummaryCard activities={stats.totalActivities} distanceKm={stats.totalDistanceMeters / 1000} calories={stats.totalCalories} />
         </FadeSlideIn>
-      ) : (
-        recent.map((a, index) => (
-          <FadeSlideIn key={a.id} delay={4 * motion.staggerStepMs + index * motion.staggerStepMs} fromY={10}>
-            <ActivityListItem activity={a} onPress={() => navigation.navigate('ActivityDetails', { activityId: a.id })} />
-          </FadeSlideIn>
-        ))
-      )}
 
-      <FadeSlideIn delay={4 * motion.staggerStepMs + recent.length * motion.staggerStepMs}>
-        <HeroCard onPress={() => navigation.navigate('ActivityHistory')} style={[dashboardCardStyle, { paddingVertical: theme.spacing.sm }]} scaleOnPress>
-          <AppText variant="headingSmall" color={dashboardColors.textSecondary} align="center">
-            {t('activity.viewFullHistory')}
+        {/* Start/resume is the primary action, in the content flow beneath the metrics. */}
+        <FadeSlideIn delay={motion.staggerStepMs}>
+          <View style={{ width: '100%', marginBottom: theme.spacing.lg }}>
+            {active ? (
+              <HeroCard onPress={() => navigation.navigate('ActiveActivity')} style={[dashboardCardElevated, { paddingVertical: theme.spacing.sm }]} scaleOnPress>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: dashboardColors.success, marginRight: theme.spacing.xs }} />
+                  <View style={{ flex: 1 }}>
+                    <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
+                      {t('activity.inProgress', { type: ACTIVITY_TYPE_LABELS[active.type] })}
+                    </AppText>
+                    <AppText variant="bodyMedium" color={dashboardColors.textSecondary}>
+                      {t('activity.tapToResume')}
+                    </AppText>
+                  </View>
+                </View>
+              </HeroCard>
+            ) : (
+              <StartActivityCTA onPress={() => navigation.navigate('SelectActivity')} />
+            )}
+          </View>
+        </FadeSlideIn>
+
+        {/* Log manually — secondary action */}
+        <FadeSlideIn delay={2 * motion.staggerStepMs}>
+          <View style={{ marginBottom: theme.spacing.md }}>
+            <LogManuallyButton onPress={() => navigation.navigate('ManualActivity')} />
+          </View>
+        </FadeSlideIn>
+
+        {/* Recent activity */}
+        <FadeSlideIn delay={3 * motion.staggerStepMs}>
+          <AppText variant="headingMedium" color={dashboardColors.textPrimary} style={{ marginTop: theme.spacing.xs, marginBottom: theme.spacing.sm }}>
+            {t('activity.recentActivities')}
           </AppText>
-        </HeroCard>
-      </FadeSlideIn>
-    </ActivityHeroLayout>
+        </FadeSlideIn>
 
-      {/* Start Activity lives in the thumb zone - pinned just above the tab bar, always visible, one-handed. */}
-      <View pointerEvents="box-none" style={{ position: 'absolute', left: theme.spacing.md, right: theme.spacing.md, bottom: tabBarSpacing + theme.spacing.xs }}>
-        {active ? (
-          <HeroCard onPress={() => navigation.navigate('ActiveActivity')} style={[dashboardCardElevated, { paddingVertical: theme.spacing.sm }]} scaleOnPress>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: dashboardColors.success, marginRight: theme.spacing.xs }} />
-              <View style={{ flex: 1 }}>
-                <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
-                  {t('activity.inProgress', { type: ACTIVITY_TYPE_LABELS[active.type] })}
-                </AppText>
-                <AppText variant="bodyMedium" color={dashboardColors.textSecondary}>
-                  {t('activity.tapToResume')}
-                </AppText>
-              </View>
-            </View>
-          </HeroCard>
+        {recent.length === 0 ? (
+          <FadeSlideIn delay={4 * motion.staggerStepMs}>
+            <ActivityEmptyState onStart={() => navigation.navigate('SelectActivity')} />
+          </FadeSlideIn>
         ) : (
-          <StartActivityCTA onPress={() => navigation.navigate('SelectActivity')} />
+          recent.map((a, index) => (
+            <FadeSlideIn key={a.id} delay={4 * motion.staggerStepMs + index * motion.staggerStepMs} fromY={10}>
+              <ActivityListItem activity={a} onPress={() => navigation.navigate('ActivityDetails', { activityId: a.id })} />
+            </FadeSlideIn>
+          ))
         )}
-      </View>
+
+        <FadeSlideIn delay={4 * motion.staggerStepMs + recent.length * motion.staggerStepMs}>
+          <HeroCard onPress={() => navigation.navigate('ActivityHistory')} style={[dashboardCardStyle, { paddingVertical: theme.spacing.sm }]} scaleOnPress>
+            <AppText variant="headingSmall" color={dashboardColors.textSecondary} align="center">
+              {t('activity.viewFullHistory')}
+            </AppText>
+          </HeroCard>
+        </FadeSlideIn>
+      </ActivityHeroLayout>
     </View>
   );
 };

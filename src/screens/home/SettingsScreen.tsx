@@ -68,11 +68,12 @@ export const SettingsScreen: React.FC = () => {
       </HeroCard>
 
       <SectionLabel>{t('settings.data.title')}</SectionLabel>
-      <HeroCard onPress={() => navigation.navigate('HealthIntegrations')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
+      {/* Temporarily disabled from Profile UI. Keep Health Integration implementation for possible future use. */}
+      {/* <HeroCard onPress={() => navigation.navigate('HealthIntegrations')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
         <AppText variant="headingSmall" color="#FFFFFF" align="center">
           {t('settings.data.healthIntegrations')}
         </AppText>
-      </HeroCard>
+      </HeroCard> */}
       <HeroCard onPress={() => navigation.navigate('Privacy')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
         <AppText variant="headingSmall" color="#FFFFFF" align="center">
           {t('settings.data.privacy')}
@@ -81,13 +82,6 @@ export const SettingsScreen: React.FC = () => {
       <HeroCard onPress={() => navigation.navigate('DataManagement')} style={{ marginBottom: theme.spacing.md, paddingVertical: theme.spacing.sm }}>
         <AppText variant="headingSmall" color="#FFFFFF" align="center">
           {t('settings.data.dataManagement')}
-        </AppText>
-      </HeroCard>
-
-      <SectionLabel>{t('settings.support.title')}</SectionLabel>
-      <HeroCard onPress={() => navigation.navigate('Feedback')} style={{ paddingVertical: theme.spacing.sm }}>
-        <AppText variant="headingSmall" color="#FFFFFF" align="center">
-          {t('settings.support.feedback')}
         </AppText>
       </HeroCard>
     </TabHeroLayout>

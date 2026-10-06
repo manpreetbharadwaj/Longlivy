@@ -1,7 +1,8 @@
 # API Migration Plan
 
-This prototype runs entirely on local mock repositories backed by
-`AsyncStorage`. Nothing in `src/screens`, `src/features/*/screens`,
+The app supports explicit local mock repositories backed by `AsyncStorage`
+and a centralized Axios backend path. Nothing in `src/screens`,
+`src/features/*/screens`,
 `src/components`, Redux slices, or selectors talks to a mock repository
 directly — everything flows through an interface:
 
@@ -22,10 +23,10 @@ For each feature (`fasting`, `nutrition`, `activity`, `meditation`, `weight`,
    interface (e.g. `src/features/fasting/repository/FastingRepository.ts`).
    The interface itself should not need to change — it was designed against
    the domain, not against AsyncStorage.
-2. **Add RTK Query endpoints** in `src/services/api/` (e.g.
-   `longlivyApi.ts`) using `createApi` + `fetchBaseQuery` (or a custom
-   `baseQuery` if the backend needs custom auth headers). Configure
-   `apiClientConfig.baseUrl` from `src/services/api/apiClient.ts`.
+2. **Add typed Axios service functions** in `src/services/api/` using the
+   existing centralized `apiClient.ts`. Keep route constants in
+   `apiConfig.ts`, response parsing in the service module, and never call
+   Axios directly from screens or Redux reducers.
 3. **Implement `Api<Feature>Repository`** classes that satisfy the same
    repository interface, internally calling the generated RTK Query
    hooks/`initiate` thunks instead of `LocalStore`.
@@ -45,17 +46,12 @@ For each feature (`fasting`, `nutrition`, `activity`, `meditation`, `weight`,
    the only line that needs to change per feature.
 5. **Authentication is already wired this way** — `ApiAuthRepository`
    (`src/features/auth/repository/ApiAuthRepository.ts`) implements
-   `AuthRepository` against a real Axios client
-   (`src/services/api/apiClient.ts`), with tokens persisted via
-   `expo-secure-store` (`src/services/auth/tokenStorage.ts`) instead of
-   `LocalStore`. `src/features/auth/repository/index.ts` picks between the
-   mock and API implementations based on `env.useMockApi`
-   (`src/config/env.ts`) — set `EXPO_PUBLIC_API_BASE_URL` in `.env` to
-   switch auth over to a real backend; every other feature keeps using this
-   same swap pattern once its own `Api<Feature>Repository` exists.
-   `apiClient.ts` also handles the 401 → refresh → retry flow (with a
-   request queue so concurrent 401s only trigger one refresh call) and
-   automatic logout when refresh fails — see `src/services/auth/authService.ts`.
+   `AuthRepository` against the documented `/register`, `/login`, and `/me`
+   routes through the centralized Axios client. Access tokens and the minimal
+   user snapshot are persisted via `expo-secure-store`. There is no refresh or
+   server-logout route in the supplied contract, so 401 responses clear the
+   local session rather than guessing a refresh protocol. The active backend
+   versus mock choice is controlled by `EXPO_PUBLIC_USE_MOCK_API`.
 6. **Replace health adapters** (`src/features/health/adapters/`) one at a
    time: `AppleHealthAdapter`, `GarminAdapter`, `FitbitAdapter`, etc., each
    implementing `HealthPlatformAdapter` and normalizing into the same

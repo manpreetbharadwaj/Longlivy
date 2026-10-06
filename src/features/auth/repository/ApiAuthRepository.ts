@@ -1,7 +1,6 @@
 import { AuthRepository } from './AuthRepository';
 import { AuthSession, RegisterInput } from '../models';
 import { authApi, AuthApiSession } from '@/services/api/authApi';
-import { userApi } from '@/services/api/userApi';
 import { authService } from '@/services/auth/authService';
 import { tokenStorage } from '@/services/auth/tokenStorage';
 import { LocalStore } from '@/services/storage/LocalStore';
@@ -24,8 +23,8 @@ function toAuthSession(apiSession: AuthApiSession): AuthSession {
 
 // Onboarding-complete is treated as a device preference rather than account
 // data — it survives independently of which backend (mock or real) is
-// active. If the backend later wants to own this (e.g. as a field on the
-// user record from GET /users/me), read/write it there instead.
+// active. The documented API has no profile update/read contract beyond the
+// credentialed POST /me operation, so it remains device-scoped for now.
 const onboardingStore = new LocalStore<{ complete: boolean }>('@longlivy/onboarding_complete', { complete: false });
 
 export class ApiAuthRepository implements AuthRepository {
@@ -46,18 +45,13 @@ export class ApiAuthRepository implements AuthRepository {
   }
 
   async getCurrentSession(): Promise<AuthSession | null> {
-    const accessToken = await tokenStorage.getAccessToken();
-    if (!accessToken) return null;
-
-    try {
-      // If the access token is expired, this 401s and apiClient's interceptor
-      // transparently refreshes and retries it — by the time this either
-      // resolves or throws, the refresh flow has already run its course.
-      const user = await userApi.getCurrentUser();
-      return { user, token: accessToken, createdAt: new Date().toISOString() };
-    } catch {
-      return null;
-    }
+    const [accessToken, user] = await Promise.all([tokenStorage.getAccessToken(), tokenStorage.getUser()]);
+    // The documented /me endpoint requires email/password, so it is not safe
+    // to call it during startup with a password that was never persisted. A
+    // stored user snapshot restores the session locally; the first protected
+    // request validates the token and the 401 interceptor signs out if needed.
+    if (!accessToken || !user) return null;
+    return { user, token: accessToken, createdAt: new Date().toISOString() };
   }
 
   async resetPassword(email: string): Promise<void> {

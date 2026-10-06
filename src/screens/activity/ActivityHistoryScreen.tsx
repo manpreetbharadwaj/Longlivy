@@ -28,6 +28,9 @@ export const ActivityHistoryScreen: React.FC = () => {
             <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
               {new Date(item.startTimestamp).toLocaleDateString()} · {Math.round(item.activeDuration / 60000)} min
             </AppText>
+            <AppText variant="caption" color="rgba(255,255,255,0.5)" style={{ marginTop: 2 }}>
+              {item.distanceMeters != null ? `${(item.distanceMeters / 1000).toFixed(2)} km` : 'GPS distance unavailable'} · {item.source}
+            </AppText>
           </View>
           <AppText variant="bodyMedium" color="#FFFFFF">
             {item.calories ?? '—'} kcal
