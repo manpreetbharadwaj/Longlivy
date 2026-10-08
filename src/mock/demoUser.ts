@@ -27,6 +27,8 @@ export interface DemoUserProfile {
   trainingFrequency?: number;
   trainingVolume?: 'low' | 'moderate' | 'high';
   goal: 'weight_loss' | 'maintenance' | 'general_wellness' | 'muscle_gain';
+  /** 'user' once chosen in onboarding or Edit profile; 'inferred' when restored from the server's calorie target; absent = default. */
+  goalSource?: 'user' | 'inferred';
   /** Only meaningful for a weight_loss/muscle_gain goal — how fast, not just which direction. */
   weightChangePaceKgPerWeek?: number;
   /** The fasting rhythm chosen as a preference during onboarding — not an active plan or an in-progress fast, both of which live in the Fasting feature's own state. */

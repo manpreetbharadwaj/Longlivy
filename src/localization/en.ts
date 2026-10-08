@@ -199,12 +199,14 @@ export const en = {
       liveWell: 'Live well.',
       liveLong: 'Live long.',
       begin: 'Begin',
+      // Feature names, not numbers: before sign-up there is no user data, and
+      // example figures here read as someone's real stats.
       signals: {
-        fasting: '14h 32m fasted',
-        nutrition: 'Protein 82%',
-        activity: '+18% movement',
-        meditation: '12 min today',
-        statistics: '7-day streak',
+        fasting: 'Fasting timer',
+        nutrition: 'Protein tracking',
+        activity: 'Movement',
+        meditation: 'Daily meditation',
+        statistics: 'Streaks & trends',
       },
     },
     value: {

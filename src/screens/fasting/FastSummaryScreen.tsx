@@ -1,3 +1,4 @@
+import { fastingStatusLabel } from '@/features/fasting/services/fastingFormat';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -43,7 +44,7 @@ export const FastSummaryScreen: React.FC = () => {
         <AppText variant="displayMedium" align="center" style={{ marginTop: theme.spacing.xs }}>
           {goalMet ? 'Fast completed' : 'Fast ended'}
         </AppText>
-        <AppBadge label={session.status.replace('_', ' ')} tone={goalMet ? 'success' : 'warning'} />
+        <AppBadge label={fastingStatusLabel(session.status)} tone={goalMet ? 'success' : 'warning'} />
       </View>
 
       <AppCard>

@@ -9,7 +9,7 @@ import { AppSwitch } from '@/components/common/AppSwitch';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectNotificationSettings } from '@/features/notifications/selectors';
-import { toggleNotificationSetting } from '@/features/notifications/notificationSlice';
+import { DELIVERABLE_NOTIFICATION_TYPES, toggleNotificationSetting } from '@/features/notifications/notificationSlice';
 
 const FASTING_EVENT_TYPES = [
   'fasting_begins',
@@ -34,9 +34,15 @@ export const FastingSettingsScreen: React.FC = () => {
     <>
       <AppHeader title="Fasting settings" onBack={() => navigation.goBack()} />
       <AppScreen>
-        <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.sm }}>
+        <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
           Notifications
         </AppText>
+        {/* None of these is delivered yet (no push provider / backend events); say so instead of offering live switches. */}
+        {settings.some((s) => !DELIVERABLE_NOTIFICATION_TYPES.has(s.type)) ? (
+          <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.sm }}>
+            Fasting notifications aren't available yet. Your choices are saved and will apply once they are.
+          </AppText>
+        ) : null}
         <AppCard>
           {settings.map((s, idx) => (
             <View
@@ -56,7 +62,12 @@ export const FastingSettingsScreen: React.FC = () => {
                   {s.description}
                 </AppText>
               </View>
-              <AppSwitch value={s.enabled} onValueChange={() => toggle(s.type as any)} accessibilityLabel={s.label} />
+              <AppSwitch
+                value={s.enabled}
+                onValueChange={() => toggle(s.type as any)}
+                disabled={!DELIVERABLE_NOTIFICATION_TYPES.has(s.type)}
+                accessibilityLabel={s.label}
+              />
             </View>
           ))}
         </AppCard>

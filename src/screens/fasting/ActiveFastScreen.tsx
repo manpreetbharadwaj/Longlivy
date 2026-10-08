@@ -1,10 +1,11 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { View, Pressable } from 'react-native';
+import { Alert, View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FastingStackParamList } from '@/navigation/types';
 import { AppText } from '@/components/common/AppText';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { AppProgressRing } from '@/components/common/AppProgressRing';
 import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppIcon } from '@/components/common/AppIcon';
@@ -62,13 +63,22 @@ export const ActiveFastScreen: React.FC = () => {
     ? MILESTONE_THRESHOLDS.find((m) => state.progress >= m && !dismissedMilestones.has(m))
     : undefined;
 
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  const [ending, setEnding] = useState(false);
+  const reachedPlannedEnd = activeFast ? Date.now() >= new Date(activeFast.plannedEndTimestamp).getTime() : false;
+
   const handleEnd = useCallback(async () => {
-    if (!activeFast) return;
+    setConfirmEnd(false);
+    if (!activeFast || ending) return;
+    setEnding(true);
     const result = await dispatch(endFastThunk(activeFast));
+    setEnding(false);
     if (endFastThunk.fulfilled.match(result)) {
       navigation.replace('FastSummary', { sessionId: result.payload.id });
+    } else {
+      Alert.alert('Fast not ended', result.error.message ?? 'Please try again.');
     }
-  }, [activeFast, dispatch, navigation]);
+  }, [activeFast, dispatch, ending, navigation]);
 
   const handleExtend = useCallback(async () => {
     if (!activeFast) return;
@@ -231,7 +241,7 @@ export const ActiveFastScreen: React.FC = () => {
                 <OutlineButton label="Extend" onPress={() => setShowExtend(true)} />
               </View>
               <View style={{ flex: 1 }}>
-                <AppGradientButton label="End fast" onPress={handleEnd} colors={['#DD7A68', '#C4463A']} />
+                <AppGradientButton label="End fast" onPress={() => setConfirmEnd(true)} loading={ending} disabled={ending} colors={['#DD7A68', '#C4463A']} />
               </View>
             </View>
           ) : null}
@@ -262,6 +272,20 @@ export const ActiveFastScreen: React.FC = () => {
           <FastingTimeline elapsedHours={fastingElapsedHours} maxHours={Math.max(fastingHours, 1)} />
         </>
       ) : null}
+      <ConfirmDialog
+        visible={confirmEnd}
+        title="End this fast?"
+        message={
+          reachedPlannedEnd
+            ? 'You reached your planned fasting time. It will be saved as completed.'
+            : "You haven't reached your planned fasting time yet. It will be saved as ended early."
+        }
+        confirmLabel="End fast"
+        cancelLabel="Keep fasting"
+        accentColor="#C4463A"
+        onConfirm={handleEnd}
+        onCancel={() => setConfirmEnd(false)}
+      />
     </FastingHeroLayout>
   );
 };

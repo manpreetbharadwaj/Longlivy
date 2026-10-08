@@ -184,11 +184,11 @@ export const de: typeof en = {
       liveLong: 'Lebe lang.',
       begin: 'Los geht’s',
       signals: {
-        fasting: '14 Std. 32 Min. gefastet',
-        nutrition: 'Protein 82 %',
-        activity: '+18 % Bewegung',
-        meditation: '12 Min. heute',
-        statistics: '7-Tage-Serie',
+        fasting: 'Fasten-Timer',
+        nutrition: 'Protein-Tracking',
+        activity: 'Bewegung',
+        meditation: 'Tägliche Meditation',
+        statistics: 'Serien & Trends',
       },
     },
     value: {

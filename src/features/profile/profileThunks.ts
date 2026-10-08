@@ -47,13 +47,19 @@ export const saveProfileChangesThunk = createAsyncThunk<void, Partial<DemoUserPr
     const before = getState().profile.profile;
     const merged: DemoUserProfile = { ...before, ...changes };
     const pace = paceAfterGoalChange(before.goal, merged.goal, before.weightChangePaceKgPerWeek);
-    dispatch(updateProfile({ ...changes, weightChangePaceKgPerWeek: pace }));
+    dispatch(updateProfile({ ...changes, ...(changes.goal !== undefined ? { goalSource: 'user' as const } : {}), weightChangePaceKgPerWeek: pace }));
     const state = getState();
     const body = { ...state.calorie.bodyProfile, heightCm: merged.heightCm, weightKg: merged.weightKg, activityLevel: merged.activityLevel };
     dispatch(setBodyProfile(body));
+    // Recalculating replaces every server target (it ignores manual ones — a
+    // backend bug), so only do it when an input to the calculation changed and
+    // the user hasn't set any target by hand.
+    const inputsChanged = (['heightCm', 'weightKg', 'activityLevel', 'goal', 'dateOfBirth', 'gender'] as const).some(
+      (key) => changes[key] !== undefined && changes[key] !== before[key],
+    );
+    const anyManualTarget = Object.values(state.nutrition.serverTargets).some((t) => t?.source === 'manual');
     if (!env.useMockApi && state.calorie.calorieGoalSource === 'auto') {
-      // Server-calculated targets follow the saved profile (body data and goal direction).
-      dispatch(loadNutritionTargetsThunk({ recalculate: true }));
+      if (inputsChanged && !anyManualTarget) dispatch(loadNutritionTargetsThunk({ recalculate: true }));
     } else if (state.calorie.calorieGoalSource === 'auto') {
       const target = calculateAutoCalorieTarget(body, merged.goal, pace);
       dispatch(setCalorieGoal({ calories: target.calories, source: 'auto', calculationMethod: target.method, calculationVersion: target.version }));

@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { DEMO_USER, DemoUserProfile } from '@/mock/demoUser';
-import { profileRepository } from './repository';
+import { API_PROFILE_DEFAULT, profileRepository } from './repository';
+import { env } from '@/config/env';
 
 interface ProfileState {
   profile: DemoUserProfile;
@@ -35,7 +36,15 @@ const profileSlice = createSlice({
       })
       .addCase(hydrateProfileThunk.rejected, (state) => {
         state.hydrated = true;
-      });
+      })
+      // API mode: the next person to sign in on this device starts blank.
+      .addMatcher(
+        (action) => !env.useMockApi && (action.type === 'auth/logout/fulfilled' || action.type === 'auth/markSessionExpired'),
+        (state) => {
+          state.profile = API_PROFILE_DEFAULT;
+          profileRepository.save(API_PROFILE_DEFAULT).catch(() => {});
+        },
+      );
   },
 });
 

@@ -13,6 +13,7 @@ import { formatDurationHM } from '@/features/fasting/services/FastingCalculator'
 import { FastingSession, FastingStatus } from '@/features/fasting/models';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
+import { fastingStatusLabel } from '@/features/fasting/services/fastingFormat';
 
 const STATUS_TONE: Record<FastingStatus, 'success' | 'warning' | 'info' | 'neutral' | 'danger'> = {
   completed: 'success',
@@ -38,7 +39,7 @@ export const FastingHistoryScreen: React.FC = () => {
               {new Date(item.startTimestamp).toLocaleDateString()} · {formatDurationHM(item.actualDuration ?? item.plannedDuration)}
             </AppText>
           </View>
-          <AppBadge label={item.status.replace('_', ' ')} tone={STATUS_TONE[item.status]} />
+          <AppBadge label={fastingStatusLabel(item.status)} tone={STATUS_TONE[item.status]} />
         </View>
       </AppCard>
     ),

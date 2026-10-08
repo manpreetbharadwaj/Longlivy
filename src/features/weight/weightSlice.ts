@@ -19,6 +19,15 @@ export const logWeightThunk = createAsyncThunk<WeightEntry, number, { state: Roo
   weightRepository.logWeight(selectCurrentUserId(getState()), weightKg)
 );
 
+export const updateWeightThunk = createAsyncThunk('weight/update', async (input: { id: string; weightKg: number }) =>
+  weightRepository.updateEntry(input.id, input.weightKg)
+);
+
+export const deleteWeightThunk = createAsyncThunk('weight/delete', async (id: string) => {
+  await weightRepository.deleteEntry(id);
+  return id;
+});
+
 const weightSlice = createSlice({
   name: 'weight',
   initialState,
@@ -37,6 +46,12 @@ const weightSlice = createSlice({
       })
       .addCase(logWeightThunk.fulfilled, (state, action) => {
         state.history.push(action.payload);
+      })
+      .addCase(updateWeightThunk.fulfilled, (state, action) => {
+        state.history = state.history.map((w) => (w.id === action.payload.id ? action.payload : w));
+      })
+      .addCase(deleteWeightThunk.fulfilled, (state, action) => {
+        state.history = state.history.filter((w) => w.id !== action.payload);
       });
   },
 });

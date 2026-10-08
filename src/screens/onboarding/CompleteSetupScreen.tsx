@@ -187,6 +187,7 @@ export const CompleteSetupScreen: React.FC = () => {
         weightKg,
         activityLevel,
         goal,
+        goalSource: 'user',
         trainingFrequency: draft.trainingFrequency ?? undefined,
         trainingVolume: draft.trainingVolume ?? undefined,
         weightChangePaceKgPerWeek: pace ?? undefined,

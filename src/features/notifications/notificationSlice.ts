@@ -1,6 +1,20 @@
 import { env } from '@/config/env';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppNotification, NotificationEventType, NotificationSetting } from './models';
+import { LocalStore } from '@/services/storage/LocalStore';
+
+/**
+ * The only notification type the app actually delivers: meditation reminders,
+ * scheduled as local OS notifications. Everything else needs a push provider
+ * and backend events (BACKEND_API_REQUIREMENTS.txt #22–24), so its setting is
+ * stored but shown as not yet available.
+ */
+export const DELIVERABLE_NOTIFICATION_TYPES: ReadonlySet<NotificationEventType> = new Set(['meditation_reminder']);
+
+/** Device preference: which notification types the user wants (persisted across restarts). */
+const settingsStore = new LocalStore<Partial<Record<NotificationEventType, boolean>>>('@longlivy/notification_settings', {});
+
+export const hydrateNotificationSettingsThunk = createAsyncThunk('notification/hydrateSettings', () => settingsStore.read());
 
 interface NotificationState {
   settings: NotificationSetting[];
@@ -43,6 +57,8 @@ const notificationSlice = createSlice({
     toggleNotificationSetting(state, action: PayloadAction<NotificationEventType>) {
       const setting = state.settings.find((s) => s.type === action.payload);
       if (setting) setting.enabled = !setting.enabled;
+      const saved = Object.fromEntries(state.settings.map((s) => [s.type, s.enabled]));
+      settingsStore.write(saved).catch(() => {});
     },
     markNotificationRead(state, action: PayloadAction<string>) {
       const item = state.items.find((i) => i.id === action.payload);
@@ -51,6 +67,14 @@ const notificationSlice = createSlice({
     markAllNotificationsRead(state) {
       state.items.forEach((i) => (i.read = true));
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(hydrateNotificationSettingsThunk.fulfilled, (state, action) => {
+      for (const setting of state.settings) {
+        const saved = action.payload[setting.type];
+        if (typeof saved === 'boolean') setting.enabled = saved;
+      }
+    });
   },
 });
 

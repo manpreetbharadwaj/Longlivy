@@ -29,6 +29,19 @@ export class MockWeightRepository implements WeightRepository {
     await store.write(all);
     return delay(entry);
   }
+
+  async updateEntry(id: string, weightKg: number): Promise<WeightEntry> {
+    const all = await store.read();
+    const entry = all.find((w) => w.id === id);
+    if (!entry) throw new Error('Weight entry not found');
+    entry.weightKg = weightKg;
+    await store.write(all);
+    return delay({ ...entry });
+  }
+
+  async deleteEntry(id: string): Promise<void> {
+    await store.write((await store.read()).filter((w) => w.id !== id));
+  }
 }
 
 export const weightRepository: WeightRepository = env.useMockApi ? new MockWeightRepository() : new ApiWeightRepository();

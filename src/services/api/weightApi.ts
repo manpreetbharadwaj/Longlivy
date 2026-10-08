@@ -1,4 +1,4 @@
-import { apiRequestParsed } from './apiClient';
+import { apiRequest, apiRequestParsed } from './apiClient';
 import { API_ENDPOINTS } from './apiConfig';
 import { dataList, dataRecord, id, num, RecordValue, str } from './laravel';
 import { ApiError } from '@/utils/apiError';
@@ -36,4 +36,16 @@ function create(userId: string, weightKg: number, source: WeightEntry['source'])
   );
 }
 
-export const weightApi = { list, create };
+/** PUT keeps the entry's unit as kg (the app only edits values it shows in kg). */
+function update(userId: string, entryId: string, weightKg: number): Promise<WeightEntry> {
+  return apiRequestParsed(
+    { method: 'PUT', url: API_ENDPOINTS.weightLogs.byId(entryId), data: { weight: weightKg, unit: 'kg' } },
+    (body) => mapWeightLog(dataRecord(body, 'weight_log'), userId),
+  );
+}
+
+async function remove(entryId: string): Promise<void> {
+  await apiRequest({ method: 'DELETE', url: API_ENDPOINTS.weightLogs.byId(entryId) });
+}
+
+export const weightApi = { list, create, update, remove };

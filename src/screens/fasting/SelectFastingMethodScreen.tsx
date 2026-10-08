@@ -13,6 +13,8 @@ import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FASTING_METHODS, FastingMethodId } from '@/features/fasting/models';
+import { env } from '@/config/env';
+import { MAX_PLANNED_HOURS } from '@/services/api/fastingApi';
 import { SafetyNotice } from '@/features/fasting/components/SafetyNotice';
 import { saveFastingScheduleThunk, startFastThunk } from '@/features/fasting/fastingSlice';
 import { selectActiveFast, selectActiveSchedule, selectFastingActionStatus, selectFastingPlan } from '@/features/fasting/selectors';
@@ -40,7 +42,9 @@ const CATEGORY_SEGMENTS = [
   { key: 'individual', label: 'Custom' },
 ];
 const INTERMITTENT = FASTING_METHODS.filter((m) => m.category === 'intermittent');
-const LONGER = FASTING_METHODS.filter((m) => m.category === 'longer');
+// The API stores at most 48 planned hours (POST /fasting rejects more), so
+// longer methods are only offered in the offline mock prototype.
+const LONGER = FASTING_METHODS.filter((m) => m.category === 'longer' && (env.useMockApi || m.fastingHours <= MAX_PLANNED_HOURS));
 const FASTING_GRADIENT = ['#5C7A94', '#3D5266'] as const;
 const ACCENT = '#5C7A94';
 

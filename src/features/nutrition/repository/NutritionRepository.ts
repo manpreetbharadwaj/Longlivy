@@ -16,6 +16,9 @@ export interface NutritionRepository {
     quantity: number;
   }): Promise<Meal>;
   removeMealItem(mealId: string, itemId: string): Promise<Meal | null>;
+  /** Changes an item's amount; nutrients scale with it. */
+  updateMealItemQuantity(mealId: string, itemId: string, quantity: number): Promise<Meal>;
+  deleteMeal(mealId: string): Promise<void>;
   getRecipes(userId: string): Promise<Recipe[]>;
   saveRecipe(recipe: Recipe): Promise<Recipe>;
 }

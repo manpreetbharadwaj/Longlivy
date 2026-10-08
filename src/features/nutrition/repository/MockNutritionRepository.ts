@@ -143,6 +143,33 @@ export class MockNutritionRepository implements NutritionRepository {
     return delay(meal);
   }
 
+  async updateMealItemQuantity(mealId: string, itemId: string, quantity: number): Promise<Meal> {
+    const db = await store.read();
+    const meal = db.meals.find((m) => m.id === mealId);
+    const item = meal?.items.find((i) => i.id === itemId);
+    if (!meal || !item) throw new Error('Meal item not found');
+    const factor = item.quantity > 0 ? quantity / item.quantity : 0;
+    Object.assign(item, {
+      quantity,
+      calories: item.calories * factor,
+      protein: item.protein * factor,
+      carbohydrates: item.carbohydrates * factor,
+      fat: item.fat * factor,
+    });
+    meal.totalCalories = meal.items.reduce((s, i) => s + i.calories, 0);
+    meal.protein = meal.items.reduce((s, i) => s + i.protein, 0);
+    meal.carbohydrates = meal.items.reduce((s, i) => s + i.carbohydrates, 0);
+    meal.fat = meal.items.reduce((s, i) => s + i.fat, 0);
+    await store.write(db);
+    return delay(meal);
+  }
+
+  async deleteMeal(mealId: string): Promise<void> {
+    const db = await store.read();
+    db.meals = db.meals.filter((m) => m.id !== mealId);
+    await store.write(db);
+  }
+
   async getRecipes(userId: string): Promise<Recipe[]> {
     const db = await store.read();
     return delay(db.recipes.filter((r) => r.userId === userId));

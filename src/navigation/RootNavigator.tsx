@@ -12,6 +12,7 @@ import { bootstrapSession } from '@/features/auth/authSlice';
 import { selectAuthBootstrapped, selectAuthSession, selectAuthUser, selectIsAuthenticated, selectOnboardingComplete } from '@/features/auth/selectors';
 import { hydrateProfileThunk, updateProfile } from '@/features/profile/profileSlice';
 import { hydrateCalorieThunk, setBodyProfile } from '@/features/calories/calorieSlice';
+import { hydrateNotificationSettingsThunk } from '@/features/notifications/notificationSlice';
 import { selectHasAddress, selectProfileHydrated } from '@/features/profile/selectors';
 import { API_PROFILE_DEFAULT } from '@/features/profile/repository';
 import { fromServerActivityLevel } from '@/services/api/profileApi';
@@ -44,6 +45,7 @@ export const RootNavigator: React.FC = () => {
     // DEMO_USER default for the instant before hydration resolves.
     dispatch(hydrateProfileThunk());
     dispatch(hydrateCalorieThunk());
+    dispatch(hydrateNotificationSettingsThunk());
     const timer = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
     return () => clearTimeout(timer);
   }, [dispatch]);
@@ -53,7 +55,9 @@ export const RootNavigator: React.FC = () => {
     if (!authUser) return;
     // A different account than the one whose profile is stored on this
     // device starts from a blank profile — never another user's local fields.
-    const base = !env.useMockApi && profileId !== authUser.id ? API_PROFILE_DEFAULT : {};
+    // An empty stored id is a profile filled in during onboarding before this
+    // account existed — it belongs to this user and must be kept.
+    const base = !env.useMockApi && profileId && profileId !== authUser.id ? API_PROFILE_DEFAULT : {};
     // Server profile values (GET /auth/me, login, register) win over local ones.
     const server = authSession?.serverProfile;
     const fromServer: Partial<DemoUserProfile> = server

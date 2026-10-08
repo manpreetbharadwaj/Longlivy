@@ -228,6 +228,26 @@ function removeMealItem(userId: string, mealId: string, itemId: string): Promise
   return apiRequestParsed({ method: 'DELETE', url: API_ENDPOINTS.meals.item(mealId, itemId) }, (body) => mapMeal(dataRecord(body, 'meal'), userId));
 }
 
+/**
+ * PUT /meals/{meal}/items/{item}. The server recomputes nutrients for items
+ * linked to a food, but keeps a free-form item's stored nutrients when only
+ * the quantity changes (verified), so those are sent scaled.
+ */
+function updateMealItem(userId: string, mealId: string, item: MealItem, quantity: number): Promise<Meal> {
+  const data: RecordValue = { quantity };
+  if (!item.foodId) {
+    const factor = item.quantity > 0 ? quantity / item.quantity : 0;
+    const round = (v: number) => Math.round(v * factor * 100) / 100;
+    Object.assign(data, { calories: round(item.calories), protein: round(item.protein), carbohydrates: round(item.carbohydrates), fat: round(item.fat) });
+  }
+  // The PUT response carries only the item, so re-read the meal for its new totals.
+  return apiRequest({ method: 'PUT', url: API_ENDPOINTS.meals.item(mealId, item.id), data }).then(() => getMeal(userId, mealId));
+}
+
+async function deleteMeal(mealId: string): Promise<void> {
+  await apiRequest({ method: 'DELETE', url: API_ENDPOINTS.meals.byId(mealId) });
+}
+
 // --- recipes -------------------------------------------------------------
 
 function listRecipes(userId: string): Promise<Recipe[]> {
@@ -284,6 +304,8 @@ export const nutritionApi = {
   createMeal,
   addMealItem,
   removeMealItem,
+  updateMealItem,
+  deleteMeal,
   listRecipes,
   saveRecipe,
   listFavorites,

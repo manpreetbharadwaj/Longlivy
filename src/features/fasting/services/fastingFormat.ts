@@ -24,3 +24,17 @@ export function formatSpan(ms: number): string {
 export function formatHours(hours: number): string {
   return `${Number.isInteger(hours) ? hours : hours.toFixed(1)} h`;
 }
+
+/** What each outcome means to the user — the API's "failed" is a fast ended before its planned time. */
+const FASTING_STATUS_LABEL: Record<import('../models').FastingStatus, string> = {
+  completed: 'Completed',
+  ended_prematurely: 'Ended early',
+  extended: 'Extended',
+  planned: 'Planned',
+  active: 'In progress',
+  cancelled: 'Cancelled',
+};
+
+export function fastingStatusLabel(status: import('../models').FastingStatus): string {
+  return FASTING_STATUS_LABEL[status];
+}

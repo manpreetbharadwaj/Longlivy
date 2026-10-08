@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, Alert, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AppScreen } from '@/components/common/AppScreen';
 import { AppHeader } from '@/components/common/AppHeader';
@@ -20,7 +20,7 @@ import {
   selectGoalsMutationStatus,
   selectGoalsStatus,
 } from '@/features/goals/selectors';
-import { fetchGoalsThunk, updateGoalThunk } from '@/features/goals/goalsSlice';
+import { fetchGoalsThunk, updateGoalThunk, deleteGoalThunk } from '@/features/goals/goalsSlice';
 
 export const GoalsScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -71,6 +71,16 @@ export const GoalsScreen: React.FC = () => {
     [dispatch]
   );
 
+  const confirmDelete = useCallback(
+    (id: string, label: string) => {
+      Alert.alert(`Delete the ${label} goal?`, 'Its progress history is deleted with it.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => void dispatch(deleteGoalThunk(id)) },
+      ]);
+    },
+    [dispatch],
+  );
+
   const isInitialLoading = status === 'loading' && goals.length === 0;
   const isEmpty = status === 'succeeded' && goals.length === 0;
   const isError = status === 'failed' && goals.length === 0;
@@ -104,9 +114,19 @@ export const GoalsScreen: React.FC = () => {
                   editable={goal.active && mutationStatus !== 'loading'}
                   label={`Target (${goal.unit}, per ${goal.period})`}
                 />
-                <AppText variant="caption" color={theme.colors.textTertiary} style={{ marginTop: theme.spacing.xxs }}>
-                  Source: {goal.source}
-                </AppText>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: theme.spacing.xxs }}>
+                  <AppText variant="caption" color={theme.colors.textTertiary} style={{ flex: 1 }}>
+                    Source: {goal.source}
+                  </AppText>
+                  {/* Nutrition targets are managed (and recalculated) on the Nutrition goals screen. */}
+                  {String(goal.type).startsWith('nutrition_') ? null : (
+                    <Pressable onPress={() => confirmDelete(goal.id, String(goal.type).replace(/_/g, ' '))} disabled={mutationStatus === 'loading'} accessibilityRole="button" hitSlop={8}>
+                      <AppText variant="caption" color={theme.colors.danger}>
+                        Delete goal
+                      </AppText>
+                    </Pressable>
+                  )}
+                </View>
               </AppCard>
             ))
           : null}

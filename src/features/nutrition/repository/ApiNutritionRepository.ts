@@ -100,6 +100,17 @@ export class ApiNutritionRepository implements NutritionRepository {
     return nutritionApi.removeMealItem(this.userId, mealId, itemId);
   }
 
+  async updateMealItemQuantity(mealId: string, itemId: string, quantity: number): Promise<Meal> {
+    const meal = await nutritionApi.getMeal(this.userId, mealId);
+    const item = meal.items.find((i) => i.id === itemId);
+    if (!item) throw new Error('This item no longer exists.');
+    return nutritionApi.updateMealItem(this.userId, mealId, item, quantity);
+  }
+
+  deleteMeal(mealId: string): Promise<void> {
+    return nutritionApi.deleteMeal(mealId);
+  }
+
   getRecipes(userId: string): Promise<Recipe[]> {
     return nutritionApi.listRecipes(userId);
   }

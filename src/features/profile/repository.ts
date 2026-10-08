@@ -19,6 +19,10 @@ export const API_PROFILE_DEFAULT: DemoUserProfile = {
   lastName: '',
   email: '',
   address: undefined,
+  // Not the demo user's goal: a neutral default until the user picks one
+  // (or it's restored from their server targets).
+  goal: 'maintenance',
+  goalSource: undefined,
 };
 
 const store = new LocalStore<DemoUserProfile>(env.useMockApi ? '@longlivy/profile' : '@longlivy/profile/api', env.useMockApi ? DEMO_USER : API_PROFILE_DEFAULT);
