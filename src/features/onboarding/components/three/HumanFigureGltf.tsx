@@ -220,7 +220,7 @@ export const HumanFigureGltf: React.FC<HumanFigureGltfProps> = ({ target, onUnav
         setScene(gltf.scene);
       })
       .catch((error) => {
-        // eslint-disable-next-line no-console
+         
         console.warn('[HumanFigureGltf] licensed character asset failed to load, falling back to procedural mesh:', error);
         if (!reportedRef.current) {
           reportedRef.current = true;
@@ -252,7 +252,7 @@ export const HumanFigureGltf: React.FC<HumanFigureGltfProps> = ({ target, onUnav
       const { gl, scene: r3fScene, camera } = store.getState();
       gl.compile(r3fScene, camera);
     } catch (err) {
-      // eslint-disable-next-line no-console
+       
       console.warn('[HumanFigureGltf] shader warm-up (post-mesh-mount) threw:', err);
     }
   }, [mesh, store]);
@@ -269,7 +269,7 @@ export const HumanFigureGltf: React.FC<HumanFigureGltfProps> = ({ target, onUnav
     } catch (err) {
       if (!frameErrorLoggedRef.current) {
         frameErrorLoggedRef.current = true;
-        // eslint-disable-next-line no-console
+         
         console.warn('[HumanFigureGltf] frame update failed, character will stop animating:', err);
       }
     }

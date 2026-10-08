@@ -11,7 +11,8 @@ import { env } from '@/config/env';
  * repository (see `MockAuthRepository`, `MockWeightRepository`, …) — this
  * gives `profile` the same treatment.
  */
-const API_PROFILE_DEFAULT: DemoUserProfile = {
+/** The blank profile a newly signed-in API user starts from (no demo values carry over). */
+export const API_PROFILE_DEFAULT: DemoUserProfile = {
   ...DEMO_USER,
   id: '',
   firstName: '',

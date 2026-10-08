@@ -61,6 +61,13 @@ export interface Meditation {
   type: MeditationType;
   durationSeconds: number;
   audioReference?: string;
+  /** Streamable audio URL delivered by the backend (GET /meditation). Takes precedence over `audioReference`. */
+  audioUrl?: string;
+  /** When a signed `audioUrl` stops working (ISO); null/absent for public URLs. */
+  audioExpiresAt?: string | null;
+  thumbnailUrl?: string;
+  /** 'server' for backend catalog rows, 'bundled' for the on-device catalog shipped with the app. */
+  contentSource?: 'server' | 'bundled';
   language: 'en' | 'de';
   status: MeditationContentStatus;
   version: string;

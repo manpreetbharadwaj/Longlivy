@@ -1,9 +1,10 @@
 import { AuthRepository } from './AuthRepository';
-import { AuthSession, RegisterInput } from '../models';
-import { authApi, AuthApiSession } from '@/services/api/authApi';
+import { AuthSession, AuthUser, RegisterInput } from '../models';
+import { authApi, AuthApiSession, AuthApiUser } from '@/services/api/authApi';
 import { authService } from '@/services/auth/authService';
 import { tokenStorage } from '@/services/auth/tokenStorage';
 import { LocalStore } from '@/services/storage/LocalStore';
+import { isNormalizedApiError } from '@/utils/apiError';
 
 /**
  * Real-backend implementation of `AuthRepository` — satisfies the exact
@@ -13,45 +14,64 @@ import { LocalStore } from '@/services/storage/LocalStore';
  * API_MIGRATION.md for the general pattern this follows.
  */
 
-function toAuthSession(apiSession: AuthApiSession): AuthSession {
+function toAuthUser(user: AuthApiUser): AuthUser {
+  return { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, emailVerified: user.emailVerified };
+}
+
+function toSession(user: AuthApiUser, token: string): AuthSession {
+  const { dateOfBirth, gender, heightCm, weightKg, address, activityLevel } = user.profile;
   return {
-    user: apiSession.user,
-    token: apiSession.tokens.accessToken,
+    user: toAuthUser(user),
+    token,
     createdAt: new Date().toISOString(),
+    serverProfile: { dateOfBirth, gender, heightCm, weightKg, address, activityLevel },
   };
 }
 
-// Onboarding-complete is treated as a device preference rather than account
-// data — it survives independently of which backend (mock or real) is
-// active. The documented API has no profile update/read contract beyond the
-// credentialed POST /me operation, so it remains device-scoped for now.
+function fromApiSession(apiSession: AuthApiSession): AuthSession {
+  return toSession(apiSession.user, apiSession.tokens.accessToken);
+}
+
+// Onboarding-complete is a device preference rather than account data — it
+// survives independently of which backend (mock or real) is active.
 const onboardingStore = new LocalStore<{ complete: boolean }>('@longlivy/onboarding_complete', { complete: false });
 
 export class ApiAuthRepository implements AuthRepository {
   async login(email: string, password: string): Promise<AuthSession> {
     const session = await authApi.login({ email, password });
     await authService.loginAndPersist(session);
-    return toAuthSession(session);
+    return fromApiSession(session);
   }
 
   async register(input: RegisterInput): Promise<AuthSession> {
     const session = await authApi.register(input);
     await authService.loginAndPersist(session);
-    return toAuthSession(session);
+    return fromApiSession(session);
   }
 
   async logout(): Promise<void> {
     await authService.logout();
   }
 
+  /**
+   * Validates the stored token with GET /auth/me. A rejected token clears the
+   * session (the 401 interceptor already wiped storage); a network failure
+   * falls back to the stored identity so the app still opens offline, and the
+   * next successful protected request re-validates it.
+   */
   async getCurrentSession(): Promise<AuthSession | null> {
-    const [accessToken, user] = await Promise.all([tokenStorage.getAccessToken(), tokenStorage.getUser()]);
-    // The documented /me endpoint requires email/password, so it is not safe
-    // to call it during startup with a password that was never persisted. A
-    // stored user snapshot restores the session locally; the first protected
-    // request validates the token and the 401 interceptor signs out if needed.
-    if (!accessToken || !user) return null;
-    return { user, token: accessToken, createdAt: new Date().toISOString() };
+    const [accessToken, storedUser] = await Promise.all([tokenStorage.getAccessToken(), tokenStorage.getUser()]);
+    if (!accessToken) return null;
+    try {
+      const user = await authApi.me();
+      await authService.loginAndPersist({ user, tokens: { accessToken } });
+      return toSession(user, accessToken);
+    } catch (error) {
+      const offline = isNormalizedApiError(error) && (error.kind === 'network' || error.kind === 'timeout' || error.kind === 'server');
+      if (offline && storedUser) return { user: storedUser, token: accessToken, createdAt: new Date().toISOString() };
+      await tokenStorage.clearTokens();
+      return null;
+    }
   }
 
   async resetPassword(email: string): Promise<void> {

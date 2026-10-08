@@ -35,8 +35,13 @@ export const MEDITATION_AUDIO_SOURCES = {
 
 export type MeditationAudioKey = keyof typeof MEDITATION_AUDIO_SOURCES;
 
-/** Resolves a `Meditation.audioReference` to a loadable `AudioSource`, or `null` for content with no track (e.g. free/unguided sessions). */
+/**
+ * Resolves a backend audio URL (streamed) or a bundled `audioReference` key
+ * to a loadable `AudioSource`, or `null` for content with no track (e.g.
+ * free/unguided sessions).
+ */
 export function resolveMeditationAudioSource(audioReference: string | null | undefined): AudioSource | null {
   if (!audioReference) return null;
+  if (/^https:\/\//i.test(audioReference)) return { uri: audioReference };
   return MEDITATION_AUDIO_SOURCES[audioReference as MeditationAudioKey] ?? null;
 }

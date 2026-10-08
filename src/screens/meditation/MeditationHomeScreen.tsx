@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo } from 'react';
 import { View, Pressable, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation , CompositeNavigationProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { CompositeNavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { MeditationStackParamList, MainTabParamList } from '@/navigation/types';
@@ -16,6 +15,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { motion } from '@/theme/motion';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { env } from '@/config/env';
 import { loadMeditationData } from '@/features/meditation/meditationSlice';
 import { selectTodayMeditationSeconds, selectMeditationStreak, selectMeditationContent, selectMeditationsByFilters } from '@/features/meditation/selectors';
 import { MEDITATION_COLLECTIONS } from '@/features/meditation/meditationCollections';
@@ -38,6 +38,9 @@ export const MeditationHomeScreen: React.FC = () => {
   const todaySeconds = useAppSelector(selectTodayMeditationSeconds);
   const streak = useAppSelector(selectMeditationStreak);
   const content = useAppSelector(selectMeditationContent);
+  const loadStatus = useAppSelector((state) => state.meditation.status);
+  // API mode with an empty server catalog: the app's own sessions are shown, and say so.
+  const showingBundled = !env.useMockApi && content.length > 0 && content.every((m) => m.contentSource === 'bundled');
   const sounds = useMemo(() => getPlayableAmbientSounds(), []);
   const shortSessions = useMemo(
     () => selectMeditationsByFilters(content, { maxDurationSeconds: SHORT_SESSION_MAX_SECONDS, includeComingSoon: false }).filter((item) => item.status === 'published'),
@@ -70,6 +73,18 @@ export const MeditationHomeScreen: React.FC = () => {
           <StatItem icon="flame-outline" value={`${streak} ${t('meditation.dayShort')}`} label={t('meditation.streak')} />
         </View>
       </View>
+
+      {loadStatus === 'failed' ? (
+        <Pressable onPress={() => dispatch(loadMeditationData())} accessibilityRole="button" style={{ marginTop: theme.spacing.sm }}>
+          <AppText variant="bodySmall" color="#F2A08F">
+            {t('meditation.library.loadError')} {t('meditation.library.retry')}
+          </AppText>
+        </Pressable>
+      ) : showingBundled ? (
+        <AppText variant="caption" color={dashboardColors.textSecondary} style={{ marginTop: theme.spacing.sm }}>
+          {t('meditation.library.bundledNotice')}
+        </AppText>
+      ) : null}
 
       <StartMeditationButton onPress={() => navigation.navigate('MeditationCategories')} />
 

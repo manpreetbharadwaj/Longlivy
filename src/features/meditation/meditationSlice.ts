@@ -8,7 +8,7 @@ import {
   cancelMeditationReminderNotifications,
   getLiveScheduledNotificationIds,
 } from './services/MeditationNotificationService';
-import { DEMO_USER_ID } from '@/mock/demoUser';
+import { selectCurrentUserId } from '@/features/auth/selectors';
 import { generateId } from '@/utils/id';
 import { RootState } from '@/store/store';
 
@@ -34,14 +34,15 @@ const initialState: MeditationState = {
   status: 'idle',
 };
 
-export const loadMeditationData = createAsyncThunk('meditation/loadData', async () => {
+export const loadMeditationData = createAsyncThunk('meditation/loadData', async (_: void, { getState }) => {
+  const userId = selectCurrentUserId(getState() as RootState);
   const [content, schemes, favorites, templates, history, storedReminders] = await Promise.all([
     meditationRepository.getPublishedContent(),
     meditationRepository.getBreathingSchemes(),
-    meditationRepository.getFavorites(DEMO_USER_ID),
-    meditationRepository.getTemplates(DEMO_USER_ID),
-    meditationRepository.getHistory(DEMO_USER_ID),
-    meditationRepository.getReminders(DEMO_USER_ID),
+    meditationRepository.getFavorites(userId),
+    meditationRepository.getTemplates(userId),
+    meditationRepository.getHistory(userId),
+    meditationRepository.getReminders(userId),
   ]);
 
   // Reconciliation (Section 20): a reinstall, an OS cleanup, or a revoked
@@ -67,8 +68,8 @@ export const loadMeditationData = createAsyncThunk('meditation/loadData', async 
 
 export const startMeditationSessionThunk = createAsyncThunk(
   'meditation/startSession',
-  async (input: { meditationId: string | null; meditationTitle: string; type: MeditationSession['type']; plannedDurationSeconds: number; templateId?: string | null }) =>
-    meditationRepository.startSession({ userId: DEMO_USER_ID, ...input })
+  async (input: { meditationId: string | null; meditationTitle: string; type: MeditationSession['type']; plannedDurationSeconds: number; templateId?: string | null }, { getState }) =>
+    meditationRepository.startSession({ userId: selectCurrentUserId(getState() as RootState), ...input })
 );
 
 export const recordSessionEventThunk = createAsyncThunk(
@@ -83,8 +84,8 @@ export const completeMeditationSessionThunk = createAsyncThunk(
     meditationRepository.completeSession(input.sessionId, input.activeDurationSeconds, input.pausedDurationSeconds, input.status)
 );
 
-export const toggleMeditationFavoriteThunk = createAsyncThunk('meditation/toggleFavorite', async (meditationId: string) =>
-  meditationRepository.toggleFavorite(DEMO_USER_ID, meditationId)
+export const toggleMeditationFavoriteThunk = createAsyncThunk('meditation/toggleFavorite', async (meditationId: string, { getState }) =>
+  meditationRepository.toggleFavorite(selectCurrentUserId(getState() as RootState), meditationId)
 );
 
 export const saveMeditationTemplateThunk = createAsyncThunk('meditation/saveTemplate', async (template: MeditationTemplate) =>
@@ -142,7 +143,7 @@ export const saveMeditationReminderThunk = createAsyncThunk<SaveMeditationRemind
     const now = new Date().toISOString();
     const reminder: MeditationReminder = {
       id: input.id ?? generateId('reminder'),
-      userId: DEMO_USER_ID,
+      userId: selectCurrentUserId(getState()),
       time: input.time,
       daysOfWeek: input.daysOfWeek,
       enabled,

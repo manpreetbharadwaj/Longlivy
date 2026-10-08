@@ -40,27 +40,19 @@ export class AiNutritionRecognitionService {
       results.push(toRecognizedItem(food, quantity, 0.55));
     }
 
-    if (results.length === 0) {
-      // No keyword matched anything we know — hand back a single low-confidence
-      // guess rather than an empty screen, so there's still something to edit.
-      const fallback = FOOD_DATABASE_SEED[0];
-      results.push(toRecognizedItem(fallback, fallback.servingSize, 0.2));
-    }
-
+    // Nothing matched: return nothing. Inventing a "best guess" food would put
+    // fabricated nutrition data in front of the user.
     return results;
   }
 
   /**
-   * Photo path: a real implementation would call a vision model. Without
-   * one, this returns a small plausible "detected meal" so the review flow
-   * can be exercised end-to-end — always at a capped confidence, and always
-   * subject to the same mandatory review as the other entry paths.
+   * Photo path: there is no vision model (on device or on the server — POST
+   * /nutrition/recognize is a stub), so nothing is recognized. The entry
+   * points are hidden behind `features.photoMealRecognition`; this never
+   * returns sample foods.
    */
   recognizeFromPhoto(): AiRecognizedItem[] {
-    const sample = ['food_chicken_breast', 'food_rice_cooked', 'food_broccoli']
-      .map((id) => FOOD_DATABASE_SEED.find((f) => f.id === id))
-      .filter((f): f is Food => !!f);
-    return sample.map((food) => toRecognizedItem(food, food.servingSize, 0.4));
+    return [];
   }
 }
 

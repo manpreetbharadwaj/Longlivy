@@ -43,10 +43,10 @@ function resolveBoolean(raw: string | undefined, fallback: boolean): boolean {
   return fallback;
 }
 
-// Keep the existing prototype usable while the supplied deployment is
-// returning 404 for every documented route. Set EXPO_PUBLIC_USE_MOCK_API=false
-// in a backend-enabled build to exercise the real API path.
-const useMockApi = resolveBoolean(process.env.EXPO_PUBLIC_USE_MOCK_API, true);
+// The live API is the default (verified reachable 2026-10-08). Local mock
+// repositories are an explicit opt-in for offline prototyping only:
+// EXPO_PUBLIC_USE_MOCK_API=true. A production build must never ship with it.
+const useMockApi = appEnv !== 'production' && resolveBoolean(process.env.EXPO_PUBLIC_USE_MOCK_API, false);
 
 const parsedTimeout = Number(process.env.EXPO_PUBLIC_API_TIMEOUT_MS);
 const apiTimeoutMs = Number.isFinite(parsedTimeout) && parsedTimeout > 0 ? parsedTimeout : 15000;

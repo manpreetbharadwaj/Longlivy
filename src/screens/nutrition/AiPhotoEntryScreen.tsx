@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Image } from 'react-native';
+import { View, Image, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -37,9 +37,13 @@ export const AiPhotoEntryScreen: React.FC = () => {
 
   const recognize = useCallback(() => {
     setRecognizing(true);
-    // Stands in for a real vision model call — see AiNutritionRecognitionService.
     const items = aiNutritionRecognitionService.recognizeFromPhoto();
     setRecognizing(false);
+    if (items.length === 0) {
+      // Reached only if the screen is opened despite features.photoMealRecognition being off.
+      Alert.alert('Photo recognition is not available yet', 'Add the foods manually or describe the meal in text.');
+      return;
+    }
     navigation.navigate('AiMealReview', { source: 'photo', items });
   }, [navigation]);
 

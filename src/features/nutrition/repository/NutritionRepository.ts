@@ -1,4 +1,4 @@
-import { Food, Meal, MealItem, Recipe, MealType } from '../models';
+import { Food, Meal, Recipe, MealType } from '../models';
 
 export interface NutritionRepository {
   searchFoods(query: string): Promise<Food[]>;

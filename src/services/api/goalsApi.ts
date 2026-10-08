@@ -40,7 +40,7 @@ function boolean(value: unknown, fallback = true): boolean {
 
 function unwrapSingle(value: unknown): unknown {
   if (!isRecord(value)) return value;
-  for (const key of ['data', 'goal', 'result', 'item', 'payload']) {
+  for (const key of ['data', 'goal', 'progress', 'result', 'item', 'payload']) {
     if (key in value) return unwrapSingle(value[key]);
   }
   return value;
@@ -49,10 +49,19 @@ function unwrapSingle(value: unknown): unknown {
 function unwrapList(value: unknown): unknown[] {
   if (Array.isArray(value)) return value;
   if (!isRecord(value)) throw new ApiError({ kind: 'malformed', message: 'The goals response did not contain a list.' });
-  for (const key of ['goals', 'items', 'results', 'records', 'data']) {
+  for (const key of ['goals', 'progress', 'items', 'results', 'records', 'data']) {
     if (key in value) return unwrapList(value[key]);
   }
   throw new ApiError({ kind: 'malformed', message: 'The goals response did not contain a list.' });
+}
+
+/**
+ * Goals created via /meditation/goals come back as `goal_type: "meditation"`
+ * with the unit telling minutes from sessions; the app models those as two types.
+ */
+function appGoalType(type: string, unit: string): Goal['type'] {
+  if (type !== 'meditation') return type as Goal['type'];
+  return /session/i.test(unit) ? 'meditation_sessions' : 'meditation_minutes';
 }
 
 function mapGoal(value: unknown): Goal {
@@ -60,20 +69,24 @@ function mapGoal(value: unknown): Goal {
   if (!isRecord(raw)) throw new ApiError({ kind: 'malformed' });
   const id = text(raw.id, raw.goal_id, raw.goalId);
   const type = text(raw.goal_type, raw.goalType, raw.type);
-  const target = number(raw.target_value, raw.targetValue, raw.target, raw.value);
+  // The live API nests the target: `target: { value: "2200.00", unit: "kcal" }`.
+  const nestedTarget = isRecord(raw.target) ? raw.target : undefined;
+  const target = number(nestedTarget?.value, raw.target_value, raw.targetValue, raw.target, raw.value);
   if (!id || !type || target === undefined) throw new ApiError({ kind: 'malformed' });
 
+  const unit = text(nestedTarget?.unit, raw.unit) ?? '';
   return {
     id,
     userId: text(raw.user_id, raw.userId, isRecord(raw.user) ? raw.user.id : undefined) ?? '',
-    type: type as Goal['type'],
+    type: appGoalType(type, unit),
     name: text(raw.name),
     description: text(raw.description),
     target,
-    unit: text(raw.unit) ?? '',
+    unit,
     period: text(raw.period) ?? 'day',
     startDate: text(raw.start_date, raw.startDate),
     endDate: text(raw.end_date, raw.endDate),
+    // The API returns `active: null` for goals created without the flag; treat that as active.
     active: boolean(raw.active ?? raw.is_active, true),
     source: raw.source === 'auto' ? 'auto' : 'manual',
   };
@@ -126,10 +139,6 @@ function createGoal(input: GoalCreateInput): Promise<Goal> {
   return apiRequestParsed({ method: 'POST', url: API_ENDPOINTS.goals.collection, data: goalWirePayload(input) }, mapGoal);
 }
 
-function getGoalByShowId(id: string): Promise<Goal> {
-  return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.goals.show(id) }, mapGoal);
-}
-
 function getGoalById(id: string): Promise<Goal> {
   return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.goals.byId(id) }, mapGoal);
 }
@@ -156,7 +165,8 @@ function updateGoalProgress(id: string, input: GoalProgressInput): Promise<GoalP
 export const goalsApi = {
   getGoals,
   createGoal,
-  getGoalByShowId,
+  /** The documented `/show/{id}` route does not exist on the live API (404); `/goals/{id}` is the detail route. */
+  getGoalByShowId: getGoalById,
   getGoalById,
   updateGoal,
   deleteGoal,

@@ -11,18 +11,20 @@ import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { useTheme } from '@/hooks/useTheme';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
 import { Recipe } from '@/features/nutrition/models';
-import { DEMO_USER_ID } from '@/mock/demoUser';
+import { selectCurrentUserId } from '@/features/auth/selectors';
+import { useAppSelector } from '@/store/hooks';
 
 const NUTRITION_GRADIENT = ['#C9974E', '#8F6A2E'] as const;
 
 export const MyRecipesScreen: React.FC = () => {
+  const currentUserId = useAppSelector(selectCurrentUserId);
   const { theme } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<NutritionStackParamList>>();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
 
   const load = useCallback(() => {
-    nutritionRepository.getRecipes(DEMO_USER_ID).then(setRecipes);
-  }, []);
+    nutritionRepository.getRecipes(currentUserId).then(setRecipes);
+  }, [currentUserId]);
 
   useEffect(() => {
     const unsub = navigation.addListener('focus', load);

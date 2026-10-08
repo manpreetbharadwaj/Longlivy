@@ -2,7 +2,8 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Activity, ActivityType } from './models';
 import { activityRepository } from './repository/MockActivityRepository';
 import { ActivityTrackingSnapshot, EndActivityGpsSnapshot } from './repository/ActivityRepository';
-import { DEMO_USER_ID } from '@/mock/demoUser';
+import { selectCurrentUserId } from '@/features/auth/selectors';
+import type { RootState } from '@/store/store';
 
 interface ActivityState {
   activeActivity: Activity | null;
@@ -18,18 +19,19 @@ const initialState: ActivityState = {
   actionStatus: 'idle',
 };
 
-export const loadActivityData = createAsyncThunk('activity/loadActivityData', async () => {
+export const loadActivityData = createAsyncThunk('activity/loadActivityData', async (_: void, { getState }) => {
+  const userId = selectCurrentUserId(getState() as RootState);
   const [active, history] = await Promise.all([
-    activityRepository.getActiveActivity(DEMO_USER_ID),
-    activityRepository.getHistory(DEMO_USER_ID),
+    activityRepository.getActiveActivity(userId),
+    activityRepository.getHistory(userId),
   ]);
   return { active, history };
 });
 
 export const startActivityThunk = createAsyncThunk(
   'activity/start',
-  async (input: { type: ActivityType; gpsAvailable: boolean; startedAt?: string; weightKg?: number | null }) =>
-    activityRepository.startActivity(DEMO_USER_ID, input.type, input.gpsAvailable, {
+  async (input: { type: ActivityType; gpsAvailable: boolean; startedAt?: string; weightKg?: number | null }, { getState }) =>
+    activityRepository.startActivity(selectCurrentUserId(getState() as RootState), input.type, input.gpsAvailable, {
       startedAt: input.startedAt,
       weightKg: input.weightKg,
     })

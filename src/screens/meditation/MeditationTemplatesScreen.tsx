@@ -24,11 +24,12 @@ import { CustomMeditationAudio, getTemplateAudioMode, parseCustomMinutes, templa
 import { MeditationArt, getAmbientArtKind, getMeditationArtKind } from '@/features/meditation/components/MeditationArt';
 import { dashboardColors } from '@/features/dashboard/dashboardTheme';
 import { generateId } from '@/utils/id';
-import { DEMO_USER_ID } from '@/mock/demoUser';
+import { selectCurrentUserId } from '@/features/auth/selectors';
 
 const QUICK_MINUTES = [3, 5, 10, 15, 20, 30, 45, 60];
 
 export const MeditationTemplatesScreen: React.FC = () => {
+  const currentUserId = useAppSelector(selectCurrentUserId);
   const { theme } = useTheme();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<MeditationStackParamList>>();
@@ -116,7 +117,7 @@ export const MeditationTemplatesScreen: React.FC = () => {
         closingSoundEnabled: true,
         ...existing,
         id: existing?.id ?? generateId('template'),
-        userId: DEMO_USER_ID,
+        userId: currentUserId,
         name: name.trim() || t('meditation.templatesScreen.defaultName'),
         durationSeconds: minutes * 60,
         type: 'free',
@@ -126,7 +127,7 @@ export const MeditationTemplatesScreen: React.FC = () => {
     );
     resetForm();
     setSavedNote(true);
-  }, [audio, canSave, dispatch, editingId, layerSoundId, minutes, name, resetForm, soundId, t, templates, trackId]);
+  }, [audio, canSave, currentUserId, dispatch, editingId, layerSoundId, minutes, name, resetForm, soundId, t, templates, trackId]);
 
   const start = useCallback((template: MeditationTemplate) => navigation.navigate('MeditationPlayer', templateToPlayerParams(template)), [navigation]);
 

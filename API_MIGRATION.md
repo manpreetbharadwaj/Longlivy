@@ -44,14 +44,14 @@ For each feature (`fasting`, `nutrition`, `activity`, `meditation`, `weight`,
    Because every consumer (slices, use-case services) imports the
    `fastingRepository` singleton — never the mock class directly — this is
    the only line that needs to change per feature.
-5. **Authentication is already wired this way** — `ApiAuthRepository`
-   (`src/features/auth/repository/ApiAuthRepository.ts`) implements
-   `AuthRepository` against the documented `/register`, `/login`, and `/me`
-   routes through the centralized Axios client. Access tokens and the minimal
-   user snapshot are persisted via `expo-secure-store`. There is no refresh or
-   server-logout route in the supplied contract, so 401 responses clear the
-   local session rather than guessing a refresh protocol. The active backend
-   versus mock choice is controlled by `EXPO_PUBLIC_USE_MOCK_API`.
+5. **Done for auth, weight, fasting, nutrition and meditation.** Each
+   feature has an `Api<Feature>Repository` next to its mock, and the exported
+   singleton picks one from `env.useMockApi`. Auth uses `/auth/register`,
+   `/auth/login`, `GET /auth/me` (session restore) and `/auth/logout`;
+   tokens live in `expo-secure-store` and a 401 clears the session (there is
+   no refresh route). The live API is the default; set
+   `EXPO_PUBLIC_USE_MOCK_API=true` for the offline prototype. Current status
+   per endpoint: `API_INTEGRATION_STATUS.md`.
 6. **Replace health adapters** (`src/features/health/adapters/`) one at a
    time: `AppleHealthAdapter`, `GarminAdapter`, `FitbitAdapter`, etc., each
    implementing `HealthPlatformAdapter` and normalizing into the same

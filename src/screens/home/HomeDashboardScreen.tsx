@@ -17,7 +17,7 @@ import { MeditationCard } from '@/features/dashboard/components/MeditationCard';
 import { GoalsCard } from '@/features/dashboard/components/GoalsCard';
 import { QuickActions } from '@/features/dashboard/components/QuickActions';
 import { loadFastingData } from '@/features/fasting/fastingSlice';
-import { loadTodayMeals } from '@/features/nutrition/nutritionSlice';
+import { loadNutritionTargetsThunk, loadTodayMeals, nutritionTargetsEnabled } from '@/features/nutrition/nutritionSlice';
 import { loadActivityData } from '@/features/activity/activitySlice';
 import { loadMeditationData } from '@/features/meditation/meditationSlice';
 import { loadWeightHistory } from '@/features/weight/weightSlice';
@@ -42,6 +42,7 @@ export const HomeDashboardScreen: React.FC = () => {
   const loadAll = useCallback(() => {
     dispatch(loadFastingData());
     dispatch(loadTodayMeals());
+    if (nutritionTargetsEnabled) dispatch(loadNutritionTargetsThunk());
     dispatch(loadActivityData());
     dispatch(loadMeditationData());
     dispatch(loadWeightHistory());

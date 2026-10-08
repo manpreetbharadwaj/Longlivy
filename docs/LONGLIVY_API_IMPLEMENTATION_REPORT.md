@@ -1,3 +1,5 @@
+> **Superseded (2026-10-08).** This report predates the live backend and documents routes that do not exist (`/login`, `/register`, `/me`, `/show/{id}`). See `API_INTEGRATION_STATUS.md`, `LONGLIVY_FINAL_AUDIT.md` and `BACKEND_API_REQUIREMENTS.txt` in the project root.
+
 # LongLivy API Implementation Report
 
 ## 1. API Configuration

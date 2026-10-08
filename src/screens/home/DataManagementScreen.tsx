@@ -14,12 +14,13 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { store as reduxStore } from '@/store/store';
 import { LocalStore } from '@/services/storage/LocalStore';
-import { bootstrapSession } from '@/features/auth/authSlice';
+import { bootstrapSession, logoutThunk } from '@/features/auth/authSlice';
 import { loadFastingData } from '@/features/fasting/fastingSlice';
 import { loadTodayMeals, loadFavoriteFoods } from '@/features/nutrition/nutritionSlice';
 import { loadActivityData } from '@/features/activity/activitySlice';
 import { loadMeditationData } from '@/features/meditation/meditationSlice';
 import { loadWeightHistory } from '@/features/weight/weightSlice';
+import { env } from '@/config/env';
 
 /** Domains that make up "your data" for export/deletion — deliberately excludes UI-only state (theme, nav). */
 function exportableSnapshot() {
@@ -80,12 +81,16 @@ export const DataManagementScreen: React.FC = () => {
     setDeleting(true);
     try {
       await LocalStore.clearAll();
+      // In API mode the bearer token lives in SecureStore, not a LocalStore;
+      // revoke and clear it so "signs you out" is actually true.
+      if (!env.useMockApi) await dispatch(logoutThunk());
       // Re-bootstraps session + onboarding status from the now-empty stores,
       // so this device is treated as brand new (back through onboarding),
       // not left showing a stale "onboarding already done" flag.
       await dispatch(bootstrapSession());
-      // Best-effort refresh so any screen still mounted reflects the reset state immediately.
-      await Promise.all([
+      // Best-effort refresh so any screen still mounted reflects the reset state
+      // immediately (mock mode only — in API mode the user is now signed out).
+      if (env.useMockApi) await Promise.all([
         dispatch(loadFastingData()),
         dispatch(loadTodayMeals()),
         dispatch(loadFavoriteFoods()),
@@ -101,7 +106,9 @@ export const DataManagementScreen: React.FC = () => {
   const handleDelete = useCallback(() => {
     Alert.alert(
       'Delete all my data?',
-      'This permanently clears everything stored on this device — fasting, nutrition, activity, meditation and weight history — and signs you out. This cannot be undone.',
+      env.useMockApi
+        ? 'This permanently clears everything stored on this device — fasting, nutrition, activity, meditation and weight history — and signs you out. This cannot be undone.'
+        : 'This clears everything stored on this device and signs you out. Records saved to your LongLivy account are kept — account deletion is not available yet.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete everything', style: 'destructive', onPress: performDeletion },
@@ -112,8 +119,9 @@ export const DataManagementScreen: React.FC = () => {
   return (
     <TabHeroLayout title="Data management" onBack={() => navigation.goBack()}>
       <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.md }}>
-        All data currently lives on this device via local mock repositories. Each item below carries a
-        source tag so its origin stays traceable once real sync is added.
+        {env.useMockApi
+          ? 'All data currently lives on this device via local mock repositories. Each item below carries a source tag so its origin stays traceable once real sync is added.'
+          : 'Your fasting, nutrition, weight and meditation records are stored in your LongLivy account. Activity history, fasting plans and custom meditations are stored on this device.'}
       </AppText>
       <HeroCard style={{ marginBottom: theme.spacing.lg }}>
         {rows.map((r) => (

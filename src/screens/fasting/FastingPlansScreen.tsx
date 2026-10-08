@@ -12,9 +12,10 @@ import { AppBadge } from '@/components/common/AppBadge';
 import { AppEmptyState } from '@/components/common/AppEmptyState';
 import { useTheme } from '@/hooks/useTheme';
 import { fastingRepository } from '@/features/fasting/repository/MockFastingRepository';
-import { DEMO_USER_ID } from '@/mock/demoUser';
 import { FastingPlan, FastingPlanDayOverride } from '@/features/fasting/models';
 import { scheduleFromPlan, formatModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
+import { selectCurrentUserId } from '@/features/auth/selectors';
+import { useAppSelector } from '@/store/hooks';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const UPCOMING_DAYS = 14;
@@ -30,6 +31,7 @@ function toDateKey(d: Date): string {
  * so the underlying recurring plan is never rewritten by a one-off change.
  */
 export const FastingPlansScreen: React.FC = () => {
+  const currentUserId = useAppSelector(selectCurrentUserId);
   const { theme } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<FastingStackParamList>>();
   const [plans, setPlans] = useState<FastingPlan[] | null>(null);
@@ -37,7 +39,7 @@ export const FastingPlansScreen: React.FC = () => {
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
-    const loadedPlans = await fastingRepository.getPlans(DEMO_USER_ID);
+    const loadedPlans = await fastingRepository.getPlans(currentUserId);
     setPlans(loadedPlans);
     const overridesEntries = await Promise.all(loadedPlans.map((p) => fastingRepository.getPlanOverrides(p.id)));
     const map: Record<string, FastingPlanDayOverride[]> = {};
@@ -45,7 +47,7 @@ export const FastingPlansScreen: React.FC = () => {
       map[p.id] = overridesEntries[idx];
     });
     setOverridesByPlan(map);
-  }, []);
+  }, [currentUserId]);
 
   useEffect(() => {
     loadAll();
@@ -58,12 +60,12 @@ export const FastingPlansScreen: React.FC = () => {
       if (currentlySkipped) {
         await fastingRepository.removePlanDayOverride(plan.id, dateKey);
       } else {
-        await fastingRepository.setPlanDayOverride({ planId: plan.id, userId: DEMO_USER_ID, date: dateKey, action: 'skip' });
+        await fastingRepository.setPlanDayOverride({ planId: plan.id, userId: currentUserId, date: dateKey, action: 'skip' });
       }
       await loadAll();
       setBusyKey(null);
     },
-    [loadAll]
+    [currentUserId, loadAll]
   );
 
   if (!plans) return null;

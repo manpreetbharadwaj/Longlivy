@@ -12,9 +12,6 @@ import {
   SleepStageType,
 } from 'react-native-health-connect';
 import type { Metadata, Permission, RecordType } from 'react-native-health-connect';
-
-/** Mirrors the package's internal (non-exported) TimeRangeFilter shape from types/base.types.d.ts. */
-export type TimeRangeFilter = { operator: 'between'; startTime: string; endTime: string } | { operator: 'after'; startTime: string } | { operator: 'before'; endTime: string };
 import {
   HealthConnectField,
   HealthConnectSource,
@@ -26,6 +23,9 @@ import {
   createEmptyDebugInfo,
   unavailableHcField,
 } from './models';
+
+/** Mirrors the package's internal (non-exported) TimeRangeFilter shape from types/base.types.d.ts. */
+export type TimeRangeFilter = { operator: 'between'; startTime: string; endTime: string } | { operator: 'after'; startTime: string } | { operator: 'before'; endTime: string };
 
 /**
  * Every permission this app actually requests — read-only, matching exactly

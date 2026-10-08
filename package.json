@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "rm -rf .test-build && tsc -p tsconfig.test.json && node --test .test-build/tests/*.test.js",
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint .",
     "postinstall": "patch-package"
   },
   "dependencies": {
@@ -60,6 +60,8 @@
     "@types/three": "^0.185.4",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-preset-expo": "~57.0.0",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.2",
     "patch-package": "^8.0.1",
     "typescript": "~6.0.3"
   },

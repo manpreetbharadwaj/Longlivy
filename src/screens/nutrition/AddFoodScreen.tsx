@@ -22,10 +22,12 @@ import { addFoodToMealThunk, loadFavoriteFoods } from '@/features/nutrition/nutr
 import { selectFavoriteFoods } from '@/features/nutrition/selectors';
 import { selectActiveFast } from '@/features/fasting/selectors';
 import { endFastThunk } from '@/features/fasting/fastingSlice';
+import { selectCurrentUserId } from '@/features/auth/selectors';
 
 const NUTRITION_GRADIENT = ['#C9974E', '#8F6A2E'] as const;
 
 export const AddFoodScreen: React.FC = () => {
+  const currentUserId = useAppSelector(selectCurrentUserId);
   const { theme } = useTheme();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<NutritionStackParamList>>();
@@ -75,7 +77,7 @@ export const AddFoodScreen: React.FC = () => {
   }, [dispatch, food, quantity, route.params.mealType, navigation, activeFast, t]);
 
   const toggleFavorite = useCallback(async () => {
-    await nutritionRepository.toggleFavorite('user_demo_1', route.params.foodId);
+    await nutritionRepository.toggleFavorite(currentUserId, route.params.foodId);
     dispatch(loadFavoriteFoods());
   }, [dispatch, route.params.foodId]);
 

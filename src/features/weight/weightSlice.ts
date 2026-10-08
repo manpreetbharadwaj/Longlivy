@@ -1,7 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { WeightEntry } from './models';
 import { weightRepository } from './repository/MockWeightRepository';
-import { DEMO_USER_ID } from '@/mock/demoUser';
+import { selectCurrentUserId } from '@/features/auth/selectors';
+import type { RootState } from '@/store/store';
 
 interface WeightState {
   history: WeightEntry[];
@@ -10,12 +11,12 @@ interface WeightState {
 
 const initialState: WeightState = { history: [], status: 'idle' };
 
-export const loadWeightHistory = createAsyncThunk('weight/loadHistory', async () =>
-  weightRepository.getHistory(DEMO_USER_ID)
+export const loadWeightHistory = createAsyncThunk<WeightEntry[], void, { state: RootState }>('weight/loadHistory', async (_, { getState }) =>
+  weightRepository.getHistory(selectCurrentUserId(getState()))
 );
 
-export const logWeightThunk = createAsyncThunk('weight/logWeight', async (weightKg: number) =>
-  weightRepository.logWeight(DEMO_USER_ID, weightKg)
+export const logWeightThunk = createAsyncThunk<WeightEntry, number, { state: RootState }>('weight/logWeight', async (weightKg, { getState }) =>
+  weightRepository.logWeight(selectCurrentUserId(getState()), weightKg)
 );
 
 const weightSlice = createSlice({

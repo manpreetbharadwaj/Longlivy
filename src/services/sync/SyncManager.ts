@@ -9,7 +9,7 @@ import { generateId } from '@/utils/id';
  */
 export class SyncManager {
   private queue: SyncQueueItem[] = [];
-  private listeners: Array<(queue: SyncQueueItem[]) => void> = [];
+  private listeners: ((queue: SyncQueueItem[]) => void)[] = [];
 
   enqueue(entityType: SyncQueueItem['entityType'], entityId: string, operation: SyncQueueItem['operation']): void {
     this.queue.push({

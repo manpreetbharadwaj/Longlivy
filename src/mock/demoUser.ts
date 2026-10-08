@@ -3,12 +3,11 @@ import { FastingMethodId } from '@/features/fasting/models';
 export const DEMO_USER_ID = 'user_demo_1';
 
 /**
- * A genuinely fictitious login credential — not `DEMO_USER.email` (that
- * field holds the real signed-in developer's actual address; see
- * [[demo-user-had-real-email]] for why that must never be pre-filled into a
- * visible form). This pair exists specifically to *be* pre-filled, for a
- * one-tap "just let me into the prototype" login — used by
- * `MockAuthRepository`'s seed and by `LoginScreen`'s initial field values.
+ * A fictitious login credential for local mock mode only. This pair exists
+ * specifically to *be* pre-filled, for a one-tap "just let me into the
+ * prototype" login — used by `MockAuthRepository`'s seed, `DEMO_USER.email`
+ * and `LoginScreen`'s initial field values. Never put a real address here:
+ * everything in this file ships in the app bundle.
  */
 export const DEMO_LOGIN_EMAIL = 'demo@longlivy.app';
 export const DEMO_LOGIN_PASSWORD = 'demo1234';
@@ -49,7 +48,7 @@ export const DEMO_USER: DemoUserProfile = {
   id: DEMO_USER_ID,
   firstName: 'Alex',
   lastName: 'Rivera',
-  email: 'arsh@code4each.com',
+  email: DEMO_LOGIN_EMAIL,
   dateOfBirth: '1992-04-18',
   gender: 'diverse',
   heightCm: 176,

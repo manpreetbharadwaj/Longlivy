@@ -57,11 +57,16 @@ export const selectFavoriteMeditations = createSelector(
 export const selectTodayMeditationSeconds = createSelector(selectMeditationHistory, (history) => {
   const today = new Date().toDateString();
   return history
-    .filter((s) => new Date(s.startedAt).toDateString() === today)
+    .filter((s) => s.status !== 'cancelled' && new Date(s.startedAt).toDateString() === today)
     .reduce((sum, s) => sum + s.activeDurationSeconds, 0);
 });
 
-export const selectMeditationStreak = createSelector(selectMeditationHistory, (history) => {
+const selectServerMeditationStreak = (state: RootState) => state.insights.meditationStreak;
+const selectServerMeditationStats = (state: RootState) => state.insights.meditationStats;
+
+/** API mode: the server's streak (GET /meditation/home, /streaks) — authoritative across devices. */
+export const selectMeditationStreak = createSelector(selectMeditationHistory, selectServerMeditationStreak, (history, serverStreak) => {
+  if (serverStreak != null) return serverStreak;
   const validDays = new Set(
     history
       .filter((s) => s.activeDurationSeconds >= MIN_STREAK_ACTIVE_SECONDS)
@@ -81,10 +86,21 @@ export const selectMeditationStreak = createSelector(selectMeditationHistory, (h
   return streak;
 });
 
-export const selectMeditationStats = createSelector(selectMeditationHistory, (history) => {
+/** API mode: totals from GET /meditation/stats (completed sessions only); the longest session is only known from history. */
+export const selectMeditationStats = createSelector(selectMeditationHistory, selectServerMeditationStats, (allHistory, server) => {
+  // A cancelled session (an exit before MIN_STREAK_ACTIVE_SECONDS) is not practice.
+  const history = allHistory.filter((h) => h.status !== 'cancelled');
+  const longest = history.reduce((max, h) => Math.max(max, h.activeDurationSeconds), 0);
+  if (server) {
+    return {
+      totalSessions: server.totalSessions,
+      totalActiveSeconds: server.totalMinutes * 60,
+      averageSeconds: Math.round(server.averageMinutes * 60),
+      longestSessionSeconds: longest,
+    };
+  }
   const totalSessions = history.length;
   const totalActiveSeconds = history.reduce((s, h) => s + h.activeDurationSeconds, 0);
-  const longest = history.reduce((max, h) => Math.max(max, h.activeDurationSeconds), 0);
   return {
     totalSessions,
     totalActiveSeconds,

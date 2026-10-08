@@ -30,6 +30,7 @@ import { resolveAmbientAudioSource, isPlayableAmbientSoundId } from '@/features/
 import { getMeditationVisualThemeConfig, applyReducedMotion, useReducedMotionPreference } from '@/features/meditation/meditationVisualThemes';
 import { getAmbientSound, getRecommendedAmbientSounds, hasAnyAvailableAmbientSound, DEFAULT_SOUNDSCAPE_ONLY_VOLUME } from '@/features/meditation/ambientSounds';
 import { useMeditationAudioSession } from '@/features/meditation/hooks/useMeditationAudioSession';
+import { useFreshAudioUrl } from '@/features/meditation/hooks/useFreshAudioUrl';
 import { useMeditationAmbientAudio, DEFAULT_AMBIENT_VOLUME_GUIDED, DEFAULT_AMBIENT_VOLUME_UNGUIDED } from '@/features/meditation/hooks/useMeditationAmbientAudio';
 import { useMeditationSessionLifecycle } from '@/features/meditation/hooks/useMeditationSessionLifecycle';
 import { AmbientAudioVisualizer } from '@/features/meditation/components/AmbientAudioVisualizer';
@@ -75,7 +76,8 @@ export const MeditationPlayerScreen: React.FC = () => {
   // resolve audio or create a session/history record.
   const isComingSoon = meditation?.availability === 'coming_soon';
   const plannedSeconds = route.params.durationSeconds;
-  const audioSource = isComingSoon ? null : resolveMeditationAudioSource(meditation?.audioReference);
+  const freshAudioUrl = useFreshAudioUrl(meditation);
+  const audioSource = isComingSoon ? null : resolveMeditationAudioSource(freshAudioUrl ?? meditation?.audioReference);
   const audioSession = useMeditationAudioSession(audioSource, plannedSeconds);
   const { elapsedSeconds, remainingSeconds, status: sessionStatus } = audioSession;
   const isPlaying = sessionStatus === 'playing';

@@ -13,6 +13,7 @@ import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
 import { DEMO_BARCODES } from '@/mock/foodDatabaseSeed';
+import { env } from '@/config/env';
 import { heroGradient } from '@/theme/gradients';
 
 const NUTRITION_GRADIENT = ['#C9974E', '#8F6A2E'] as const;
@@ -138,7 +139,7 @@ export const BarcodeScannerScreen: React.FC = () => {
             </View>
             <AppGradientButton label="Look up" onPress={handleManualLookup} disabled={!manualCode.trim()} colors={NUTRITION_GRADIENT} fullWidth={false} />
           </View>
-          {DEMO_BARCODES.length ? (
+          {env.useMockApi && DEMO_BARCODES.length ? (
             <AppText variant="caption" color="rgba(255,255,255,0.5)" style={{ marginTop: theme.spacing.xs }}>
               Demo barcodes to try: {DEMO_BARCODES.map((b) => `${b.barcode} (${b.name})`).join(' · ')}
             </AppText>

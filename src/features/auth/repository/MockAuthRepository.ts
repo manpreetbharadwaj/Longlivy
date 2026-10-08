@@ -14,11 +14,8 @@ const store = new LocalStore<AuthDb>('@longlivy/auth_db', {
   users: [
     {
       id: DEMO_USER.id,
-      // The seeded login credential is the fictitious DEMO_LOGIN_EMAIL, not
-      // DEMO_USER.email (the real signed-in developer's actual address) —
-      // this account still backs DEMO_USER's profile/display data by
-      // sharing its `id`, it just isn't reachable by typing that real
-      // email into the login form.
+      // Shares DEMO_USER's `id`, so this account backs the seeded demo
+      // profile/display data.
       email: DEMO_LOGIN_EMAIL,
       password: DEMO_LOGIN_PASSWORD,
       firstName: DEMO_USER.firstName,

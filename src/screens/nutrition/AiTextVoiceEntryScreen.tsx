@@ -27,13 +27,15 @@ export const AiTextVoiceEntryScreen: React.FC<AiTextVoiceEntryScreenProps> = ({ 
   const navigation = useNavigation<NativeStackNavigationProp<NutritionStackParamList>>();
   const [text, setText] = useState('');
   const [parsing, setParsing] = useState(false);
+  const [noMatch, setNoMatch] = useState(false);
 
   const handleParse = useCallback(() => {
     if (!text.trim()) return;
     setParsing(true);
     const items = aiNutritionRecognitionService.recognizeFromText(text);
     setParsing(false);
-    navigation.navigate('AiMealReview', { source: mode, items });
+    setNoMatch(items.length === 0);
+    if (items.length > 0) navigation.navigate('AiMealReview', { source: mode, items });
   }, [text, mode, navigation]);
 
   return (
@@ -52,6 +54,11 @@ export const AiTextVoiceEntryScreen: React.FC<AiTextVoiceEntryScreenProps> = ({ 
         style={{ height: 120, paddingTop: theme.spacing.sm, marginBottom: theme.spacing.md }}
       />
       <AppGradientButton label="Recognize meal" onPress={handleParse} loading={parsing} disabled={!text.trim()} colors={NUTRITION_GRADIENT} />
+      {noMatch ? (
+        <AppText variant="bodySmall" color="#F2A08F" align="center" style={{ marginTop: theme.spacing.sm }}>
+          No foods recognized. Name the foods (e.g. "banana", "rice") or add them manually.
+        </AppText>
+      ) : null}
       <AppText variant="caption" color="rgba(255,255,255,0.5)" align="center" style={{ marginTop: theme.spacing.md }}>
         The structured result will always be editable before saving — nothing is stored automatically.
       </AppText>

@@ -2,7 +2,8 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { FastingPlan, FastingSession } from './models';
 import { FastingService, ScheduleRequest } from './services/FastingService';
 import { fastingRepository } from './repository/MockFastingRepository';
-import { DEMO_USER_ID } from '@/mock/demoUser';
+import { selectCurrentUserId } from '@/features/auth/selectors';
+import type { RootState } from '@/store/store';
 
 const fastingService = new FastingService(fastingRepository);
 
@@ -40,7 +41,7 @@ const initialState: FastingState = {
 // Narrow, local view of the state this slice's thunks need via `getState()`
 // — avoids importing the app-wide `RootState` here, which would create a
 // circular import (store.ts -> this slice -> store.ts).
-type FastingThunkApi = { state: { fasting: FastingState } };
+type FastingThunkApi = { state: RootState };
 
 export const loadFastingData = createAsyncThunk<
   { active: FastingSession | null; history: FastingSession[]; plan: FastingPlan | null; seqAtStart: number },
@@ -50,17 +51,22 @@ export const loadFastingData = createAsyncThunk<
   const seqAtStart = getState().fasting.mutationSeq;
   // Read sequentially: getActiveFast settles a fast that reached its planned
   // end, and the history and plan must be read after that has happened.
-  const active = await fastingService.getActiveFast(DEMO_USER_ID);
-  const [history, plan] = await Promise.all([fastingService.getHistory(DEMO_USER_ID), fastingService.getActivePlan(DEMO_USER_ID)]);
+  const userId = selectCurrentUserId(getState());
+  const active = await fastingService.getActiveFast(userId);
+  const [history, plan] = await Promise.all([fastingService.getHistory(userId), fastingService.getActivePlan(userId)]);
   return { active, history, plan, seqAtStart };
 });
 
-export const startFastThunk = createAsyncThunk('fasting/startFast', async (input: ScheduleRequest) => fastingService.startFast(DEMO_USER_ID, input));
+export const startFastThunk = createAsyncThunk<Awaited<ReturnType<FastingService['startFast']>>, ScheduleRequest, FastingThunkApi>('fasting/startFast', async (input, { getState }) =>
+  fastingService.startFast(selectCurrentUserId(getState()), input)
+);
 
-export const saveFastingScheduleThunk = createAsyncThunk(
-  'fasting/saveSchedule',
-  async (input: ScheduleRequest & { applyToCurrent: boolean }) =>
-    fastingService.saveSchedule(DEMO_USER_ID, { methodId: input.methodId, schedule: input.schedule }, { applyToCurrent: input.applyToCurrent })
+export const saveFastingScheduleThunk = createAsyncThunk<
+  Awaited<ReturnType<FastingService['saveSchedule']>>,
+  ScheduleRequest & { applyToCurrent: boolean },
+  FastingThunkApi
+>('fasting/saveSchedule', async (input, { getState }) =>
+  fastingService.saveSchedule(selectCurrentUserId(getState()), { methodId: input.methodId, schedule: input.schedule }, { applyToCurrent: input.applyToCurrent })
 );
 
 export const endFastThunk = createAsyncThunk('fasting/endFast', async (session: FastingSession) =>

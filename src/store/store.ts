@@ -1,4 +1,5 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import { resetOnSessionEnd } from './resetOnSessionEnd';
 
 import authReducer from '@/features/auth/authSlice';
 import profileReducer from '@/features/profile/profileSlice';
@@ -18,9 +19,10 @@ import syncReducer from '@/features/sync/syncSlice';
 import noiseReducer from '@/features/noise/noiseSlice';
 import healthConnectReducer from '@/features/healthConnect/healthConnectSlice';
 import healthKitReducer from '@/features/healthKit/healthKitSlice';
+import insightsReducer from '@/features/insights/insightsSlice';
+import { insightsListener } from '@/features/insights/insightsListener';
 
-export const store = configureStore({
-  reducer: {
+const appReducer = combineReducers({
     auth: authReducer,
     profile: profileReducer,
     fasting: fastingReducer,
@@ -39,14 +41,21 @@ export const store = configureStore({
     noise: noiseReducer,
     healthConnect: healthConnectReducer,
     healthKit: healthKitReducer,
-  },
+    insights: insightsReducer,
+});
+
+/** User-data slices that must not survive into the next account's session. */
+const rootReducer: typeof appReducer = resetOnSessionEnd(appReducer, ['fasting', 'nutrition', 'activity', 'calorie', 'weight', 'meditation', 'goals']);
+
+export const store = configureStore({
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       // Sessions/timestamps are plain ISO strings by convention, so the
       // default serializability checks are safe to keep enabled.
       serializableCheck: true,
-    }),
+    }).prepend(insightsListener.middleware),
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof appReducer>;
 export type AppDispatch = typeof store.dispatch;

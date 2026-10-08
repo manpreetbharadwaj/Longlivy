@@ -38,8 +38,7 @@ export const FoodSearchScreen: React.FC = () => {
               {item.name}
             </AppText>
             <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
-              {item.brand ? `${item.brand} · ` : ''}
-              {item.category}
+              {[item.brand, item.category].filter(Boolean).join(' · ')}
             </AppText>
           </View>
           <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">

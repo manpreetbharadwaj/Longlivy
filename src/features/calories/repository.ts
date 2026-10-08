@@ -16,3 +16,8 @@ export function createCalorieRepository(defaultState: CalorieState) {
     save: (state: CalorieState): Promise<void> => store!.write(state),
   };
 }
+
+/** Drops the persisted calorie state (target + body profile) — called when a session ends. */
+export async function clearCalorieRepository(): Promise<void> {
+  await store?.clear();
+}

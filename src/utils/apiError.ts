@@ -160,7 +160,9 @@ export function normalizeApiError(error: unknown): ApiError {
     return new ApiError({
       kind,
       status,
-      message: responseMessage(body) ?? DEFAULT_MESSAGES[kind],
+      // A 5xx body can carry framework internals (exception class, file
+      // paths) when the server runs in debug mode — never surface it.
+      message: (kind === 'server' ? undefined : responseMessage(body)) ?? DEFAULT_MESSAGES[kind],
       validationErrors: kind === 'validation' ? responseValidationErrors(body) : null,
       retryAfterMs: kind === 'rate_limited' ? retryAfterMs(body) : null,
       cause: error,

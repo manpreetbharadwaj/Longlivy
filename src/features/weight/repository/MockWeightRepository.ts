@@ -3,6 +3,8 @@ import { WeightEntry } from '../models';
 import { LocalStore } from '@/services/storage/LocalStore';
 import { generateId } from '@/utils/id';
 import { WEIGHT_SEED } from '@/mock/weightSeed';
+import { env } from '@/config/env';
+import { ApiWeightRepository } from './ApiWeightRepository';
 
 const store = new LocalStore<WeightEntry[]>('@longlivy/weight_db', WEIGHT_SEED);
 
@@ -29,4 +31,4 @@ export class MockWeightRepository implements WeightRepository {
   }
 }
 
-export const weightRepository: WeightRepository = new MockWeightRepository();
+export const weightRepository: WeightRepository = env.useMockApi ? new MockWeightRepository() : new ApiWeightRepository();

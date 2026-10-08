@@ -5,6 +5,8 @@ import { generateId } from '@/utils/id';
 import { FASTING_HISTORY_SEED } from '@/mock/fastingSeed';
 import { calculateActualDuration } from '../services/FastingCalculator';
 import { getLocalTimeZone } from '../services/FastingSchedule';
+import { env } from '@/config/env';
+import { ApiFastingRepository } from './ApiFastingRepository';
 
 interface FastingDb {
   sessions: FastingSession[];
@@ -230,4 +232,4 @@ export class MockFastingRepository implements FastingRepository {
   }
 }
 
-export const fastingRepository: FastingRepository = new MockFastingRepository();
+export const fastingRepository: FastingRepository = env.useMockApi ? new MockFastingRepository() : new ApiFastingRepository();

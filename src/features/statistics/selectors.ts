@@ -73,7 +73,9 @@ export const selectActivityStatisticsForPeriod = createSelector(
 export const selectMeditationStatisticsForPeriod = createSelector(
   selectMeditationHistory,
   selectStatisticsPeriod,
-  (history, period) => {
+  (allHistory, period) => {
+    // A cancelled session (an exit before MIN_STREAK_ACTIVE_SECONDS) is not practice.
+    const history = allHistory.filter((h) => h.status !== 'cancelled');
     const inPeriod = history.filter((h) => isWithinPeriod(h.startedAt, period));
     const totalSeconds = inPeriod.reduce((s, m) => s + m.activeDurationSeconds, 0);
     const prevSeconds = previousPeriodTotal(history, period, (m) => m.startedAt, (m) => m.activeDurationSeconds);

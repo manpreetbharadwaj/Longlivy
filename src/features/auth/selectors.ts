@@ -16,3 +16,10 @@ export const selectAuthStatus = (state: RootState) => state.auth.status;
 export const selectIsAuthLoading = (state: RootState) => state.auth.status === 'loading';
 export const selectAuthError = (state: RootState) => state.auth.error;
 export const selectOnboardingComplete = (state: RootState) => state.auth.onboardingComplete;
+
+/**
+ * The signed-in user's id — the only identity feature data may be scoped to.
+ * Empty when signed out; feature thunks only run behind the Main stack, which
+ * RootNavigator mounts exclusively for an authenticated session.
+ */
+export const selectCurrentUserId = (state: RootState) => state.auth.session?.user.id ?? '';

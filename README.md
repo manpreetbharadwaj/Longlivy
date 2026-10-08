@@ -3,7 +3,7 @@
 A React Native + TypeScript wireframe/prototype of the Longlivy wellness
 platform: fasting, nutrition, calories, activity, meditation, statistics,
 goals and health integrations — all connected through a shared data model,
-running today on local mock repositories.
+backed by the LongLivy API (see `API_INTEGRATION_STATUS.md`).
 
 ## Getting started
 
@@ -12,7 +12,8 @@ npm install
 npm run start   # then press i (iOS), a (Android), or w (web)
 ```
 
-When local mock mode is enabled (`EXPO_PUBLIC_USE_MOCK_API=true`), demo login is
+The app uses the live API by default. When local mock mode is enabled
+(`EXPO_PUBLIC_USE_MOCK_API=true`, ignored in production builds), demo login is
 pre-filled on the login screen:
 
 - Email: whatever you registered with, or the seeded demo account

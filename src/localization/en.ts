@@ -469,7 +469,8 @@ export const en = {
     emptyMessage: "Add your first meal to see today's nutrition.",
     aiEntry: {
       title: 'Log with AI',
-      subtitle: 'Snap, speak or type your meal',
+      // Photo entry is hidden until recognition is real (config/features.ts); restore "Snap," with it.
+      subtitle: 'Speak or type your meal',
       photo: 'Photo',
       voice: 'Voice',
       text: 'Text',
@@ -524,6 +525,12 @@ export const en = {
   meditation: {
     title: 'Meditation',
     findYourCalm: 'Find your calm',
+    library: {
+      bundledNotice: 'These sessions are included with the app. Your progress is saved to your account.',
+      bundledTag: 'Included with the app',
+      loadError: "Meditations couldn't be loaded.",
+      retry: 'Try again',
+    },
     subtitle: 'Meditation for a better you',
     today: 'Today',
     streak: 'Streak',

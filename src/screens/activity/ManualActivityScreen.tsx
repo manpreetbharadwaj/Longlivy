@@ -13,9 +13,10 @@ import { ActivityType, ACTIVITY_TYPE_LABELS, SELECTABLE_ACTIVITY_TYPES } from '@
 import { estimateActivityCalories } from '@/features/activity/services/ActivityCalculator';
 import { loadActivityData } from '@/features/activity/activitySlice';
 import { selectUserProfile } from '@/features/profile/selectors';
-import { DEMO_USER_ID } from '@/mock/demoUser';
+import { selectCurrentUserId } from '@/features/auth/selectors';
 
 export const ManualActivityScreen: React.FC = () => {
+  const currentUserId = useAppSelector(selectCurrentUserId);
   const { theme } = useTheme();
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
@@ -33,7 +34,7 @@ export const ManualActivityScreen: React.FC = () => {
     const estimatedCalories = hasEnteredCalories ? enteredCalories : estimateActivityCalories(type, durationMs, profile.weightKg);
     const now = new Date();
     await activityRepository.logManualActivity({
-       userId: DEMO_USER_ID,
+       userId: currentUserId,
       type,
       startTimestamp: new Date(now.getTime() - durationMs).toISOString(),
       endTimestamp: now.toISOString(),

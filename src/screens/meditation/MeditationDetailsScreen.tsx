@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, Image } from 'react-native';
+import { env } from '@/config/env';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MeditationStackParamList } from '@/navigation/types';
@@ -104,6 +105,11 @@ export const MeditationDetailsScreen: React.FC = () => {
         <AppText variant="bodyMedium" color="rgba(255,255,255,0.7)" style={{ marginTop: theme.spacing.lg, marginBottom: theme.spacing.md }}>
           {meditation.description}
         </AppText>
+        {meditation.contentSource === 'bundled' && !env.useMockApi ? (
+          <AppText variant="caption" color="rgba(255,255,255,0.5)" style={{ marginTop: -theme.spacing.sm, marginBottom: theme.spacing.md }}>
+            {t('meditation.library.bundledTag')}
+          </AppText>
+        ) : null}
       </FadeSlideIn>
 
       <FadeSlideIn delay={2 * motion.staggerStepMs}>
@@ -132,7 +138,12 @@ export const MeditationDetailsScreen: React.FC = () => {
 const MeditationBanner: React.FC<{ meditation: Meditation }> = React.memo(({ meditation }) => (
   <View style={{ height: 190, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: dashboardColors.border, backgroundColor: dashboardColors.surface }}>
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-      <MeditationArt kind={getMeditationArtKind(meditation)} seed={meditation.id} />
+      {/* Server content may carry its own artwork; everything else keeps the generated scene. */}
+      {meditation.thumbnailUrl ? (
+        <Image source={{ uri: meditation.thumbnailUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" accessibilityIgnoresInvertColors />
+      ) : (
+        <MeditationArt kind={getMeditationArtKind(meditation)} seed={meditation.id} />
+      )}
     </View>
     <LinearGradient colors={['rgba(6,8,10,0)', 'rgba(6,8,10,0.55)']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '55%' }} pointerEvents="none" />
   </View>

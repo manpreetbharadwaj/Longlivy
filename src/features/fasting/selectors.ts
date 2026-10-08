@@ -29,7 +29,26 @@ export const selectActiveFastStaticProgress = createSelector(selectActiveFast, (
   return calculateFastingProgress(activeFast.startTimestamp, activeFast.plannedEndTimestamp);
 });
 
-export const selectFastingStats = createSelector(selectFastingHistory, (history) => {
+const selectFastingSummary = (state: RootState) => state.insights.fastingSummary;
+const selectServerFastingStreak = (state: RootState) => state.insights.fastingStreak;
+const HOUR_MS = 3_600_000;
+
+/** API mode: totals, average, longest and streak come from GET /fasting/summary + /streaks (server rules). Shortest is only known locally. */
+export const selectFastingStats = createSelector(selectFastingHistory, selectFastingSummary, selectServerFastingStreak, (history, summary, serverStreak) => {
+  const local = localFastingStats(history);
+  if (!summary) return serverStreak == null ? local : { ...local, currentStreak: serverStreak };
+  return {
+    ...local,
+    totalSessions: summary.total,
+    completedSessions: summary.completed,
+    prematureSessions: summary.failed,
+    averageDurationMs: summary.averageHours * HOUR_MS,
+    longestDurationMs: summary.longestHours * HOUR_MS,
+    currentStreak: serverStreak ?? summary.currentStreak,
+  };
+});
+
+function localFastingStats(history: ReturnType<typeof selectFastingHistory>) {
   const completed = history.filter((h) => h.status === 'completed');
   const durations = completed.map((h) => h.actualDuration ?? 0);
   const totalMs = durations.reduce((sum, d) => sum + d, 0);
@@ -52,4 +71,4 @@ export const selectFastingStats = createSelector(selectFastingHistory, (history)
     shortestDurationMs: shortest,
     currentStreak,
   };
-});
+}

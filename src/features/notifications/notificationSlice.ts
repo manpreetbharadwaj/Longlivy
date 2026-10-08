@@ -1,3 +1,4 @@
+import { env } from '@/config/env';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppNotification, NotificationEventType, NotificationSetting } from './models';
 
@@ -26,11 +27,13 @@ const DEFAULT_SETTINGS: NotificationSetting[] = [
 
 const initialState: NotificationState = {
   settings: DEFAULT_SETTINGS,
-  items: [
+  // There is no notifications API yet, so a real account starts with an empty
+  // inbox; the sample items exist only in local mock mode.
+  items: env.useMockApi ? [
     { id: 'n1', type: 'fasting_streak_reached', title: 'New streak!', body: 'You’ve completed 5 fasts in a row.', timestamp: new Date().toISOString(), read: false },
     { id: 'n2', type: 'protein_goal_achieved', title: 'Protein goal reached', body: 'You hit your protein target today.', timestamp: new Date(Date.now() - 3600_000).toISOString(), read: false },
     { id: 'n3', type: 'meditation_reminder', title: 'Time for your meditation', body: 'A calm moment is waiting for you.', timestamp: new Date(Date.now() - 7200_000).toISOString(), read: true },
-  ],
+  ] : [],
 };
 
 const notificationSlice = createSlice({

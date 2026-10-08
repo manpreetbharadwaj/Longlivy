@@ -11,18 +11,21 @@ import { useTheme } from '@/hooks/useTheme';
 import { activityRepository } from '@/features/activity/repository/MockActivityRepository';
 import { Activity, ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
 import { ActivityHeroLayout } from './ActivityHeroLayout';
+import { selectCurrentUserId } from '@/features/auth/selectors';
+import { useAppSelector } from '@/store/hooks';
 
 export const ActivitySummaryScreen: React.FC = () => {
+  const currentUserId = useAppSelector(selectCurrentUserId);
   const { theme } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
   const route = useRoute<RouteProp<ActivityStackParamList, 'ActivitySummary'>>();
   const [activity, setActivity] = useState<Activity | null>(null);
 
   useEffect(() => {
-    activityRepository.getHistory('user_demo_1').then((list) => {
+    activityRepository.getHistory(currentUserId).then((list) => {
       setActivity(list.find((a) => a.id === route.params.activityId) ?? null);
     });
-  }, [route.params.activityId]);
+  }, [currentUserId, route.params.activityId]);
 
   if (!activity) {
     return (

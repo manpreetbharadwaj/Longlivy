@@ -23,7 +23,9 @@ function stringValue(value: unknown): string | undefined {
 
 export function normalizeStreak(value: unknown): StreakApiRecord {
   if (!isRecord(value)) throw new ApiError({ kind: 'malformed' });
-  const body = isRecord(value.data) ? value.data : value;
+  const data = isRecord(value.data) ? value.data : value;
+  // Single: `data.streak`; list items arrive already unwrapped.
+  const body = isRecord(data.streak) ? data.streak : data;
   const current = finiteNumber(body.current) ?? finiteNumber(body.currentStreak) ?? finiteNumber(body.current_streak);
   if (current === undefined) throw new ApiError({ kind: 'malformed' });
   return {
@@ -38,6 +40,7 @@ function getStreaks(signal?: AbortSignal): Promise<StreakApiRecord[]> {
   return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.streaks.collection, signal }, (value) => {
     if (Array.isArray(value)) return value.map(normalizeStreak);
     if (isRecord(value) && Array.isArray(value.streaks)) return value.streaks.map(normalizeStreak);
+    if (isRecord(value) && isRecord(value.data) && Array.isArray(value.data.streaks)) return value.data.streaks.map(normalizeStreak);
     return [normalizeStreak(value)];
   });
 }

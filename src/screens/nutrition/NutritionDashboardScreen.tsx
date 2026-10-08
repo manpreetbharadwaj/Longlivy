@@ -1,3 +1,4 @@
+import { features } from '@/config/features';
 import React, { useEffect, useCallback } from 'react';
 import { View, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -35,7 +36,7 @@ const MEAL_TYPES: { key: MealType; icon: AppIconName }[] = [
 
 const QUICK_LINKS: { labelKey: TranslationKey; icon: AppIconName; nav: keyof NutritionStackParamList }[] = [
   { labelKey: 'nutrition.quickAdd.barcode', icon: 'barcode-outline', nav: 'BarcodeScanner' },
-  { labelKey: 'nutrition.quickAdd.aiPhoto', icon: 'camera-outline', nav: 'AiPhotoEntry' },
+  ...(features.photoMealRecognition ? [{ labelKey: 'nutrition.quickAdd.aiPhoto' as TranslationKey, icon: 'camera-outline' as AppIconName, nav: 'AiPhotoEntry' as const }] : []),
   { labelKey: 'nutrition.quickAdd.aiVoice', icon: 'mic-outline', nav: 'AiVoiceEntry' },
   { labelKey: 'nutrition.quickAdd.aiText', icon: 'chatbubble-ellipses-outline', nav: 'AiTextEntry' },
 ];
@@ -167,7 +168,7 @@ export const NutritionDashboardScreen: React.FC = () => {
 };
 
 const AI_ENTRIES: { labelKey: TranslationKey; icon: AppIconName; route: keyof NutritionStackParamList }[] = [
-  { labelKey: 'nutrition.aiEntry.photo', icon: 'camera-outline', route: 'AiPhotoEntry' },
+  ...(features.photoMealRecognition ? [{ labelKey: 'nutrition.aiEntry.photo' as TranslationKey, icon: 'camera-outline' as AppIconName, route: 'AiPhotoEntry' as const }] : []),
   { labelKey: 'nutrition.aiEntry.voice', icon: 'mic-outline', route: 'AiVoiceEntry' },
   { labelKey: 'nutrition.aiEntry.text', icon: 'chatbubble-ellipses-outline', route: 'AiTextEntry' },
 ];

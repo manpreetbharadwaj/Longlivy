@@ -7,10 +7,8 @@ import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppText } from '@/components/common/AppText';
-import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { nutritionRepository } from '@/features/nutrition/repository/MockNutritionRepository';
-import { DEMO_USER_ID } from '@/mock/demoUser';
 
 const NUTRITION_GRADIENT = ['#C9974E', '#8F6A2E'] as const;
 
@@ -45,8 +43,6 @@ export const MyFoodsScreen: React.FC = () => {
     setSaving(false);
     setSaved(true);
   }, [name, calories, protein, carbs, fat, barcode]);
-
-  void DEMO_USER_ID;
 
   return (
     <TabHeroLayout title="Create own food" onBack={() => navigation.goBack()}>

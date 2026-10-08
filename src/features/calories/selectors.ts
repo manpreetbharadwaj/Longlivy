@@ -4,7 +4,7 @@ import { CalorieCalculationEngine } from './services/CalorieCalculationEngine';
 import { calculateDailyEnergyBalance } from './services/EnergyBalanceEngine';
 import { selectDailyNutritionTotals } from '@/features/nutrition/selectors';
 import { selectTodayActivityCalories } from '@/features/activity/selectors';
-import { DEMO_USER } from '@/mock/demoUser';
+import { selectCurrentUserId } from '@/features/auth/selectors';
 
 const engine = new CalorieCalculationEngine();
 
@@ -21,13 +21,21 @@ export const selectDailyEnergyBalance = createSelector(
   selectBmr,
   selectTodayActivityCalories,
   selectDailyNutritionTotals,
-  (calorieGoal, bmr, activityCalories, nutritionTotals) =>
+  selectCurrentUserId,
+  (state: RootState) => state.insights.energyBalance,
+  (calorieGoal, bmr, activityCalories, nutritionTotals, userId, server) =>
     calculateDailyEnergyBalance({
       date: new Date().toISOString(),
-      userId: DEMO_USER.id,
-      calorieGoal,
+      userId,
+      // API mode: BMR, everyday activity and the goal come from GET
+      // /energy/balance (computed from the server profile and targets).
+      // Intake stays derived from the loaded server meals so it updates the
+      // moment a meal is logged; tracked activities are added on top because
+      // the server has no activity data yet.
+      calorieGoal: server?.calorieGoal ?? calorieGoal,
       caloriesConsumed: nutritionTotals.calories,
-      bmr: bmr.calories,
-      activityCalories,
+      bmr: server && server.bmr > 0 ? server.bmr : bmr.calories,
+      otherExpenditure: server?.everydayActivity,
+      activityCalories: activityCalories + (server?.serverActivity ?? 0),
     })
 );

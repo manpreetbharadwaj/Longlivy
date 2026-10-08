@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View } from 'react-native';
+import { View, Alert } from 'react-native';
 import { AppText } from '@/components/common/AppText';
 import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
@@ -7,7 +7,7 @@ import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { useAppDispatch } from '@/store/hooks';
-import { updateProfile } from '@/features/profile/profileSlice';
+import { saveAddressThunk } from '@/features/profile/profileThunks';
 import { AuthHeroLayout } from './AuthHeroLayout';
 
 /**
@@ -30,8 +30,10 @@ export const AddressStepScreen: React.FC = () => {
   const [address, setAddress] = useState('');
 
   const finish = useCallback(() => {
-    dispatch(updateProfile({ address: address.trim() }));
-  }, [dispatch, address]);
+    dispatch(saveAddressThunk(address.trim()))
+      .unwrap()
+      .catch((message: string) => Alert.alert(t('states.errorTitle'), message));
+  }, [dispatch, address, t]);
 
   return (
     <AuthHeroLayout>

@@ -1,0 +1,930 @@
+LONGLIVY — BACKEND API REQUIREMENTS
+====================================
+For: LongLivy backend developer
+Base URL: https://longlivy.digitallhut.com/api/v1
+Prepared: 2026-10-08, from live testing of the deployed API and the mobile app source.
+
+Everything below is what the mobile app still needs from the backend. Each item
+was checked against BOTH the API document (docs/API_DOC.txt, 84 endpoints) and
+the live server before being listed: it is either absent from the document and
+returns 404, or it is documented but behaves incorrectly on the server.
+Existing endpoints that already satisfy a need are NOT re-proposed; where an
+existing endpoint needs a change, the item says "CHANGE TO EXISTING ENDPOINT".
+
+Summary (after removing duplicates of existing endpoints):
+  29 required new endpoints + 2 optional, 13 changes to existing endpoints,
+  1 infrastructure fix. Item numbers are stable IDs (other reports cite them);
+  withdrawn items keep their number.
+
+
+PRIORITY INDEX
+--------------
+P0 — MUST FIX BEFORE PUBLISHING
+  Infrastructure
+    #0   Turn off Laravel debug mode in production
+  New endpoints
+    #1   DELETE /auth/account                      (App Store / Play requirement, GDPR)
+    #2   POST   /auth/forgot-password
+    #3   POST   /auth/reset-password
+
+P1 — REQUIRED FOR CORE FEATURE COMPLETION
+  New endpoints
+    #4   POST   /auth/email/resend
+    #5   POST   /auth/email/verify
+    #17  GET/POST /fasting/plans, PUT/DELETE /fasting/plans/{id}          (4)
+    #18  GET /fasting/plans/{id}/overrides, PUT/DELETE .../{date}          (3)
+    #19d POST   /fasting/{id}/cancel
+    #20  GET/POST /activities, GET/PUT/DELETE /activities/{id}             (5)
+    #22  POST /devices, DELETE /devices/{token}                            (2)
+    #23  GET /notifications, POST /notifications/{id}/read, POST /notifications/read-all (3)
+    #24  GET/PUT /notification-settings                                    (2)
+  Changes to existing endpoints
+    #6   GET /meditation, /meditation/{id}: publish content + audio fields
+    #12  GET /foods: shared food catalog
+    #13  GET /foods/barcode/{code}: make the documented product lookup work
+    #14  POST /nutrition/recognize: real provider (photo entry is hidden in the app until then)
+    #15  Nutrition targets: mark manual edits manual; don't overwrite them on recalculate
+    #16  POST /meals: keep the logged_at UTC offset; honour or reject `date`; seed food categories
+    #19a-c Fasting: editable started_at, planned_hours up to 96, fasting_type enum
+    #21  PUT /profile: validate gender, consistent date format, goal/pace/preference fields
+    #28d Token lifetime + documented expiry behaviour
+
+P2 — OPTIONAL / POST-LAUNCH
+  New endpoints
+    #10  /meditation/templates (GET, POST, PUT, DELETE)                    (4)
+    #26  GET /dashboard/today      — optional; the app composes it from existing endpoints
+    #27  GET /statistics           — optional cross-module summary
+  Changes to existing endpoints
+    #8   PUT /meditation/sessions/{session}: accept playback progress (was a new endpoint)
+    #9   POST /meditation/sessions/{id}/complete: accept active/paused seconds
+    #11  Breathing patterns as fields on type=breathing meditation items (was a new endpoint)
+    #25  Paging (page/per_page/meta) on every list
+    #28  Small contract fixes (goals.active, reminder formats, numeric types, login throttling)
+
+WITHDRAWN (already covered by existing APIs)
+    #7   GET /meditation/{id}/audio — GET /meditation/{meditation} already returns the item
+         with its audio; the app refreshes an expiring URL through it.
+
+NOTE ON RATE LIMITING: the API throttles each user (HTTP 429 "Too Many Attempts"
+after roughly 60 requests/minute in testing). One dashboard load makes about 13
+requests and the app refreshes aggregates after each change, so normal use stays
+well under it — but please document the limit and return a Retry-After header.
+
+
+=====================================================================
+0. CRITICAL PRODUCTION BLOCKER — LARAVEL DEBUG MODE IS ON
+=====================================================================
+PRIORITY: P0
+
+CURRENT BEHAVIOUR (verified 2026-10-08):
+  Every framework error returns the full exception, stack trace and server
+  file paths, e.g.
+    GET /api/v1/meditation/contents  -> 500
+    { "message": "App\\Http\\Controllers\\Api\\V1\\MeditationController::show(): Argument #1 ($meditation) must be of type int, string given ...",
+      "exception": "TypeError",
+      "file": "/home/u707620586/domains/digitallhut.com/public_html/longlivy/app/Http/Controllers/Api/V1/MeditationController.php",
+      "line": 105, "trace": [ ... ] }
+  This exposes the hosting account name, directory layout, framework
+  internals and code structure to anyone.
+
+REQUIRED FIX:
+  .env on the production server:
+    APP_ENV=production
+    APP_DEBUG=false
+  then: php artisan config:clear && php artisan config:cache
+  Expected afterwards: 500 -> { "message": "Server Error" } with no trace.
+
+ALSO RECOMMENDED:
+  - Constrain numeric route params so non-numeric paths 404 instead of 500:
+      Route::get('meditation/{meditation}', ...)->whereNumber('meditation');
+    (same for fasting/{fasting}, meals/{meal}, foods/{food}, recipes/{recipe},
+     meditation/sessions/{session}).
+  - Render ModelNotFoundException as 404 { "success": false, "message": "Not found." }
+    without the model class name ("No query results for model [App\\Models\\Meal]").
+
+The mobile app already hides 5xx bodies from users (src/utils/apiError.ts),
+but the API itself is still public.
+
+
+=====================================================================
+1. DELETE /auth/account
+=====================================================================
+MODULE: Auth & Account
+FEATURE: "Delete my account" (Privacy screen) — required by Apple App Store
+         Guideline 5.1.1(v) and Google Play for apps with account creation;
+         also GDPR Art. 17.
+API NAME: Delete account
+PURPOSE: Permanently delete the authenticated user and all their data.
+PRIORITY: P0
+
+METHOD: DELETE
+ENDPOINT: /auth/account
+AUTHENTICATION REQUIRED: Yes
+HEADERS: Authorization: Bearer <token>, Accept: application/json, Content-Type: application/json
+
+QUERY PARAMETERS: none
+PATH PARAMETERS: none
+
+REQUEST BODY:
+{
+  "password": "string, required — re-authentication",
+  "confirmation": "DELETE"
+}
+
+SUCCESS RESPONSE: HTTP 200
+{
+  "success": true,
+  "message": "Account deleted.",
+  "data": { "deleted_at": "2026-10-08T12:00:00+00:00" }
+}
+
+ERROR RESPONSE:
+  HTTP 422 { "message": "The password is incorrect.", "errors": { "password": ["The password is incorrect."] } }
+  HTTP 422 { "message": "Type DELETE to confirm.", "errors": { "confirmation": ["Type DELETE to confirm."] } }
+
+STATUS CODES: 200, 401, 422, 429
+VALIDATION RULES:
+  password: required|string|current_password
+  confirmation: required|in:DELETE
+  Throttle: 5 attempts / minute / user.
+DATABASE REQUIREMENTS:
+  Hard-delete (or anonymise within 30 days) user, profile, tokens, weight_logs,
+  fastings, meals, meal_items, foods (custom), recipes, recipe_items,
+  favorites, goals, goal_progress, streaks, meditation_sessions,
+  meditation_reminders, devices, notifications. Revoke all Sanctum tokens.
+FRONTEND USAGE: src/screens/home/PrivacyScreen.tsx:35 ("Delete my account" is
+  currently a no-op). Data management screen will call it too.
+DEPENDENCIES: none
+
+
+=====================================================================
+2. POST /auth/forgot-password
+=====================================================================
+MODULE: Auth & Account
+FEATURE: Forgot password
+API NAME: Request password reset
+PURPOSE: Email a reset code/link. Always responds the same way so it cannot be
+         used to discover which emails have accounts.
+PRIORITY: P0
+
+METHOD: POST
+ENDPOINT: /auth/forgot-password
+AUTHENTICATION REQUIRED: No
+HEADERS: Accept: application/json, Content-Type: application/json
+
+REQUEST BODY:
+{ "email": "user@example.com" }
+
+SUCCESS RESPONSE: HTTP 200 (also for unknown emails)
+{ "success": true, "message": "If an account exists for this email, a reset code has been sent." }
+
+ERROR RESPONSE:
+  HTTP 422 { "message": "The email field must be a valid email address.", "errors": { "email": ["..."] } }
+  HTTP 429 { "message": "Too many requests. Try again in 60 seconds." }
+
+STATUS CODES: 200, 422, 429
+VALIDATION RULES: email: required|email:rfc|max:255. Throttle 3 / 15 min / email+IP.
+DATABASE REQUIREMENTS: password_reset_tokens (email, token hash, created_at). Token TTL 60 min, single use.
+FRONTEND USAGE: src/screens/auth/ForgotPasswordScreen.tsx (calls
+  authRepository.resetPassword -> currently rejects "Password reset is not available yet").
+DEPENDENCIES: transactional email (SMTP/SES/Postmark).
+
+
+=====================================================================
+3. POST /auth/reset-password
+=====================================================================
+MODULE: Auth & Account
+FEATURE: Forgot password (step 2)
+API NAME: Reset password
+PURPOSE: Set a new password with the emailed 6-digit code (mobile-friendly; no deep link needed).
+PRIORITY: P0
+
+METHOD: POST
+ENDPOINT: /auth/reset-password
+AUTHENTICATION REQUIRED: No
+HEADERS: Accept: application/json, Content-Type: application/json
+
+REQUEST BODY:
+{
+  "email": "user@example.com",
+  "code": "482913",
+  "password": "NewPassw0rd!",
+  "password_confirmation": "NewPassw0rd!"
+}
+
+SUCCESS RESPONSE: HTTP 200
+{ "success": true, "message": "Password has been reset. Please sign in." }
+
+ERROR RESPONSE:
+  HTTP 422 { "message": "This reset code is invalid or has expired.", "errors": { "code": ["This reset code is invalid or has expired."] } }
+
+STATUS CODES: 200, 422, 429
+VALIDATION RULES: email required|email; code required|digits:6; password required|confirmed|min:8.
+  Revoke all existing tokens for the user on success.
+DATABASE REQUIREMENTS: as #2.
+FRONTEND USAGE: ForgotPasswordScreen (second step to be added in the app).
+DEPENDENCIES: #2
+
+
+=====================================================================
+4. POST /auth/email/resend
+=====================================================================
+MODULE: Auth & Account
+FEATURE: Email verification
+API NAME: Resend verification code
+PURPOSE: Send (or re-send) a 6-digit verification code to the signed-in user.
+PRIORITY: P1
+
+METHOD: POST
+ENDPOINT: /auth/email/resend
+AUTHENTICATION REQUIRED: Yes
+HEADERS: Authorization: Bearer <token>, Accept: application/json
+
+REQUEST BODY: {}
+
+SUCCESS RESPONSE: HTTP 200
+{ "success": true, "message": "Verification code sent." }
+
+ERROR RESPONSE:
+  HTTP 409 { "success": false, "message": "Email is already verified." }
+  HTTP 429 { "message": "Too many requests. Try again in 60 seconds." }
+
+STATUS CODES: 200, 401, 409, 429
+VALIDATION RULES: throttle 1 / 60 s.
+DATABASE REQUIREMENTS: email_verification_codes (user_id, code hash, expires_at). Existing users.email_verified_at.
+FRONTEND USAGE: src/screens/auth/EmailVerificationScreen.tsx
+DEPENDENCIES: transactional email
+
+
+=====================================================================
+5. POST /auth/email/verify
+=====================================================================
+MODULE: Auth & Account
+FEATURE: Email verification
+API NAME: Verify email
+PURPOSE: Confirm the code; sets users.email_verified_at (already returned by /auth/me).
+PRIORITY: P1
+
+METHOD: POST
+ENDPOINT: /auth/email/verify
+AUTHENTICATION REQUIRED: Yes
+HEADERS: Authorization: Bearer <token>, Accept: application/json, Content-Type: application/json
+
+REQUEST BODY:
+{ "code": "482913" }
+
+SUCCESS RESPONSE: HTTP 200
+{ "success": true, "message": "Email verified.",
+  "data": { "user": { "id": 2, "email": "user@example.com", "email_verified_at": "2026-10-08T12:00:00+00:00", "profile": { ... } } } }
+
+ERROR RESPONSE:
+  HTTP 422 { "message": "The code is invalid or has expired.", "errors": { "code": ["The code is invalid or has expired."] } }
+
+STATUS CODES: 200, 401, 422, 429
+VALIDATION RULES: code required|digits:6; 5 attempts then code invalidated.
+DATABASE REQUIREMENTS: as #4
+FRONTEND USAGE: EmailVerificationScreen (authRepository.verifyEmail)
+DEPENDENCIES: #4
+
+
+=====================================================================
+6. GET /meditation and GET /meditation/{id} — POPULATE CONTENT + AUDIO FIELDS
+   (CHANGE TO EXISTING ENDPOINT)
+=====================================================================
+MODULE: Meditation
+FEATURE: Meditation library, details, player
+API NAME: Meditation content catalog
+PURPOSE: Serve real meditation content with streamable audio, so the app can
+         stop shipping 17 bundled MP3 files.
+PRIORITY: P1
+
+CURRENT BEHAVIOUR: GET /meditation -> { "data": { "meditations": [] } };
+  GET /meditation/{id} -> 404 for every id; GET /meditation/categories -> [].
+  The app therefore falls back to its bundled catalog.
+
+METHOD: GET
+ENDPOINT: /meditation        and        /meditation/{id}
+AUTHENTICATION REQUIRED: Yes
+HEADERS: Authorization: Bearer <token>, Accept: application/json
+
+QUERY PARAMETERS (list) — keep the documented ones and add paging:
+  type          optional  guided|free|breathing|individual   (documented)
+  category      optional  category slug                        (documented)
+  language      optional  en|de                                 (documented)
+  max_duration  optional  minutes                               (documented)
+  q             optional  search                                (documented)
+  page          optional  integer >= 1 (see #25)               (new)
+  per_page      optional  integer 1..100, default 50            (new)
+PATH PARAMETERS: id — integer
+
+SUCCESS RESPONSE (list): HTTP 200
+{
+  "success": true,
+  "message": "Meditations retrieved successfully.",
+  "data": {
+    "meditations": [ <Meditation> ],
+    "meta": { "current_page": 1, "per_page": 50, "total": 23, "last_page": 1 }
+  }
+}
+SUCCESS RESPONSE (single): HTTP 200
+{ "success": true, "message": "Meditation retrieved successfully.", "data": { "meditation": <Meditation> } }
+
+<Meditation> — exact fields (required unless marked nullable):
+{
+  "id": 12,                                   integer
+  "title": "Deep Relaxation",                 string
+  "description": "Full-body relaxation ...",  string
+  "type": "guided",                           guided|free|breathing
+  "category": { "id": 3, "slug": "relaxation", "name": "Relaxation" },
+                                              slug one of: morning, mindfulness, energy,
+                                              focus, relaxation, calm, stress_relief, sleep
+  "sound_category": null,                     nullable; for type=free: meditation_music|ambient|nature
+  "language": "en",                           en|de
+  "duration_seconds": 900,                    integer
+  "thumbnail_url": "https://cdn.longlivy.app/meditations/12/thumb@2x.jpg",   nullable, https
+  "audio": {                                  nullable ONLY while the item is coming soon
+    "url": "https://cdn.longlivy.app/meditations/12/en/audio.m4a?Expires=...&Signature=...",
+    "format": "m4a",                          mp3|m4a|aac
+    "mime_type": "audio/mp4",
+    "bitrate_kbps": 128,
+    "duration_seconds": 900,
+    "size_bytes": 14400000,
+    "is_streamable": true,
+    "expires_at": "2026-10-08T18:00:00+00:00" nullable (null = public URL)
+  },
+  "availability": "available",                available|coming_soon
+  "is_premium": false,
+  "is_favorite": false,                       per-user (from /favorites)
+  "version": "1.0",
+  "updated_at": "2026-10-01T09:00:00+00:00"
+}
+
+ERROR RESPONSE: 404 { "success": false, "message": "Meditation not found." }
+STATUS CODES: 200, 401, 404
+VALIDATION RULES: query params validated; unknown type/category -> 422.
+DATABASE REQUIREMENTS:
+  meditations(id, title, description, type, category_id, sound_category,
+    duration_seconds, thumbnail_path, availability, is_premium, status
+    draft|published|archived, version, timestamps)
+  meditation_audio(id, meditation_id, language, storage_path, format,
+    mime_type, bitrate_kbps, duration_seconds, size_bytes)
+    unique(meditation_id, language)
+  meditation_categories(id, slug, name_en, name_de, sort_order)
+  Only status=published rows are returned.
+FRONTEND USAGE: src/services/api/meditationApi.ts (mapMeditationContent already
+  reads exactly these fields), MeditationHomeScreen, MeditationCategoriesScreen,
+  MeditationDetailsScreen, MeditationPlayerScreen.
+DEPENDENCIES: object storage + CDN (S3/R2/Bunny), content upload in admin.
+
+
+=====================================================================
+7. WITHDRAWN — GET /meditation/{id}/audio
+=====================================================================
+Not needed: GET /meditation/{meditation} (documented, exists) returns the item
+with its "audio" object. When audio.expires_at is near, the app re-fetches the
+item (src/features/meditation/hooks/useFreshAudioUrl.ts). Requirement for #6:
+signed URL TTL >= session length + 30 min (minimum 2 h).
+
+
+=====================================================================
+8. PUT /meditation/sessions/{session} — ACCEPT PLAYBACK PROGRESS
+   (CHANGE TO EXISTING ENDPOINT; previously proposed as a new route)
+=====================================================================
+PRIORITY: P2
+MODULE: Meditation
+FEATURE: Resume interrupted playback; accurate listening statistics
+NOTE: The documented PUT /meditation/sessions/{session} accepts only "notes".
+  Extend it with the fields below instead of adding a new route.
+
+METHOD: PUT
+ENDPOINT: /meditation/sessions/{session}   (existing route, new fields)
+AUTHENTICATION REQUIRED: Yes
+HEADERS: Authorization: Bearer <token>, Accept: application/json, Content-Type: application/json
+PATH PARAMETERS: id — meditation session id (integer)
+
+REQUEST BODY:
+{
+  "position_seconds": 312,          integer >= 0, required
+  "active_seconds": 300,            integer >= 0, required (time actually played)
+  "paused_seconds": 45,             integer >= 0, required
+  "client_timestamp": "2026-10-08T11:31:12+00:00"   required
+}
+
+SUCCESS RESPONSE: HTTP 200
+{ "success": true, "message": "Progress saved.",
+  "data": { "session": { ...existing session fields..., "position_seconds": 312, "active_seconds": 300, "paused_seconds": 45 } } }
+
+ERROR RESPONSE:
+  422 { "message": "This meditation session is not running.", "errors": { "session": ["This meditation session is not running."] } }
+
+STATUS CODES: 200, 401, 403, 404, 422
+VALIDATION RULES: ignore (200, no change) if client_timestamp is older than the stored one.
+  Client calls every 15 s while playing + on pause/background. Rate limit 10/min/session.
+DATABASE REQUIREMENTS: meditation_sessions add position_seconds int, active_seconds int, paused_seconds int, progress_updated_at timestamp.
+  GET /meditation/sessions/active must return these fields.
+FRONTEND USAGE: MeditationPlayerScreen / useMeditationSessionLifecycle.
+DEPENDENCIES: none
+
+
+=====================================================================
+9. POST /meditation/sessions/{id}/complete — ACCEPT CLIENT DURATIONS
+   (CHANGE TO EXISTING ENDPOINT)
+=====================================================================
+MODULE: Meditation
+FEATURE: Session completion, statistics, streaks
+PRIORITY: P2
+
+CURRENT BEHAVIOUR: the documented optional "ended_at" works (verified). The
+  practised time is derived from server timestamps only, and a 10-second
+  session is stored as actual_minutes = 1 (rounded up).
+
+REQUEST BODY (add two optional fields beside the existing ended_at):
+{ "ended_at": "2026-10-08T11:36:12+00:00", "active_seconds": 610, "paused_seconds": 5 }
+
+SUCCESS RESPONSE: unchanged, plus "active_seconds" and "paused_seconds" in the session object;
+  actual_minutes = floor(active_seconds / 60).
+VALIDATION RULES: active_seconds <= (ended_at - started_at); ended_at >= started_at.
+FRONTEND USAGE: ApiMeditationRepository.completeSession already has these values.
+
+
+=====================================================================
+10. /meditation/templates  (GET, POST, PUT /{id}, DELETE /{id})
+=====================================================================
+MODULE: Meditation
+FEATURE: "My meditations" (custom templates)
+PURPOSE: Sync user-built sessions across devices (stored on device today).
+PRIORITY: P2
+
+METHOD/ENDPOINTS:
+  GET    /meditation/templates
+  POST   /meditation/templates
+  PUT    /meditation/templates/{id}
+  DELETE /meditation/templates/{id}
+AUTHENTICATION REQUIRED: Yes
+
+REQUEST BODY (POST/PUT):
+{
+  "name": "Morning 10",                      required string max:60
+  "duration_seconds": 600,                   required integer 60..7200
+  "type": "free",                            required guided|free|breathing
+  "breathing_enabled": false,                required boolean
+  "closing_sound_enabled": true,             required boolean
+  "background_sound": "ambient_rain_soft",   nullable string
+  "meditation_id": 12                        nullable integer (music track)
+}
+
+SUCCESS RESPONSE: 201 (POST) / 200
+{ "success": true, "message": "Template saved.", "data": { "template": { "id": 5, ...fields above..., "created_at": "...", "updated_at": "..." } } }
+List: { "success": true, "message": "...", "data": { "templates": [ ... ] } }
+DELETE: 200 { "success": true, "message": "Template deleted." }
+
+STATUS CODES: 200, 201, 401, 403, 404, 422
+DATABASE REQUIREMENTS: meditation_templates(id, user_id, name, duration_seconds, type, breathing_enabled, closing_sound_enabled, background_sound, meditation_id nullable fk, timestamps)
+FRONTEND USAGE: MeditationTemplatesScreen (ApiMeditationRepository.get/save/deleteTemplate)
+
+
+=====================================================================
+11. BREATHING PATTERNS ON type=breathing MEDITATIONS
+    (CHANGE TO EXISTING GET /meditation; previously proposed as a new route)
+=====================================================================
+PRIORITY: P2
+MODULE: Meditation
+FEATURE: Breathing exercises (patterns ship in the app today)
+The catalog already supports type=breathing (documented). Add a nullable
+"breathing_pattern" object to those items instead of a separate endpoint:
+  "breathing_pattern": { "inhale_seconds": 4, "hold_seconds": 4, "exhale_seconds": 4,
+                         "second_hold_seconds": 4, "repetitions": 8 }
+FRONTEND USAGE: BreathingExerciseScreen (BREATHING_SCHEMES_SEED today).
+
+
+=====================================================================
+12. SHARED FOOD CATALOG IN GET /foods  (CHANGE TO EXISTING ENDPOINT)
+=====================================================================
+MODULE: Nutrition
+FEATURE: Food search
+PURPOSE: Users must be able to find common foods. Today GET /foods?q= only
+         returns foods the user created themselves; a new user's search is empty.
+PRIORITY: P1
+
+METHOD: GET
+ENDPOINT: /foods
+AUTHENTICATION REQUIRED: Yes
+QUERY PARAMETERS:
+  q         optional string (min 2 chars) — name/brand search (keep existing param name)
+  scope     optional all|catalog|mine, default all
+  category  optional string
+  page, per_page (see #25)
+
+SUCCESS RESPONSE: HTTP 200 — keep the existing food object, adding nothing new except:
+  "is_custom": false, "owned": false, "verified": true, "source": "catalog"
+  for catalog rows. Order: user's own foods first, then catalog, by relevance.
+{ "success": true, "message": "Foods retrieved successfully.",
+  "data": { "foods": [ { "id": 1001, "name": "Banana", "brand": null, "category": "Fruit",
+     "barcode": null, "base_unit": "g", "base_amount": "100.00",
+     "nutrients": { "calories": "89.00", "protein": "1.10", "carbohydrates": "22.80", "fat": "0.30",
+                    "fiber": "2.60", "sugar": "12.20", "saturated_fat": null, "sodium": null },
+     "source": "catalog", "verified": true, "is_custom": false, "owned": false } ],
+    "meta": { "current_page": 1, "per_page": 50, "total": 1, "last_page": 1 } } }
+
+DATABASE REQUIREMENTS: foods.user_id nullable (null = catalog), full-text index on name/brand.
+  Seed with a licensed dataset (e.g. USDA FoodData Central, BLS for Germany, or Open Food Facts).
+FRONTEND USAGE: ApiNutritionRepository.searchFoods. Today the app merges an on-device
+  reference catalog (src/mock/foodDatabaseSeed.ts) as a stop-gap; it will be removed
+  once this ships.
+DEPENDENCIES: data licence decision (product).
+
+
+=====================================================================
+13. BARCODE LOOKUP AGAINST A PRODUCT DATABASE
+    (CHANGE TO EXISTING GET /foods/barcode/{code})
+=====================================================================
+MODULE: Nutrition
+FEATURE: Barcode scanner
+PRIORITY: P1
+DOCUMENTED: "200 local; 201 created from database; 404 not found".
+CURRENT BEHAVIOUR: only user-created foods resolve. Five well-known EANs all
+  return 404 "Barcode not known": 3017620422003 (Nutella), 5000159484695 (Twix),
+  4008400402222, 8000500310427, 737628064502. The external lookup is either not
+  configured (API key / outbound HTTP blocked on the host) or not implemented.
+REQUIRED: make the documented 201 path work — on a local miss, query the product
+  database (e.g. Open Food Facts), normalise per 100 g/ml, cache as a catalog
+  food, return 201 with "found": true. Keep 404 {"found": false} for true misses.
+VALIDATION RULES: code must be 8, 12, 13 or 14 digits -> else 422.
+FRONTEND USAGE: BarcodeScannerScreen via ApiNutritionRepository.getFoodByBarcode (no change needed).
+
+
+=====================================================================
+14. REAL PROVIDER FOR POST /nutrition/recognize  (CHANGE TO EXISTING ENDPOINT)
+=====================================================================
+MODULE: Nutrition
+FEATURE: AI meal entry (photo / text / voice)
+PRIORITY: P1
+CURRENT BEHAVIOUR: every call returns
+  { "draft": { "meal_type": null, "items": [], "confidence": 0.4, "needs_review": true, "provider": "stub" } }
+  Accepted types: text, photo, voice ("image", "barcode", "manual" -> 422).
+
+REQUEST BODY:
+  text:  { "type": "text",  "text": "two eggs and a slice of wholemeal toast", "meal_type": "breakfast" }
+  voice: { "type": "voice", "text": "<on-device transcript>", "locale": "de-DE" }
+  photo: multipart/form-data — type=photo, image=<jpeg|png|heic, max 8 MB>, meal_type optional
+
+SUCCESS RESPONSE: HTTP 200 (keep the existing envelope, fill items)
+{ "success": true, "message": "Meal draft created. Review it before saving.",
+  "data": { "draft": { "meal_type": "breakfast", "confidence": 0.78, "needs_review": true, "provider": "<name>",
+      "items": [ { "food_id": 1002, "name": "Egg, whole", "quantity": 100, "unit": "g",
+                   "nutrients": { "calories": 155, "protein": 12.6, "carbohydrates": 1.1, "fat": 10.6 },
+                   "confidence": 0.82 } ] },
+    "needs_review": true, "persisted": false } }
+
+VALIDATION RULES: text max 1000 chars; image max 8 MB; 20 requests / hour / user.
+DATABASE REQUIREMENTS: optional recognition_logs for quality monitoring (no images retained without consent).
+FRONTEND USAGE: AiPhotoEntryScreen, AiTextVoiceEntryScreen, AiMealReviewScreen
+  (currently use the on-device keyword matcher in AiNutritionRecognitionService.ts).
+DEPENDENCIES: vision/LLM provider contract (product decision), #12 for food_id matching.
+
+
+=====================================================================
+15. NUTRITION TARGET FIXES  (CHANGE TO EXISTING ENDPOINTS)
+=====================================================================
+MODULE: Nutrition / Energy
+FEATURE: Calorie and macro targets (NutritionGoals screen, dashboard ring)
+PRIORITY: P1
+
+WHAT EXISTS (verified, and now integrated in the app):
+  POST /energy/targets/calculate { "direction": "maintain|lose|gain" } creates
+  goals of type nutrition_calories, nutrition_protein, nutrition_carbs,
+  nutrition_fat, nutrition_fiber; /energy/balance and /nutrition/day read them;
+  the app edits them with PUT /goals/{id}.
+
+PROBLEMS:
+  a) A manual edit (PUT /goals/{id} { "target_value": 140 }) keeps
+     "source": "longlivy_calculated". Set source = "manual" when target_value
+     is changed by the user (or accept "source" in the PUT body).
+  b) Recalculating overwrites manual targets: after the edit above,
+     POST /energy/targets/calculate set protein back to 157.95 ("updated": true).
+     Skip goals whose source is "manual" (return "updated": false,
+     "reason": "manual_override"), or accept { "overwrite_manual": true }.
+  c) The nutrition_* goal types are not in the document. Document them and the
+     calculation (Mifflin-St Jeor TDEE, adjustment -500/0/+500, macro split).
+  d) The direction is fixed at ±500 kcal. The app lets users pick a weekly pace
+     (0.25–1.0 kg/week). Accept an optional
+     "weekly_change_kg": 0.5 (adjustment = weekly_change_kg * 7700 / 7).
+
+FRONTEND USAGE: src/services/api/nutritionTargetsApi.ts,
+  src/features/nutrition/nutritionSlice.ts (loadNutritionTargetsThunk, saveNutritionTargetThunk)
+
+
+=====================================================================
+16. BUG FIXES ON EXISTING NUTRITION ENDPOINTS  (CHANGE)
+=====================================================================
+MODULE: Nutrition
+PRIORITY: P1
+  a) POST /meals: "logged_at": "2026-10-07T19:00:00+02:00" is stored as
+     "2026-10-07T19:00:00+00:00" — the offset is dropped (2 h error, and meals
+     near midnight land on the wrong day). Parse the offset, store UTC, and
+     derive "date" in the user's profile.timezone.
+  b) POST /meals: "date" is ignored (meal saved for today). Either honour it or
+     reject it with 422; don't silently drop it.
+  c) POST /foods takes "category_id" (documented) but GET /food-categories
+     returns an empty list, so foods cannot be categorised. Seed the categories.
+  d) GET /foods?search= is ignored (only ?q= works) — fine, but document "q".
+
+
+=====================================================================
+17. FASTING PLANS — GET/POST /fasting/plans, PUT/DELETE /fasting/plans/{id}
+=====================================================================
+MODULE: Fasting
+FEATURE: Recurring fasting schedule ("My fasting plans", daily timer)
+PURPOSE: Persist the user's schedule across devices/reinstalls (device-only today).
+PRIORITY: P1
+AUTHENTICATION REQUIRED: Yes
+
+REQUEST BODY (POST/PUT):
+{
+  "method": "16:8",                         required: 14:10|16:8|18:6|20:4|24h|36h|48h|72h|96h|individual
+  "category": "intermittent",               required: intermittent|longer|individual
+  "recurring": true,                        required boolean
+  "start_time": "20:00",                    required HH:mm (local)
+  "end_time": "12:00",                      required HH:mm (local)
+  "weekdays": [0,1,2,3,4,5,6],              required array of 0..6 (0 = Sunday), min 1
+  "start_date": "2026-10-08",               required date
+  "end_date": null,                         nullable date >= start_date
+  "timezone": "Europe/Berlin",              required IANA tz
+  "fasting_hours": 16,                      required number 1..96
+  "eating_hours": 8,                        required number 0..23
+  "active": true,                           required boolean — activating one deactivates the others
+  "notification_settings": { "fasting_begins": true, "fasting_ends": true, "eating_phase_begins": true }
+}
+
+SUCCESS RESPONSE: 201/200
+{ "success": true, "message": "Fasting plan saved.", "data": { "plan": { "id": 4, ...fields..., "created_at": "...", "updated_at": "..." } } }
+List: { "data": { "plans": [ ... ] } }   DELETE: { "success": true, "message": "Fasting plan deleted." }
+STATUS CODES: 200, 201, 401, 403, 404, 422
+DATABASE REQUIREMENTS: fasting_plans(id, user_id, method, category, recurring, start_time, end_time, weekdays json, start_date, end_date, timezone, fasting_hours, eating_hours, active, notification_settings json, timestamps).
+  POST /fasting should accept optional "fasting_plan_id".
+FRONTEND USAGE: FastingPlansScreen, SelectFastingMethodScreen, FastingSettingsScreen
+  (ApiFastingRepository.getPlans/savePlan use a device store today).
+
+
+=====================================================================
+18. FASTING PLAN DAY OVERRIDES
+=====================================================================
+MODULE: Fasting
+FEATURE: Skip or reschedule one day of a recurring plan
+PRIORITY: P1
+  GET    /fasting/plans/{id}/overrides                 -> { "data": { "overrides": [ ... ] } }
+  PUT    /fasting/plans/{id}/overrides/{date}          (upsert; date = YYYY-MM-DD)
+  DELETE /fasting/plans/{id}/overrides/{date}
+REQUEST BODY (PUT):
+{ "action": "skip" }                                     or
+{ "action": "reschedule", "start_time": "21:00", "end_time": "13:00" }
+SUCCESS RESPONSE: { "success": true, "message": "Override saved.",
+  "data": { "override": { "id": 9, "plan_id": 4, "date": "2026-10-10", "action": "skip", "start_time": null, "end_time": null, "created_at": "..." } } }
+VALIDATION RULES: action in skip|reschedule; start_time/end_time required_if reschedule.
+DATABASE REQUIREMENTS: fasting_plan_overrides(id, plan_id, user_id, date, action, start_time, end_time, created_at), unique(plan_id, date)
+FRONTEND USAGE: FastingPlansScreen (skip day), FastingCalendarScreen
+
+
+=====================================================================
+19. FASTING SESSION FIXES  (CHANGE TO EXISTING /fasting ENDPOINTS)
+=====================================================================
+MODULE: Fasting
+PRIORITY: P1
+  a) PUT /fasting/{id} does not accept "started_at" (not documented, silently
+     ignored). Accept it for an ongoing fast (must be <= now and < planned
+     end). The app currently deletes and re-creates the fast to move its start.
+  b) planned_hours: allow up to 96 (the app offers 72h and 96h fasts; today >48 -> 422).
+     Optionally accept minutes ("planned_minutes") so daily-schedule fasts that
+     don't last a whole number of hours are stored exactly.
+  c) fasting_type is not validated (accepts "zzz"). Restrict to:
+     14:10|16:8|18:6|20:4|24h|36h|48h|72h|96h|individual
+  d) Add an explicit cancel that keeps the record with status "cancelled":
+     POST /fasting/{id}/cancel -> { "data": { "fasting": { ..., "status": "cancelled" } } }
+     (the app uses DELETE today, which loses the record).
+
+
+=====================================================================
+20. ACTIVITIES — GET/POST /activities, GET/PUT/DELETE /activities/{id}
+=====================================================================
+MODULE: Activity
+FEATURE: Live tracked activities (GPS), manual entries, history, calorie burn
+PURPOSE: Activity history is device-only today and is lost on reinstall; activity
+         calories also need to reach /energy/balance (consumption.sport_activity).
+PRIORITY: P1
+AUTHENTICATION REQUIRED: Yes
+
+QUERY PARAMETERS (GET list): from (date), to (date), type, page, per_page
+
+REQUEST BODY (POST — a finished activity; the app tracks live sessions on device):
+{
+  "client_id": "act_1728380000000_ab12",     required string — idempotency key (dedupe retries)
+  "type": "running",                         required: running|walking|cycling|hiking|jogging|other (the app's ActivityType)
+  "source": "tracked",                       required: tracked|manual|imported
+  "started_at": "2026-10-08T06:30:00+00:00", required
+  "ended_at": "2026-10-08T07:05:00+00:00",   required, > started_at
+  "active_seconds": 2040,                    required integer
+  "paused_seconds": 60,                      required integer
+  "distance_meters": 6120,                   nullable number
+  "calories_kcal": 412,                      required number
+  "calculation_method": "met_v2",            required string
+  "avg_heart_rate": null,                    nullable integer
+  "steps": null,                             nullable integer
+  "route": {                                  nullable; GPS polyline
+    "encoding": "polyline5",
+    "points": "o~h`I_jnpA...",
+    "point_count": 812
+  },
+  "notes": null
+}
+
+SUCCESS RESPONSE: HTTP 201 (200 when client_id already exists — return the existing record)
+{ "success": true, "message": "Activity saved.",
+  "data": { "activity": { "id": 31, "client_id": "act_...", ...all request fields..., "created_at": "...", "updated_at": "..." } } }
+
+ERROR RESPONSE: 422 per field (e.g. ended_at before started_at)
+STATUS CODES: 200, 201, 401, 403, 404, 422
+VALIDATION RULES: duration <= 24 h; distance <= 500 km; calories 0..10000; route.points max 1 MB.
+DATABASE REQUIREMENTS: activities(id, user_id, client_id unique per user, type, source, started_at, ended_at, active_seconds, paused_seconds, distance_meters, calories_kcal, calculation_method, avg_heart_rate, steps, route_polyline mediumtext, notes, timestamps).
+  /energy/balance must include these in consumption.sport_activity / manual_activity / imported_activity.
+FRONTEND USAGE: ActivityHome, ActiveActivity (on finish), ManualActivity, ActivityHistory,
+  ActivityDetails, ActivitySummary (LocalActivityRepository today).
+DEPENDENCIES: none
+
+
+=====================================================================
+21. PROFILE EXTENSIONS  (CHANGE TO EXISTING PUT /profile)
+=====================================================================
+MODULE: Profile
+PRIORITY: P1
+  a) (Resolved — the documented values sedentary|light|moderate|high|very_high
+     are now used by the app.)
+  b) gender is not validated (accepts "zzz"). Use: female|male|diverse.
+  c) Add the fields the app collects in onboarding and uses for targets (all nullable):
+     "goal": "weight_loss|maintenance|general_wellness|muscle_gain"
+     "weight_change_pace_kg_per_week": 0.5          number 0.1..1.0
+     "training_frequency": 3                        integer 0..14 (sessions/week)
+     "training_volume": "low|moderate|high"
+     "preferred_fasting_method": "16:8"
+     "micronutrient_focus": ["vitamin_d","iron"]    array of strings
+     "avatar_id": "avatar_leaf"                     string
+     "language": "en|de"
+  d) PUT /profile returns date_of_birth as "1990-05-01T00:00:00.000000Z" but GET
+     returns "1990-05-01" — return "YYYY-MM-DD" consistently.
+FRONTEND USAGE: EditProfileScreen, onboarding screens, profileThunks.pushProfile.
+
+
+=====================================================================
+22. PUSH TOKENS — POST /devices, DELETE /devices/{token}
+=====================================================================
+MODULE: Notifications
+FEATURE: Server-sent notifications (streaks, goals reached, reminders on new devices)
+PRIORITY: P1
+AUTHENTICATION REQUIRED: Yes
+
+POST /devices — REQUEST BODY:
+{
+  "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",   required string max:255
+  "provider": "expo",                                      required: expo|apns|fcm
+  "platform": "ios",                                       required: ios|android
+  "app_version": "0.1.0",                                  required
+  "locale": "de-DE",                                       required
+  "timezone": "Europe/Berlin"                              required IANA
+}
+SUCCESS RESPONSE: 200 (upsert by token)
+{ "success": true, "message": "Device registered.", "data": { "device": { "id": 7, "token": "...", "platform": "ios", "last_seen_at": "..." } } }
+
+DELETE /devices/{token} (on logout) -> 200 { "success": true, "message": "Device removed." }
+POST /auth/logout should also delete the current token's device.
+DATABASE REQUIREMENTS: devices(id, user_id, token unique, provider, platform, app_version, locale, timezone, last_seen_at, timestamps)
+FRONTEND USAGE: app start after login (expo-notifications getExpoPushTokenAsync), logout.
+DEPENDENCIES: Expo push service or APNs/FCM credentials.
+
+
+=====================================================================
+23. NOTIFICATION INBOX — GET /notifications, POST /notifications/{id}/read,
+    POST /notifications/read-all
+=====================================================================
+MODULE: Notifications
+FEATURE: Notifications screen and dashboard bell badge
+PRIORITY: P1
+AUTHENTICATION REQUIRED: Yes
+QUERY PARAMETERS (GET): unread_only boolean, page, per_page
+
+SUCCESS RESPONSE (GET): HTTP 200
+{ "success": true, "message": "Notifications retrieved successfully.",
+  "data": { "notifications": [
+      { "id": "9b2f...uuid", "type": "fasting_streak_reached", "title": "New streak!",
+        "body": "You've completed 5 fasts in a row.", "data": { "streak": 5 },
+        "read_at": null, "created_at": "2026-10-08T07:00:00+00:00" } ],
+    "unread_count": 2,
+    "meta": { "current_page": 1, "per_page": 30, "total": 2, "last_page": 1 } } }
+POST /notifications/{id}/read -> 200 { "success": true, "message": "Marked as read." }
+POST /notifications/read-all  -> 200 { "success": true, "message": "All marked as read.", "data": { "updated": 2 } }
+
+type values (match app): fasting_begins, fasting_ends, eating_phase_begins,
+  interim_goal_achieved, fasting_almost_over, planned_fast_not_started,
+  fasting_streak_reached, personal_best_achieved, activity_reminder,
+  activity_goal_achieved, calorie_goal_almost_reached, calorie_target_exceeded,
+  protein_goal_achieved, weight_reminder, meditation_reminder
+DATABASE REQUIREMENTS: Laravel `notifications` table (database channel).
+FRONTEND USAGE: NotificationsScreen, DashboardHeader bell (notificationSlice — the
+  inbox is empty in API mode today; sample items exist only in mock mode).
+
+
+=====================================================================
+24. GET / PUT /notification-settings
+=====================================================================
+MODULE: Notifications
+FEATURE: Notification preferences (Settings)
+PRIORITY: P1
+REQUEST BODY (PUT; any subset):
+{ "settings": { "fasting_begins": true, "fasting_ends": true, "weight_reminder": false } }
+SUCCESS RESPONSE (GET/PUT): HTTP 200
+{ "success": true, "message": "Notification settings retrieved successfully.",
+  "data": { "settings": { "<type>": true|false, ...all 15 types... } } }
+VALIDATION RULES: keys must be one of the 15 types in #23; values boolean.
+DATABASE REQUIREMENTS: notification_settings(user_id, type, enabled) unique(user_id, type), defaults as the app's DEFAULT_SETTINGS.
+FRONTEND USAGE: SettingsScreen / NotificationsScreen (toggleNotificationSetting is in-memory only today — lost on restart).
+
+
+=====================================================================
+25. PAGINATION ON LIST ENDPOINTS  (CHANGE)
+=====================================================================
+MODULE: Cross-cutting
+PRIORITY: P2
+CURRENT BEHAVIOUR: documented filters exist on some lists (fasting: from/to;
+  weight-logs: from/to/limit; meals: date/from/to; meditation/sessions:
+  from/to; foods: limit) but nothing supports paging — GET /weight-logs?page=2
+  returns page 1 again — and recipes, favorites, meditation and
+  meditation/sessions have no limit at all.
+REQUIRED: support page (>=1) and per_page (1..100, default 50), newest first,
+  on every list, and add "meta": { "current_page", "per_page", "total",
+  "last_page" } beside the existing list key. Keep the existing list keys
+  (weight_logs, fastings, meals, sessions, ...) and filters.
+
+
+=====================================================================
+26. GET /dashboard/today  (OPTIONAL AGGREGATION)
+=====================================================================
+MODULE: Home
+PURPOSE: One request for the home screen instead of ~7. Optional — the app works
+  with the individual endpoints.
+PRIORITY: P2
+QUERY PARAMETERS: date optional YYYY-MM-DD (default today in profile.timezone)
+SUCCESS RESPONSE: HTTP 200
+{ "success": true, "message": "Dashboard retrieved successfully.",
+  "data": {
+    "date": "2026-10-08",
+    "energy": <same object as GET /energy/balance data>,
+    "active_fasting": <fasting object or null>,
+    "nutrition": { "calories": 1064, "protein": 62.1, "carbohydrates": 120.4, "fat": 35.2, "fiber": 12.0 },
+    "activity": { "active_minutes": 34, "calories_kcal": 280 },
+    "meditation": { "minutes_today": 10, "sessions_today": 1 },
+    "latest_weight": { "weight": 72.5, "unit": "kg", "logged_at": "..." },
+    "streaks": [ <streak objects as GET /streaks> ],
+    "unread_notifications": 2 } }
+FRONTEND USAGE: HomeDashboardScreen
+
+
+=====================================================================
+27. GET /statistics  (OPTIONAL CROSS-MODULE SUMMARY)
+=====================================================================
+MODULE: Statistics
+PRIORITY: P2
+NOTE: GET /fasting/summary and GET /meditation/stats already exist (verified)
+  and are not re-proposed. This only covers the cross-module Statistics screen
+  (nutrition, activity, weight trends) that has no server source.
+QUERY PARAMETERS: period required day|week|month|year|total; date optional (period anchor)
+SUCCESS RESPONSE: HTTP 200
+{ "success": true, "message": "Statistics retrieved successfully.",
+  "data": { "period": "week", "from": "2026-10-05", "to": "2026-10-11",
+    "nutrition": { "avg_calories": 1980, "days_logged": 6, "days_within_target": 4 },
+    "activity": { "total_minutes": 210, "calories_kcal": 1650, "distance_meters": 18400 },
+    "weight": { "start": 73.1, "end": 72.5, "change": -0.6 },
+    "series": [ { "date": "2026-10-05", "calories": 2010, "fasting_hours": 16, "activity_minutes": 30, "meditation_minutes": 10 } ] } }
+FRONTEND USAGE: StatisticsScreen (computed on device from list endpoints today).
+DEPENDENCIES: #20 for activity data.
+
+
+=====================================================================
+28. SMALL CONTRACT FIXES  (CHANGE)
+=====================================================================
+PRIORITY: P2
+  a) Goals: "active" is null on created goals (POST without active). Default to true.
+     "source" null -> default "manual".
+  b) Meditation reminders: "time" is "07:30" after create but "08:00:00" after
+     update — always return HH:mm. Accept "days_of_week" as an array of integers
+     as well as the comma string (an array is rejected with 422 today).
+  c) Fasting: "actual_hours" is a string ("2.00") while "elapsed_hours" is a number — use numbers.
+  d) Auth: document token lifetime. Sanctum tokens currently appear not to expire;
+     set an expiration (e.g. 30 days) and either add POST /auth/refresh or
+     document that the app signs the user out on 401 (current app behaviour).
+  e) Rate-limit POST /auth/login and /auth/register (e.g. 5/min/IP+email).
+
+
+TEST ACCOUNTS CREATED DURING THIS AUDIT (safe to delete):
+  claude.audit+20261008@example.com    (user id 2)
+  claude.audit.b+20261008@example.com  (user id 3)
+  They hold only test records (weights, fasts, meals, foods "Audit Oats" /
+  "Audit Bar", recipes, goals, meditation sessions). There is no account
+  deletion endpoint (#1), so they must be removed server-side.

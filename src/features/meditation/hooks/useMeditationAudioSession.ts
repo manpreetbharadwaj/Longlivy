@@ -67,7 +67,7 @@ export function useMeditationAudioSession(audioSource: AudioSource | null, sessi
     wantsToStartRef.current = false;
     setStatus('idle');
     setElapsedSeconds(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [audioSource]);
 
   const start = useCallback(() => {

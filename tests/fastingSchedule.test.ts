@@ -19,6 +19,10 @@ import {
   validateSchedule,
 } from '../src/features/fasting/services/FastingSchedule';
 
+// ---- Timeline -----------------------------------------------------------------------------
+
+import { TIMELINE_PHASES, limitTimelinePhases } from '../src/features/fasting/fastingTimelineContent';
+
 const HOUR = 3_600_000;
 
 /** Runs `fn` with the process time zone pinned - the schedule maths is defined on the device's local calendar, so it must be tested against a known one. */
@@ -291,10 +295,6 @@ test('editing across midnight matches the window the fast really belongs to', ()
     assert.equal(plan.currentIfApplied!.fastEnd.getTime(), at(2026, 9, 29, 11).getTime());
   });
 });
-
-// ---- Timeline -----------------------------------------------------------------------------
-
-import { TIMELINE_PHASES, limitTimelinePhases } from '../src/features/fasting/fastingTimelineContent';
 
 test('the timeline of a 16-hour fast stops at 16 hours - nothing about day two or three', () => {
   const phases = limitTimelinePhases(TIMELINE_PHASES, 16);

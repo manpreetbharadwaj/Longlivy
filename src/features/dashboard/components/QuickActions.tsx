@@ -1,9 +1,9 @@
+import { features } from '@/config/features';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Pressable } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation , CompositeNavigationProp } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { CompositeNavigationProp } from '@react-navigation/native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay, withRepeat, withSequence } from 'react-native-reanimated';
 import { MainTabParamList, HomeStackParamList } from '@/navigation/types';
 import { AppText } from '@/components/common/AppText';
@@ -31,7 +31,10 @@ const ACTIONS: QuickAction[] = [
   { key: 'scan_barcode', icon: 'scan-outline', label: 'Scan', onPress: (nav) => nav.navigate('NutritionTab', { screen: 'BarcodeScanner' }) },
   { key: 'start_fast', icon: 'timer-outline', label: 'Start Fast', onPress: (nav) => nav.navigate('FastingTab', { screen: 'SelectFastingMethod' }) },
   { key: 'start_activity', icon: 'walk-outline', label: 'Activity', onPress: (nav) => nav.navigate('ActivityTab', { screen: 'SelectActivity' }) },
-  { key: 'photo_meal', icon: 'camera-outline', label: 'Photo Meal', onPress: (nav) => nav.navigate('NutritionTab', { screen: 'AiPhotoEntry' }) },
+  // Hidden until photo recognition has a real backend (features.photoMealRecognition).
+  ...(features.photoMealRecognition
+    ? [{ key: 'photo_meal', icon: 'camera-outline', label: 'Photo Meal', onPress: (nav) => nav.navigate('NutritionTab', { screen: 'AiPhotoEntry' }) } as QuickAction]
+    : []),
   { key: 'enter_weight', icon: 'scale-outline', label: 'Enter Weight', onPress: (nav) => nav.navigate('HomeTab', { screen: 'EnterWeight' }) },
   { key: 'start_meditation', icon: 'leaf-outline', label: 'Meditate', onPress: (nav) => nav.navigate('MeditationTab', { screen: 'MeditationHome' }) },
   { key: 'statistics', icon: 'stats-chart-outline', label: 'Statistics', onPress: (nav) => nav.navigate('StatisticsTab', { screen: 'StatisticsHome' }) },

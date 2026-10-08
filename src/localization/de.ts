@@ -453,7 +453,7 @@ export const de: typeof en = {
     emptyMessage: 'Füge deine erste Mahlzeit hinzu, um die Ernährung von heute zu sehen.',
     aiEntry: {
       title: 'Mit KI erfassen',
-      subtitle: 'Foto, Sprache oder Text',
+      subtitle: 'Sprache oder Text',
       photo: 'Foto',
       voice: 'Sprache',
       text: 'Text',
@@ -508,6 +508,12 @@ export const de: typeof en = {
   meditation: {
     title: 'Meditation',
     findYourCalm: 'Finde deine Ruhe',
+    library: {
+      bundledNotice: 'Diese Sitzungen sind in der App enthalten. Dein Fortschritt wird in deinem Konto gespeichert.',
+      bundledTag: 'In der App enthalten',
+      loadError: 'Meditationen konnten nicht geladen werden.',
+      retry: 'Erneut versuchen',
+    },
     subtitle: 'Meditation für ein besseres Ich',
     today: 'Heute',
     streak: 'Serie',

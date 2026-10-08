@@ -4,6 +4,8 @@ import { normalizeLegacyMeditationTopic } from '../meditationTaxonomy';
 import { LocalStore } from '@/services/storage/LocalStore';
 import { generateId } from '@/utils/id';
 import { MEDITATION_CONTENT_SEED, BREATHING_SCHEMES_SEED, MEDITATION_SESSION_SEED } from '@/mock/meditationSeed';
+import { env } from '@/config/env';
+import { ApiMeditationRepository } from './ApiMeditationRepository';
 
 interface MeditationDb {
   content: Meditation[];
@@ -199,4 +201,4 @@ export class MockMeditationRepository implements MeditationRepository {
   }
 }
 
-export const meditationRepository: MeditationRepository = new MockMeditationRepository();
+export const meditationRepository: MeditationRepository = env.useMockApi ? new MockMeditationRepository() : new ApiMeditationRepository();

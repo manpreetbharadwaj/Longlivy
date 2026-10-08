@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { Alert, View } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NutritionStackParamList } from '@/navigation/types';
 import { TabHeroLayout } from '@/components/common/TabHeroLayout';
@@ -23,11 +23,29 @@ export const MealDetailsScreen: React.FC = () => {
   const meals = useAppSelector(selectTodayMeals);
   const meal = meals.find((m) => m.id === route.params.mealId);
 
+  // One removal at a time: a double tap must not send two DELETEs.
+  const removingRef = useRef(false);
   const removeItem = useCallback(
-    async (itemId: string) => {
-      if (!meal) return;
-      await nutritionRepository.removeMealItem(meal.id, itemId);
-      dispatch(loadTodayMeals());
+    (itemId: string, name: string) => {
+      if (!meal || removingRef.current) return;
+      Alert.alert(`Remove ${name}?`, undefined, [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            removingRef.current = true;
+            try {
+              await nutritionRepository.removeMealItem(meal.id, itemId);
+              dispatch(loadTodayMeals());
+            } catch (e) {
+              Alert.alert('Could not remove item', e instanceof Error ? e.message : 'Please try again.');
+            } finally {
+              removingRef.current = false;
+            }
+          },
+        },
+      ]);
     },
     [meal, dispatch]
   );
@@ -68,7 +86,7 @@ export const MealDetailsScreen: React.FC = () => {
 
       {meal.items.map((item, index) => (
         <FadeSlideIn key={item.id} delay={index * motion.staggerStepMs} fromY={8}>
-          <HeroCard onPress={() => removeItem(item.id)} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
+          <HeroCard onPress={() => removeItem(item.id, item.foodName)} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <View style={{ flex: 1, marginRight: theme.spacing.sm }}>
                 <AppText variant="headingSmall" color="#FFFFFF">

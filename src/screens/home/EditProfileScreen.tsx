@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { HeroTextField } from '@/components/common/HeroTextField';
@@ -48,9 +48,11 @@ export const EditProfileScreen: React.FC = () => {
       goal,
     };
     if (avatarId) payload.avatarId = avatarId;
-    dispatch(saveProfileChangesThunk(payload));
-    navigation.goBack();
-  }, [dispatch, firstName, lastName, heightCm, weightKg, activityLevel, goal, avatarId, navigation]);
+    dispatch(saveProfileChangesThunk(payload))
+      .unwrap()
+      .then(() => navigation.goBack())
+      .catch((message: string) => Alert.alert(t('states.errorTitle'), message));
+  }, [t, dispatch, firstName, lastName, heightCm, weightKg, activityLevel, goal, avatarId, navigation]);
 
   // A profile can already hold a goal onboarding never offers (general wellness) - keep it selectable so opening this screen never silently changes it.
   const goalOptions = GOALS.includes(profile.goal) ? GOALS : [profile.goal, ...GOALS];

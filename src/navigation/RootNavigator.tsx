@@ -9,10 +9,14 @@ import { MainTabNavigator } from './MainTabNavigator';
 import { useAppPreferences } from '@/contexts/AppPreferencesContext';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { bootstrapSession } from '@/features/auth/authSlice';
-import { selectAuthBootstrapped, selectAuthUser, selectIsAuthenticated, selectOnboardingComplete } from '@/features/auth/selectors';
+import { selectAuthBootstrapped, selectAuthSession, selectAuthUser, selectIsAuthenticated, selectOnboardingComplete } from '@/features/auth/selectors';
 import { hydrateProfileThunk, updateProfile } from '@/features/profile/profileSlice';
-import { hydrateCalorieThunk } from '@/features/calories/calorieSlice';
+import { hydrateCalorieThunk, setBodyProfile } from '@/features/calories/calorieSlice';
 import { selectHasAddress, selectProfileHydrated } from '@/features/profile/selectors';
+import { API_PROFILE_DEFAULT } from '@/features/profile/repository';
+import { fromServerActivityLevel } from '@/services/api/profileApi';
+import { env } from '@/config/env';
+import type { DemoUserProfile } from '@/mock/demoUser';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -24,6 +28,7 @@ export const RootNavigator: React.FC = () => {
   const profileHydrated = useAppSelector(selectProfileHydrated);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const authUser = useAppSelector(selectAuthUser);
+  const authSession = useAppSelector(selectAuthSession);
   const onboardingComplete = useAppSelector(selectOnboardingComplete);
   const hasAddress = useAppSelector(selectHasAddress);
   const { hydrated: prefsHydrated, preferences } = useAppPreferences();
@@ -43,13 +48,42 @@ export const RootNavigator: React.FC = () => {
     return () => clearTimeout(timer);
   }, [dispatch]);
 
+  const profileId = useAppSelector((state) => state.profile.profile.id);
   useEffect(() => {
     if (!authUser) return;
-    // The documented auth response is the only verified source for identity
-    // fields. Keep the rest of the profile local until the backend documents
-    // a profile-read/update contract.
-    dispatch(updateProfile({ id: authUser.id, firstName: authUser.firstName, lastName: authUser.lastName, email: authUser.email }));
-  }, [authUser, dispatch]);
+    // A different account than the one whose profile is stored on this
+    // device starts from a blank profile — never another user's local fields.
+    const base = !env.useMockApi && profileId !== authUser.id ? API_PROFILE_DEFAULT : {};
+    // Server profile values (GET /auth/me, login, register) win over local ones.
+    const server = authSession?.serverProfile;
+    const fromServer: Partial<DemoUserProfile> = server
+      ? {
+          ...(server.dateOfBirth ? { dateOfBirth: server.dateOfBirth } : {}),
+          ...(server.gender === 'female' || server.gender === 'male' || server.gender === 'diverse' ? { gender: server.gender as DemoUserProfile['gender'] } : {}),
+          ...(server.heightCm != null ? { heightCm: server.heightCm } : {}),
+          ...(server.weightKg != null ? { weightKg: server.weightKg } : {}),
+          ...(server.address ? { address: server.address } : {}),
+          ...(fromServerActivityLevel(server.activityLevel) ? { activityLevel: fromServerActivityLevel(server.activityLevel) } : {}),
+        }
+      : {};
+    dispatch(updateProfile({ ...base, ...fromServer, id: authUser.id, firstName: authUser.firstName, lastName: authUser.lastName, email: authUser.email }));
+    // The energy engine (BMR/NRLA) reads its own body profile — seed it from the
+    // server so a signed-in user's numbers never start from the demo defaults.
+    if (!env.useMockApi && server) {
+      const age = server.dateOfBirth ? Math.floor((Date.now() - new Date(server.dateOfBirth).getTime()) / (365.25 * 86_400_000)) : undefined;
+      dispatch(
+        setBodyProfile({
+          ...(age !== undefined && Number.isFinite(age) ? { age } : {}),
+          ...(fromServer.gender ? { gender: fromServer.gender } : {}),
+          ...(fromServer.heightCm ? { heightCm: fromServer.heightCm } : {}),
+          ...(fromServer.weightKg ? { weightKg: fromServer.weightKg } : {}),
+          ...(fromServer.activityLevel ? { activityLevel: fromServer.activityLevel } : {}),
+        }),
+      );
+    }
+    // profileId is read only to detect an account switch; re-running on its change would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser, authSession, dispatch]);
 
   // `prefsHydrated` joins the splash gate so the persisted language is in
   // place before the first user-facing screen renders — no English→German

@@ -63,7 +63,7 @@ function logResponse(config: InternalAxiosRequestConfig | undefined, status: num
   const elapsedMs = config._requestStartedAt ? Date.now() - config._requestStartedAt : null;
   // Method, URL, status, and timing only. Never include headers, query values,
   // request bodies, or response bodies in logs.
-  // eslint-disable-next-line no-console
+   
   const safeUrl = config.url?.split(/[?#]/, 1)[0] ?? '';
   console.log(`[api] ${config.method?.toUpperCase()} ${safeUrl} -> ${status ?? 'ERR'}${elapsedMs != null ? ` (${elapsedMs}ms)` : ''}`);
 }

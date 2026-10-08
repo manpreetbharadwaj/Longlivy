@@ -1,0 +1,16 @@
+import { WeightRepository } from './WeightRepository';
+import { WeightEntry } from '../models';
+import { weightApi } from '@/services/api/weightApi';
+
+/** Backed by `/weight-logs`. The server scopes every record to the bearer token's user. */
+export class ApiWeightRepository implements WeightRepository {
+  async getHistory(userId: string): Promise<WeightEntry[]> {
+    const entries = await weightApi.list(userId);
+    // Same ordering contract as the mock: oldest first.
+    return entries.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  }
+
+  logWeight(userId: string, weightKg: number, source: WeightEntry['source'] = 'manual'): Promise<WeightEntry> {
+    return weightApi.create(userId, weightKg, source);
+  }
+}

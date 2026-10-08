@@ -5,6 +5,8 @@ import { generateId } from '@/utils/id';
 import { FOOD_DATABASE_SEED } from '@/mock/foodDatabaseSeed';
 import { MEALS_SEED } from '@/mock/mealsSeed';
 import { scaleNutrition } from '../services/NutritionCalculationService';
+import { env } from '@/config/env';
+import { ApiNutritionRepository } from './ApiNutritionRepository';
 
 interface NutritionDb {
   foods: Food[];
@@ -156,4 +158,4 @@ export class MockNutritionRepository implements NutritionRepository {
   }
 }
 
-export const nutritionRepository: NutritionRepository = new MockNutritionRepository();
+export const nutritionRepository: NutritionRepository = env.useMockApi ? new MockNutritionRepository() : new ApiNutritionRepository();
