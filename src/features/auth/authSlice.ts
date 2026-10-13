@@ -71,10 +71,20 @@ export const completeOnboardingThunk = createAsyncThunk('auth/completeOnboarding
   return true;
 });
 
+/** Starts a clean personalization flow before a different user registers on this device. */
+export const restartOnboardingThunk = createAsyncThunk('auth/restartOnboarding', async () => {
+  await authRepository.setOnboardingComplete(false);
+  return false;
+});
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    clearAuthError(state) {
+      state.error = null;
+      if (state.status === 'failed') state.status = 'idle';
+    },
     setOnboardingComplete(state, action: { payload: boolean }) {
       state.onboardingComplete = action.payload;
     },
@@ -125,9 +135,17 @@ const authSlice = createSlice({
       })
       .addCase(completeOnboardingThunk.fulfilled, (state) => {
         state.onboardingComplete = true;
+      })
+      .addCase(restartOnboardingThunk.pending, (state) => {
+        // Switch routes immediately; persistence normally completes before the
+        // first onboarding interaction, and the fulfilled case confirms it.
+        state.onboardingComplete = false;
+      })
+      .addCase(restartOnboardingThunk.fulfilled, (state) => {
+        state.onboardingComplete = false;
       });
   },
 });
 
-export const { setOnboardingComplete, markSessionExpired } = authSlice.actions;
+export const { clearAuthError, setOnboardingComplete, markSessionExpired } = authSlice.actions;
 export default authSlice.reducer;

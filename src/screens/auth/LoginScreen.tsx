@@ -11,11 +11,12 @@ import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { loginThunk } from '@/features/auth/authSlice';
+import { clearAuthError, loginThunk, restartOnboardingThunk } from '@/features/auth/authSlice';
 import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
 import { DEMO_LOGIN_EMAIL, DEMO_LOGIN_PASSWORD } from '@/mock/demoUser';
 import { env } from '@/config/env';
 import { AuthHeroLayout } from './AuthHeroLayout';
+import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
 
 // Deliberately permissive (not RFC 5322) — this only needs to catch "clearly
 // not an email" typos before we bother the mock backend, not fully validate
@@ -29,6 +30,7 @@ export const LoginScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const status = useAppSelector(selectAuthStatus);
   const error = useAppSelector(selectAuthError);
+  const { draft, reset: resetOnboardingDraft } = useOnboardingDraft();
 
   // Only the explicit local-mock build is pre-filled with the fictitious demo
   // credential. Backend-enabled builds start blank and never embed a test
@@ -64,6 +66,17 @@ export const LoginScreen: React.FC = () => {
 
     dispatch(loginThunk({ email: trimmedEmail, password }));
   }, [dispatch, email, password, t]);
+
+  const openRegister = useCallback(() => {
+    dispatch(clearAuthError());
+    const hasRequiredProfile = Boolean(draft.dateOfBirth && draft.gender && draft.heightCm && draft.weightKg);
+    if (!hasRequiredProfile) {
+      resetOnboardingDraft();
+      dispatch(restartOnboardingThunk());
+      return;
+    }
+    navigation.navigate('Register');
+  }, [dispatch, draft.dateOfBirth, draft.gender, draft.heightCm, draft.weightKg, navigation, resetOnboardingDraft]);
 
   return (
     <AuthHeroLayout>
@@ -132,7 +145,7 @@ export const LoginScreen: React.FC = () => {
           <AppText variant="bodyMedium" color="rgba(255,255,255,0.65)">
             {t('auth.login.newToLonglivy')}{' '}
           </AppText>
-          <Pressable onPress={() => navigation.navigate('Register')} hitSlop={8}>
+          <Pressable onPress={openRegister} hitSlop={8}>
             <AppText variant="bodyMedium" color="#5C7A94">
               {t('auth.login.createAccount')}
             </AppText>

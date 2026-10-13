@@ -1,8 +1,9 @@
 import { apiRequest, apiRequestParsed } from './apiClient';
 import { API_ENDPOINTS } from './apiConfig';
-import { dataList, dataRecord, id, num, RecordValue, str } from './laravel';
+import { dataRecord, id, num, RecordValue, str } from './laravel';
 import { ApiError } from '@/utils/apiError';
 import { WeightEntry } from '@/features/weight/models';
+import { loadAllPages } from './pagination';
 
 const LB_TO_KG = 0.45359237;
 
@@ -24,9 +25,7 @@ export function mapWeightLog(raw: RecordValue, userId: string): WeightEntry {
 }
 
 function list(userId: string): Promise<WeightEntry[]> {
-  return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.weightLogs.collection }, (body) =>
-    dataList(body, 'weight_logs').map((raw) => mapWeightLog(raw, userId)),
-  );
+  return loadAllPages({ method: 'GET', url: API_ENDPOINTS.weightLogs.collection }, 'weight_logs', (raw) => mapWeightLog(raw, userId));
 }
 
 function create(userId: string, weightKg: number, source: WeightEntry['source']): Promise<WeightEntry> {

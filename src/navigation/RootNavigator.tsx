@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import { SplashScreen } from '@/screens/SplashScreen';
@@ -18,6 +18,7 @@ import { API_PROFILE_DEFAULT } from '@/features/profile/repository';
 import { fromServerActivityLevel } from '@/services/api/profileApi';
 import { env } from '@/config/env';
 import type { DemoUserProfile } from '@/mock/demoUser';
+import { syncProfileWithRetry } from '@/features/auth/repository/ApiAuthRepository';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -32,8 +33,10 @@ export const RootNavigator: React.FC = () => {
   const authSession = useAppSelector(selectAuthSession);
   const onboardingComplete = useAppSelector(selectOnboardingComplete);
   const hasAddress = useAppSelector(selectHasAddress);
-  const { hydrated: prefsHydrated, preferences } = useAppPreferences();
+  const { hydrated: prefsHydrated, preferences, setLanguage } = useAppPreferences();
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const languageUserRef = useRef<string | null>(null);
+  const hydratingLanguageRef = useRef(false);
 
   useEffect(() => {
     dispatch(bootstrapSession());
@@ -68,6 +71,13 @@ export const RootNavigator: React.FC = () => {
           ...(server.weightKg != null ? { weightKg: server.weightKg } : {}),
           ...(server.address ? { address: server.address } : {}),
           ...(fromServerActivityLevel(server.activityLevel) ? { activityLevel: fromServerActivityLevel(server.activityLevel) } : {}),
+          ...(server.goal ? { goal: server.goal, goalSource: 'user' as const } : {}),
+          ...(server.weightChangePaceKgPerWeek != null ? { weightChangePaceKgPerWeek: server.weightChangePaceKgPerWeek } : {}),
+          ...(server.trainingFrequency != null ? { trainingFrequency: server.trainingFrequency } : {}),
+          ...(server.trainingVolume ? { trainingVolume: server.trainingVolume } : {}),
+          ...(server.fastingMethod ? { fastingMethod: server.fastingMethod as DemoUserProfile['fastingMethod'] } : {}),
+          ...(server.micronutrientFocus != null ? { micronutrientFocus: server.micronutrientFocus } : {}),
+          ...(server.avatarId ? { avatarId: server.avatarId } : {}),
         }
       : {};
     dispatch(updateProfile({ ...base, ...fromServer, id: authUser.id, firstName: authUser.firstName, lastName: authUser.lastName, email: authUser.email }));
@@ -88,6 +98,29 @@ export const RootNavigator: React.FC = () => {
     // profileId is read only to detect an account switch; re-running on its change would loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authUser, authSession, dispatch]);
+
+  const serverLanguage = authSession?.serverProfile?.language;
+  useEffect(() => {
+    if (env.useMockApi) return;
+    if (!authUser || languageUserRef.current === authUser.id) return;
+    languageUserRef.current = authUser.id;
+    if (serverLanguage && serverLanguage !== preferences.language) {
+      hydratingLanguageRef.current = true;
+      setLanguage(serverLanguage);
+    }
+  }, [authUser, serverLanguage, preferences.language, setLanguage]);
+
+  useEffect(() => {
+    if (env.useMockApi) return;
+    if (!authUser || languageUserRef.current !== authUser.id) return;
+    if (hydratingLanguageRef.current) {
+      if (preferences.language === serverLanguage) hydratingLanguageRef.current = false;
+      return;
+    }
+    if (preferences.language !== serverLanguage) {
+      syncProfileWithRetry(authUser.id, { language: preferences.language }).catch(() => undefined);
+    }
+  }, [authUser, preferences.language, serverLanguage]);
 
   // `prefsHydrated` joins the splash gate so the persisted language is in
   // place before the first user-facing screen renders — no English→German

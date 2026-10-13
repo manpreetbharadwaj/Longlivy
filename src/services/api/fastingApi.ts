@@ -1,7 +1,8 @@
 import { apiRequest, apiRequestParsed } from './apiClient';
 import { API_ENDPOINTS } from './apiConfig';
-import { dataList, dataRecord, dataRecordOrNull, id, isRecord, num, RecordValue, str } from './laravel';
+import { dataRecord, dataRecordOrNull, id, isRecord, num, RecordValue, str } from './laravel';
 import { ApiError } from '@/utils/apiError';
+import { loadAllPages } from './pagination';
 
 /**
  * `/fasting` record, verified 2026-10-08:
@@ -18,6 +19,8 @@ export interface ApiFast {
   endedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  actualHours: number | null;
+  elapsedHours: number | null;
 }
 
 export const MAX_PLANNED_HOURS = 48;
@@ -35,13 +38,15 @@ function mapFast(raw: RecordValue): ApiFast {
     endedAt: str(raw.ended_at) ?? null,
     createdAt: str(raw.created_at) ?? startedAt,
     updatedAt: str(raw.updated_at) ?? startedAt,
+    actualHours: num(raw.actual_hours) ?? null,
+    elapsedHours: num(raw.elapsed_hours) ?? null,
   };
 }
 
 const single = (body: unknown) => mapFast(dataRecord(body, 'fasting'));
 
 function list(): Promise<ApiFast[]> {
-  return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.fasting.collection }, (body) => dataList(body, 'fastings').map(mapFast));
+  return loadAllPages({ method: 'GET', url: API_ENDPOINTS.fasting.collection }, 'fastings', mapFast);
 }
 
 function active(): Promise<ApiFast | null> {

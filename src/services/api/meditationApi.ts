@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from './apiConfig';
 import { dataList, dataRecord, dataRecordOrNull, hhmm, id, isRecord, num, RecordValue, str } from './laravel';
 import { ApiError } from '@/utils/apiError';
 import { Meditation, MeditationTopic, MeditationType, MEDITATION_TOPICS } from '@/features/meditation/models';
+import { loadAllPages } from './pagination';
 
 /**
  * Meditation content, sessions and reminders.
@@ -112,7 +113,7 @@ function mapSession(raw: RecordValue): ApiMeditationSession {
 const sessionBody = (body: unknown) => mapSession(dataRecord(body, 'session'));
 
 function listSessions(): Promise<ApiMeditationSession[]> {
-  return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.meditation.sessions }, (body) => dataList(body, 'sessions').map(mapSession));
+  return loadAllPages({ method: 'GET', url: API_ENDPOINTS.meditation.sessions }, 'sessions', mapSession);
 }
 
 function activeSession(): Promise<ApiMeditationSession | null> {
@@ -153,7 +154,8 @@ export interface ApiReminder {
 function mapReminder(raw: RecordValue): ApiReminder {
   const time = hhmm(raw.time);
   if (!time) throw new ApiError({ kind: 'malformed' });
-  const days = Array.isArray(raw.days) ? raw.days.map(num).filter((d): d is number => d !== undefined) : (str(raw.days_of_week) ?? '').split(',').map(Number).filter(Number.isFinite);
+  const daySource = Array.isArray(raw.days_of_week) ? raw.days_of_week : Array.isArray(raw.days) ? raw.days : (str(raw.days_of_week) ?? '').split(',');
+  const days = [...new Set(daySource.map(num).filter((d): d is number => d !== undefined && Number.isInteger(d) && d >= 0 && d <= 6))].sort((a, b) => a - b);
   const now = new Date().toISOString();
   return { id: id(raw.id), time, daysOfWeek: days, enabled: raw.enabled !== false, createdAt: str(raw.created_at) ?? now, updatedAt: str(raw.updated_at) ?? now };
 }
@@ -162,9 +164,14 @@ function listReminders(): Promise<ApiReminder[]> {
   return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.meditation.reminders }, (body) => dataList(body, 'reminders').map(mapReminder));
 }
 
-/** `days_of_week` must be a comma-separated string (an array is rejected with 422). */
+/** The current contract accepts an integer array or comma string; use the typed array form. */
 function saveReminder(reminderId: string | null, input: { time: string; daysOfWeek: number[]; enabled: boolean }): Promise<ApiReminder> {
-  const data = { time: input.time, days_of_week: [...input.daysOfWeek].sort().join(','), enabled: input.enabled };
+  const time = hhmm(input.time);
+  const daysOfWeek = [...new Set(input.daysOfWeek)].sort((a, b) => a - b);
+  if (!time || daysOfWeek.length === 0 || daysOfWeek.some((day) => !Number.isInteger(day) || day < 0 || day > 6)) {
+    return Promise.reject(new ApiError({ kind: 'validation', message: 'Choose a valid time and weekdays.' }));
+  }
+  const data = { time, days_of_week: daysOfWeek, enabled: input.enabled };
   return apiRequestParsed(
     reminderId ? { method: 'PUT', url: API_ENDPOINTS.meditation.reminder(reminderId), data } : { method: 'POST', url: API_ENDPOINTS.meditation.reminders, data },
     (body) => mapReminder(dataRecord(body, 'reminder')),

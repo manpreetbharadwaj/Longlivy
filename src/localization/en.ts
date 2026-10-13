@@ -339,6 +339,7 @@ export const en = {
       email: 'Email',
       submit: 'Send reset link',
       sent: 'If an account exists for {{email}}, a reset link has been sent.',
+      unavailable: 'Password reset is not available yet. Please contact support.',
     },
     address: {
       title: 'Where should we ship to?',

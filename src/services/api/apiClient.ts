@@ -28,6 +28,12 @@ apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) =>
   if (env.enableApiLogging) config._requestStartedAt = Date.now();
 
   if (!config.skipAuth) {
+    const expiresAt = await tokenStorage.getExpiresAt();
+    if (expiresAt && (!Number.isFinite(Date.parse(expiresAt)) || Date.parse(expiresAt) <= Date.now())) {
+      const { authService } = await import('@/services/auth/authService');
+      await authService.expireLocalSession();
+      throw new ApiError({ kind: 'unauthorized', status: 401 });
+    }
     const accessToken = await tokenStorage.getAccessToken();
     if (accessToken) {
       config.headers.set('Authorization', `Bearer ${accessToken}`);

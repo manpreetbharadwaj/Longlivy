@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from './apiConfig';
 import { dataField, dataList, dataRecord, id, isRecord, num, RecordValue, str } from './laravel';
 import { ApiError } from '@/utils/apiError';
 import { Food, FoodUnit, Meal, MealItem, MealType, Recipe } from '@/features/nutrition/models';
+import { loadAllPages } from './pagination';
 
 /**
  * Foods, meals, recipes and favorites — shapes verified against the live API
@@ -201,9 +202,7 @@ function createFood(food: Omit<Food, 'id' | 'createdAt' | 'updatedAt' | 'source'
 // --- meals ---------------------------------------------------------------
 
 function mealsForDate(userId: string, date: string): Promise<Meal[]> {
-  return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.meals.collection, params: { date } }, (body) =>
-    dataList(body, 'meals').map((raw) => mapMeal(raw, userId)),
-  );
+  return loadAllPages({ method: 'GET', url: API_ENDPOINTS.meals.collection, params: { date } }, 'meals', (raw) => mapMeal(raw, userId));
 }
 
 function getMeal(userId: string, mealId: string): Promise<Meal> {
@@ -251,7 +250,7 @@ async function deleteMeal(mealId: string): Promise<void> {
 // --- recipes -------------------------------------------------------------
 
 function listRecipes(userId: string): Promise<Recipe[]> {
-  return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.recipes.collection }, (body) => dataList(body, 'recipes').map((raw) => mapRecipe(raw, userId)));
+  return loadAllPages({ method: 'GET', url: API_ENDPOINTS.recipes.collection }, 'recipes', (raw) => mapRecipe(raw, userId));
 }
 
 function saveRecipe(userId: string, recipeId: string | null, input: { name: string; servings: number; items: ApiLineItem[] }): Promise<Recipe> {
@@ -275,15 +274,13 @@ export interface ApiFavorite {
 }
 
 function listFavorites(): Promise<ApiFavorite[]> {
-  return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.favorites.collection }, (body) =>
-    dataList(body, 'favorites').map((raw) => ({
+  return loadAllPages({ method: 'GET', url: API_ENDPOINTS.favorites.collection }, 'favorites', (raw) => ({
       id: id(raw.id),
       type: str(raw.type) as FavoriteType,
       targetId: id(raw.favoritable_id),
       available: raw.available !== false,
       target: isRecord(raw.target) ? raw.target : null,
-    })),
-  );
+    }));
 }
 
 async function addFavorite(type: FavoriteType, targetId: string): Promise<void> {

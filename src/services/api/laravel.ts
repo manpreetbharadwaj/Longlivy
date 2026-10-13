@@ -72,6 +72,9 @@ export function localDateKey(date: Date = new Date()): string {
 /** Normalizes "08:00:00" (returned after updates) and "08:00" to "08:00". */
 export function hhmm(value: unknown): string | undefined {
   const raw = str(value);
-  const match = raw?.match(/^(\d{1,2}):(\d{2})/);
-  return match ? `${match[1].padStart(2, '0')}:${match[2]}` : undefined;
+  const match = raw?.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!match) return undefined;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 ? `${String(hours).padStart(2, '0')}:${match[2]}` : undefined;
 }

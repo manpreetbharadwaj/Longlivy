@@ -10,6 +10,7 @@ export type AuthApiUser = ApiUser;
 /** Laravel Sanctum issues a single bearer token; there is no refresh token. */
 export interface AuthApiTokens {
   accessToken: string;
+  expiresAt: string;
 }
 
 export interface AuthApiSession {
@@ -40,8 +41,9 @@ export interface RegisterPayload {
  */
 export function normalizeAuthSession(body: unknown): AuthApiSession {
   const accessToken = str(dataField(body, 'token'));
-  if (!accessToken) throw new ApiError({ kind: 'malformed' });
-  return { user: mapApiUser(dataRecord(body, 'user')), tokens: { accessToken } };
+  const expiresAt = str(dataField(body, 'expires_at'));
+  if (!accessToken || !expiresAt || !Number.isFinite(Date.parse(expiresAt))) throw new ApiError({ kind: 'malformed' });
+  return { user: mapApiUser(dataRecord(body, 'user')), tokens: { accessToken, expiresAt } };
 }
 
 function deviceTimeZone(): string | undefined {

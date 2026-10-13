@@ -16,13 +16,20 @@ export const ForgotPasswordScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const submit = useCallback(async () => {
+    setError(null);
     setLoading(true);
-    await authRepository.resetPassword(email);
-    setLoading(false);
-    setSent(true);
-  }, [email]);
+    try {
+      await authRepository.resetPassword(email);
+      setSent(true);
+    } catch {
+      setError(t('auth.forgotPassword.unavailable'));
+    } finally {
+      setLoading(false);
+    }
+  }, [email, t]);
 
   return (
     <AuthHeroLayout onBack={() => navigation.goBack()}>
@@ -41,6 +48,11 @@ export const ForgotPasswordScreen: React.FC = () => {
             {t('auth.forgotPassword.intro')}
           </AppText>
           <HeroTextField label={t('auth.forgotPassword.email')} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" style={{ marginBottom: theme.spacing.md }} />
+          {error ? (
+            <AppText variant="bodySmall" color="#C97268" style={{ marginBottom: theme.spacing.sm }}>
+              {error}
+            </AppText>
+          ) : null}
           <AppGradientButton label={t('auth.forgotPassword.submit')} onPress={submit} loading={loading} disabled={!email.includes('@')} />
         </FadeSlideIn>
       )}

@@ -10,11 +10,12 @@ import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { registerThunk } from '@/features/auth/authSlice';
+import { clearAuthError, registerThunk } from '@/features/auth/authSlice';
 import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
 import { updateProfile } from '@/features/profile/profileSlice';
 import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
 import { AuthHeroLayout } from './AuthHeroLayout';
+import { useAppPreferences } from '@/contexts/AppPreferencesContext';
 
 export const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -26,6 +27,7 @@ export const RegisterScreen: React.FC = () => {
   // Onboarding no longer collects name — it's identity/account info, not
   // health personalization, so it's asked here instead, alongside email/password.
   const { draft } = useOnboardingDraft();
+  const { preferences } = useAppPreferences();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -46,16 +48,28 @@ export const RegisterScreen: React.FC = () => {
         gender: draft.gender,
         heightCm: draft.heightCm,
         weightKg: draft.weightKg,
+        goal: draft.goal ?? undefined,
+        weightChangePaceKgPerWeek: draft.weightChangePaceKgPerWeek ?? undefined,
+        trainingFrequency: draft.trainingFrequency ?? undefined,
+        trainingVolume: draft.trainingVolume ?? undefined,
+        fastingMethod: draft.fastingMethod ?? undefined,
+        micronutrientFocus: draft.micronutrients ?? undefined,
+        language: preferences.language,
       })
     );
     // The `profile` slice (read by ProfileScreen etc.) was seeded with a
     // generic placeholder name at the end of onboarding, before an account
     // — and therefore a real name — existed. Sync the real one in now.
     dispatch(updateProfile({ firstName, lastName }));
-  }, [dispatch, firstName, lastName, email, password, draft]);
+  }, [dispatch, firstName, lastName, email, password, draft, preferences.language]);
+
+  const goBackToLogin = useCallback(() => {
+    dispatch(clearAuthError());
+    navigation.goBack();
+  }, [dispatch, navigation]);
 
   return (
-    <AuthHeroLayout onBack={() => navigation.goBack()}>
+    <AuthHeroLayout onBack={goBackToLogin}>
       <View style={{ marginBottom: theme.spacing.lg }}>
         <AppText variant="displayMedium" color="#FFFFFF">
           {t('auth.register.title')}
@@ -79,7 +93,7 @@ export const RegisterScreen: React.FC = () => {
           </AppText>
         ) : null}
         <AppGradientButton label={t('auth.register.submit')} onPress={handleRegister} disabled={!valid} loading={status === 'loading'} />
-        <Pressable onPress={() => navigation.goBack()} hitSlop={8} style={{ alignSelf: 'center', marginTop: theme.spacing.md }}>
+        <Pressable onPress={goBackToLogin} hitSlop={8} style={{ alignSelf: 'center', marginTop: theme.spacing.md }}>
           <AppText variant="bodyMedium" color="rgba(255,255,255,0.7)">
             {t('auth.register.haveAccount')} <AppText variant="bodyMedium" color="#5C7A94">{t('auth.register.logIn')}</AppText>
           </AppText>

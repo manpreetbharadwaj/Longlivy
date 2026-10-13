@@ -17,6 +17,14 @@ export interface ApiProfile {
   address: string | null;
   timezone: string | null;
   activityLevel: string | null;
+  goal: 'weight_loss' | 'maintenance' | 'general_wellness' | 'muscle_gain' | null;
+  weightChangePaceKgPerWeek: number | null;
+  trainingFrequency: number | null;
+  trainingVolume: 'low' | 'moderate' | 'high' | null;
+  fastingMethod: string | null;
+  micronutrientFocus: string[] | null;
+  avatarId: string | null;
+  language: 'en' | 'de' | null;
 }
 
 export interface ApiUser {
@@ -53,17 +61,32 @@ function mapProfile(raw: RecordValue | undefined, fallbackName: string): ApiProf
   const [first = '', ...rest] = fallbackName.split(' ');
   const profile = raw ?? {};
   const dob = str(profile.date_of_birth);
+  const height = num(profile.height);
+  const weight = num(profile.current_weight);
+  const heightCm = height == null ? null : str(profile.height_unit) === 'in' ? height * 2.54 : height;
+  const weightKg = weight == null ? null : str(profile.weight_unit) === 'lb' ? weight * 0.45359237 : weight;
+  const goal = str(profile.goal);
+  const trainingVolume = str(profile.training_volume);
+  const language = str(profile.language);
   return {
     firstName: str(profile.first_name) ?? first,
     lastName: str(profile.last_name) ?? rest.join(' '),
     // "1990-05-01T00:00:00.000000Z" after an update, "1990-05-01" elsewhere.
     dateOfBirth: dob ? dob.slice(0, 10) : null,
     gender: str(profile.gender) ?? null,
-    heightCm: num(profile.height) ?? null,
-    weightKg: num(profile.current_weight) ?? null,
+    heightCm,
+    weightKg,
     address: str(profile.address) ?? null,
     timezone: str(profile.timezone) ?? null,
     activityLevel: str(profile.activity_level) ?? null,
+    goal: goal === 'weight_loss' || goal === 'maintenance' || goal === 'general_wellness' || goal === 'muscle_gain' ? goal : null,
+    weightChangePaceKgPerWeek: num(profile.weight_change_pace_kg_per_week) ?? null,
+    trainingFrequency: num(profile.training_frequency) ?? null,
+    trainingVolume: trainingVolume === 'low' || trainingVolume === 'moderate' || trainingVolume === 'high' ? trainingVolume : null,
+    fastingMethod: str(profile.preferred_fasting_method) ?? null,
+    micronutrientFocus: Array.isArray(profile.micronutrient_focus) ? profile.micronutrient_focus.map(str).filter((v): v is string => !!v) : null,
+    avatarId: str(profile.avatar_id) ?? null,
+    language: language === 'en' || language === 'de' ? language : null,
   };
 }
 
@@ -94,6 +117,14 @@ export interface UpdateProfileInput {
   address?: string;
   timezone?: string;
   activityLevel?: string;
+  goal?: ApiProfile['goal'];
+  weightChangePaceKgPerWeek?: number;
+  trainingFrequency?: number;
+  trainingVolume?: ApiProfile['trainingVolume'];
+  fastingMethod?: string;
+  micronutrientFocus?: string[];
+  avatarId?: string;
+  language?: ApiProfile['language'];
 }
 
 function getProfile(): Promise<ApiUser> {
@@ -106,11 +137,19 @@ function updateProfile(input: UpdateProfileInput): Promise<ApiUser> {
   if (input.lastName !== undefined) wire.last_name = input.lastName;
   if (input.dateOfBirth !== undefined) wire.date_of_birth = input.dateOfBirth;
   if (input.gender !== undefined) wire.gender = input.gender;
-  if (input.heightCm !== undefined) wire.height = input.heightCm;
-  if (input.weightKg !== undefined) wire.current_weight = input.weightKg;
+  if (input.heightCm !== undefined) Object.assign(wire, { height: input.heightCm, height_unit: 'cm' });
+  if (input.weightKg !== undefined) Object.assign(wire, { current_weight: input.weightKg, weight_unit: 'kg' });
   if (input.address !== undefined) wire.address = input.address;
   if (input.timezone !== undefined) wire.timezone = input.timezone;
   if (input.activityLevel !== undefined) wire.activity_level = input.activityLevel;
+  if (input.goal !== undefined) wire.goal = input.goal;
+  if (input.weightChangePaceKgPerWeek !== undefined) wire.weight_change_pace_kg_per_week = input.weightChangePaceKgPerWeek;
+  if (input.trainingFrequency !== undefined) wire.training_frequency = input.trainingFrequency;
+  if (input.trainingVolume !== undefined) wire.training_volume = input.trainingVolume;
+  if (input.fastingMethod !== undefined) wire.preferred_fasting_method = input.fastingMethod;
+  if (input.micronutrientFocus !== undefined) wire.micronutrient_focus = input.micronutrientFocus;
+  if (input.avatarId !== undefined) wire.avatar_id = input.avatarId;
+  if (input.language !== undefined) wire.language = input.language;
   return apiRequestParsed({ method: 'PUT', url: API_ENDPOINTS.profile, data: wire }, (body) => mapApiUser(dataRecord(body, 'user')));
 }
 

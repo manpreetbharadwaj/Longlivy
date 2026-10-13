@@ -9,9 +9,9 @@ import { profileApi, toServerActivityLevel, UpdateProfileInput } from '@/service
 import { loadNutritionTargetsThunk } from '@/features/nutrition/nutritionSlice';
 
 /**
- * Sends the server-backed subset of a profile edit to PUT /profile. Fields
- * the API has no column for (goal, pace, avatar, micronutrients, …) stay
- * device-local. Activity levels are renamed to the API's vocabulary.
+ * Sends only explicitly changed profile fields to PUT /profile. Omitting
+ * untouched values is important because every documented field is nullable:
+ * a partial edit must never erase valid server data with accidental nulls.
  */
 async function pushProfile(changes: Partial<DemoUserProfile>): Promise<void> {
   if (env.useMockApi) return;
@@ -24,6 +24,13 @@ async function pushProfile(changes: Partial<DemoUserProfile>): Promise<void> {
   if (changes.weightKg !== undefined && Number.isFinite(changes.weightKg)) wire.weightKg = changes.weightKg;
   if (changes.address !== undefined) wire.address = changes.address;
   if (changes.activityLevel !== undefined) wire.activityLevel = toServerActivityLevel(changes.activityLevel);
+  if (changes.goal !== undefined) wire.goal = changes.goal;
+  if (changes.weightChangePaceKgPerWeek !== undefined) wire.weightChangePaceKgPerWeek = changes.weightChangePaceKgPerWeek;
+  if (changes.trainingFrequency !== undefined) wire.trainingFrequency = changes.trainingFrequency;
+  if (changes.trainingVolume !== undefined) wire.trainingVolume = changes.trainingVolume;
+  if (changes.fastingMethod !== undefined) wire.fastingMethod = changes.fastingMethod;
+  if (changes.micronutrientFocus !== undefined) wire.micronutrientFocus = changes.micronutrientFocus;
+  if (changes.avatarId !== undefined) wire.avatarId = changes.avatarId;
   if (Object.keys(wire).length > 0) await profileApi.updateProfile(wire);
 }
 

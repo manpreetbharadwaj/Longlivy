@@ -63,6 +63,7 @@ const DEFAULT_DRAFT: OnboardingDraft = {
 interface OnboardingContextValue {
   draft: OnboardingDraft;
   update: (patch: Partial<OnboardingDraft>) => void;
+  reset: () => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextValue | undefined>(undefined);
@@ -70,7 +71,8 @@ const OnboardingContext = createContext<OnboardingContextValue | undefined>(unde
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [draft, setDraft] = useState<OnboardingDraft>(DEFAULT_DRAFT);
   const update = useCallback((patch: Partial<OnboardingDraft>) => setDraft((prev) => ({ ...prev, ...patch })), []);
-  const value = useMemo(() => ({ draft, update }), [draft, update]);
+  const reset = useCallback(() => setDraft(DEFAULT_DRAFT), []);
+  const value = useMemo(() => ({ draft, update, reset }), [draft, update, reset]);
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
 };
 

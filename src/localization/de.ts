@@ -321,6 +321,7 @@ export const de: typeof en = {
       email: 'E-Mail',
       submit: 'Link zum Zurücksetzen senden',
       sent: 'Falls ein Konto für {{email}} existiert, wurde ein Link zum Zurücksetzen gesendet.',
+      unavailable: 'Das Zurücksetzen des Passworts ist noch nicht verfügbar. Bitte kontaktiere den Support.',
     },
     address: {
       title: 'Wohin sollen wir liefern?',

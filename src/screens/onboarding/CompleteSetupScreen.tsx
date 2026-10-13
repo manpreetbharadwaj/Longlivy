@@ -207,7 +207,7 @@ export const CompleteSetupScreen: React.FC = () => {
       })
     );
     dispatch(completeOnboardingThunk());
-  }, [dispatch, age, gender, heightCm, weightKg, activityLevel, goal, pace, draft.dateOfBirth, draft.trainingFrequency, draft.trainingVolume, draft.fastingMethod]);
+  }, [dispatch, age, gender, heightCm, weightKg, activityLevel, goal, pace, draft.dateOfBirth, draft.trainingFrequency, draft.trainingVolume, draft.fastingMethod, draft.micronutrients]);
 
   return (
     <OnboardingBackground>
