@@ -42,8 +42,7 @@ export const FoodSearchScreen: React.FC = () => {
             </AppText>
           </View>
           <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)">
-            {item.calories} kcal / {item.servingSize}
-            {item.unit}
+            {item.calories} kcal / {item.servingSize} {item.unit}
           </AppText>
         </View>
       </HeroCard>

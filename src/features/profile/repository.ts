@@ -19,6 +19,11 @@ export const API_PROFILE_DEFAULT: DemoUserProfile = {
   lastName: '',
   email: '',
   address: undefined,
+  // Body data comes only from the server; until then it is "Not set", never the demo values.
+  dateOfBirth: undefined,
+  gender: undefined,
+  heightCm: undefined,
+  weightKg: undefined,
   // Not the demo user's goal: a neutral default until the user picks one
   // (or it's restored from their server targets).
   goal: 'maintenance',
@@ -27,7 +32,23 @@ export const API_PROFILE_DEFAULT: DemoUserProfile = {
 
 const store = new LocalStore<DemoUserProfile>(env.useMockApi ? '@longlivy/profile' : '@longlivy/profile/api', env.useMockApi ? DEMO_USER : API_PROFILE_DEFAULT);
 
+/**
+ * Signed-out profiles saved before 2026-10-19 carried the demo body values
+ * (they were spread into API_PROFILE_DEFAULT) and would show up as a real
+ * account's height/weight. Only that exact blank-plus-demo combination is
+ * cleared — a profile with an id, or with any other value, is left alone.
+ */
+function withoutLegacyDemoBody(profile: DemoUserProfile): DemoUserProfile {
+  if (env.useMockApi || profile.id) return profile;
+  const isDemo =
+    profile.dateOfBirth === DEMO_USER.dateOfBirth &&
+    profile.gender === DEMO_USER.gender &&
+    profile.heightCm === DEMO_USER.heightCm &&
+    profile.weightKg === DEMO_USER.weightKg;
+  return isDemo ? { ...profile, dateOfBirth: undefined, gender: undefined, heightCm: undefined, weightKg: undefined } : profile;
+}
+
 export const profileRepository = {
-  get: (): Promise<DemoUserProfile> => store.read(),
+  get: async (): Promise<DemoUserProfile> => withoutLegacyDemoBody(await store.read()),
   save: (profile: DemoUserProfile): Promise<void> => store.write(profile),
 };

@@ -1,0 +1,8 @@
+{
+  "name": "longlivy-tts",
+  "version": "1.0.0",
+  "description": "Application-context-bound Android TextToSpeech, so workout voice coaching survives Recent Apps removal (unlike expo-speech, which shuts its engine down when the Activity is destroyed).",
+  "main": "index.ts",
+  "license": "UNLICENSED",
+  "private": true
+}

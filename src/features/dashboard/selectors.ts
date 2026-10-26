@@ -1,5 +1,5 @@
 import { createSelector } from '@reduxjs/toolkit';
-import { selectDailyEnergyBalance } from '@/features/calories/selectors';
+import { selectDailyEnergyBalance, selectHasCalorieGoal } from '@/features/calories/selectors';
 import { selectDailyNutritionTotals } from '@/features/nutrition/selectors';
 import { selectTodayActivityCalories, selectTodayActivityMinutes, selectActivityStats } from '@/features/activity/selectors';
 import { selectFastingStats, selectActiveFast, selectActiveFastStaticProgress } from '@/features/fasting/selectors';
@@ -34,6 +34,7 @@ export const selectDailySummary = createSelector(
   selectCurrentWeight,
   selectWeightTrend,
   selectActiveGoals,
+  selectHasCalorieGoal,
   (
     balance,
     nutritionTotals,
@@ -47,7 +48,8 @@ export const selectDailySummary = createSelector(
     meditationStreak,
     currentWeight,
     weightTrend,
-    goals
+    goals,
+    hasCalorieGoal
   ): DailySummary => {
     const activityTargetMinutes = goals.find((g) => g.type === 'activity_minutes')?.target ?? FALLBACK_ACTIVITY_TARGET_MINUTES;
     const mindfulnessTargetMinutes = goals.find((g) => g.type === 'meditation_minutes')?.target ?? FALLBACK_MINDFULNESS_TARGET_MINUTES;
@@ -58,8 +60,9 @@ export const selectDailySummary = createSelector(
         key: 'nutrition',
         label: 'Nutrition',
         value: Math.round(balance.caloriesConsumed),
-        target: balance.calorieGoal,
-        fraction: clampFraction(balance.calorieGoal > 0 ? balance.caloriesConsumed / balance.calorieGoal : 0),
+        // No goal on the account: no progress against the built-in default.
+        target: hasCalorieGoal ? balance.calorieGoal : 0,
+        fraction: hasCalorieGoal ? clampFraction(balance.calorieGoal > 0 ? balance.caloriesConsumed / balance.calorieGoal : 0) : 0,
         color: '#C9974E',
       },
       {

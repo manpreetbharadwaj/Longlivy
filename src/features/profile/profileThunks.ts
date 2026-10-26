@@ -7,6 +7,7 @@ import { calculateAutoCalorieTarget, paceAfterGoalChange } from '@/features/calo
 import { env } from '@/config/env';
 import { profileApi, toServerActivityLevel, UpdateProfileInput } from '@/services/api/profileApi';
 import { loadNutritionTargetsThunk } from '@/features/nutrition/nutritionSlice';
+import { ageFromDateOfBirth } from '@/features/onboarding/OnboardingContext';
 
 /**
  * Sends only explicitly changed profile fields to PUT /profile. Omitting
@@ -56,17 +57,23 @@ export const saveProfileChangesThunk = createAsyncThunk<void, Partial<DemoUserPr
     const pace = paceAfterGoalChange(before.goal, merged.goal, before.weightChangePaceKgPerWeek);
     dispatch(updateProfile({ ...changes, ...(changes.goal !== undefined ? { goalSource: 'user' as const } : {}), weightChangePaceKgPerWeek: pace }));
     const state = getState();
-    const body = { ...state.calorie.bodyProfile, heightCm: merged.heightCm, weightKg: merged.weightKg, activityLevel: merged.activityLevel };
+    const body = {
+      ...state.calorie.bodyProfile,
+      heightCm: merged.heightCm ?? state.calorie.bodyProfile.heightCm,
+      weightKg: merged.weightKg ?? state.calorie.bodyProfile.weightKg,
+      activityLevel: merged.activityLevel,
+      gender: merged.gender ?? state.calorie.bodyProfile.gender,
+      age: merged.dateOfBirth ? ageFromDateOfBirth(merged.dateOfBirth) : state.calorie.bodyProfile.age,
+    };
     dispatch(setBodyProfile(body));
-    // Recalculating replaces every server target (it ignores manual ones — a
-    // backend bug), so only do it when an input to the calculation changed and
-    // the user hasn't set any target by hand.
+    // Only recalculate when an input to the calculation changed. The server
+    // keeps targets the user edited (`source: manual`, reported back as
+    // `reason: manual_override`) and updates only the calculated ones.
     const inputsChanged = (['heightCm', 'weightKg', 'activityLevel', 'goal', 'dateOfBirth', 'gender'] as const).some(
       (key) => changes[key] !== undefined && changes[key] !== before[key],
     );
-    const anyManualTarget = Object.values(state.nutrition.serverTargets).some((t) => t?.source === 'manual');
     if (!env.useMockApi && state.calorie.calorieGoalSource === 'auto') {
-      if (inputsChanged && !anyManualTarget) dispatch(loadNutritionTargetsThunk({ recalculate: true }));
+      if (inputsChanged) dispatch(loadNutritionTargetsThunk({ recalculate: true }));
     } else if (state.calorie.calorieGoalSource === 'auto') {
       const target = calculateAutoCalorieTarget(body, merged.goal, pace);
       dispatch(setCalorieGoal({ calories: target.calories, source: 'auto', calculationMethod: target.method, calculationVersion: target.version }));

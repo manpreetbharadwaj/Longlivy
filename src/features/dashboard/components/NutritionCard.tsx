@@ -14,12 +14,14 @@ import { useAppSelector } from '@/store/hooks';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { motion } from '@/theme/motion';
 import { selectNutritionProgress } from '@/features/nutrition/selectors';
+import { selectHasCalorieGoal } from '@/features/calories/selectors';
 import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const NutritionCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const progress = useAppSelector(selectNutritionProgress);
+  const hasGoal = useAppSelector(selectHasCalorieGoal);
 
   return (
     <HeroCard
@@ -35,9 +37,9 @@ export const NutritionCard: React.FC = React.memo(() => {
           View details
         </AppText>
       </View>
-      <MacroRow index={0} label="Protein" icon="egg-outline" progress={progress.protein} color="#C9974E" />
-      <MacroRow index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} color="#6E8FAE" />
-      <MacroRow index={2} label="Fat" icon="water-outline" progress={progress.fat} color="#8B7FA8" isLast />
+      <MacroRow index={0} label="Protein" icon="egg-outline" progress={progress.protein} noTarget={!hasGoal} color="#C9974E" />
+      <MacroRow index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} noTarget={!hasGoal} color="#6E8FAE" />
+      <MacroRow index={2} label="Fat" icon="water-outline" progress={progress.fat} noTarget={!hasGoal} color="#8B7FA8" isLast />
     </HeroCard>
   );
 });
@@ -51,8 +53,10 @@ const MacroRow: React.FC<{
   progress: { current: number; target: number; percentage: number };
   color: string;
   isLast?: boolean;
-}> = React.memo(({ index, label, icon, progress, color, isLast }) => {
-  const animatedFraction = useAnimatedProgress(progress.percentage / 100);
+  /** No daily goal on the account: there is no target to show (only the built-in default). */
+  noTarget?: boolean;
+}> = React.memo(({ index, label, icon, progress, color, isLast, noTarget }) => {
+  const animatedFraction = useAnimatedProgress(noTarget ? 0 : progress.percentage / 100);
   return (
     <FadeSlideIn delay={index * motion.staggerStepMs} fromY={6}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isLast ? 0 : 12 }}>
@@ -76,7 +80,7 @@ const MacroRow: React.FC<{
             </AppText>
             <AppText variant="bodySmall" color={dashboardColors.textPrimary}>
               <AnimatedNumberText value={Math.round(progress.current)} variant="bodySmall" color={dashboardColors.textPrimary} />
-              {`g / ${progress.target}g`}
+              {noTarget ? 'g / —' : `g / ${progress.target}g`}
             </AppText>
           </View>
           <AppProgressBar progress={animatedFraction} color={color} trackColor={dashboardColors.border} height={6} />

@@ -15,6 +15,7 @@ import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
 import { updateProfile } from '@/features/profile/profileSlice';
 import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
 import { AuthHeroLayout } from './AuthHeroLayout';
+import { useContinueToAddress } from '@/navigation/useContinueToAddress';
 import { useAppPreferences } from '@/contexts/AppPreferencesContext';
 
 export const RegisterScreen: React.FC = () => {
@@ -28,13 +29,14 @@ export const RegisterScreen: React.FC = () => {
   // health personalization, so it's asked here instead, alongside email/password.
   const { draft } = useOnboardingDraft();
   const { preferences } = useAppPreferences();
+  useContinueToAddress();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const valid = Boolean(firstName && lastName && email.includes('@') && password.length >= 6 && draft.dateOfBirth && draft.gender && draft.heightCm && draft.weightKg);
+  const valid = Boolean(firstName && lastName && email.includes('@') && password.length >= 8 && draft.dateOfBirth && draft.gender && draft.heightCm && draft.weightKg);
 
   const handleRegister = useCallback(() => {
     if (!draft.dateOfBirth || !draft.gender || draft.heightCm == null || draft.weightKg == null) return;
@@ -48,6 +50,7 @@ export const RegisterScreen: React.FC = () => {
         gender: draft.gender,
         heightCm: draft.heightCm,
         weightKg: draft.weightKg,
+        activityLevel: draft.activityLevel ?? undefined,
         goal: draft.goal ?? undefined,
         weightChangePaceKgPerWeek: draft.weightChangePaceKgPerWeek ?? undefined,
         trainingFrequency: draft.trainingFrequency ?? undefined,

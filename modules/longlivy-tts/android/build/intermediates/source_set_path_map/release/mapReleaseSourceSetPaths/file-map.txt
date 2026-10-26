@@ -1,0 +1,7 @@
+com.longlivy.tts.longlivy-tts-pngs-0 /Users/mrbhardwaj/Documents/Longlivy/modules/longlivy-tts/android/build/generated/res/pngs/release
+com.longlivy.tts.longlivy-tts-resValues-1 /Users/mrbhardwaj/Documents/Longlivy/modules/longlivy-tts/android/build/generated/res/resValues/release
+com.longlivy.tts.longlivy-tts-mergeReleaseResources-2 /Users/mrbhardwaj/Documents/Longlivy/modules/longlivy-tts/android/build/intermediates/incremental/release/mergeReleaseResources/merged.dir
+com.longlivy.tts.longlivy-tts-mergeReleaseResources-3 /Users/mrbhardwaj/Documents/Longlivy/modules/longlivy-tts/android/build/intermediates/incremental/release/mergeReleaseResources/stripped.dir
+com.longlivy.tts.longlivy-tts-release-4 /Users/mrbhardwaj/Documents/Longlivy/modules/longlivy-tts/android/build/intermediates/merged_res/release/mergeReleaseResources
+com.longlivy.tts.longlivy-tts-main-5 /Users/mrbhardwaj/Documents/Longlivy/modules/longlivy-tts/android/src/main/res
+com.longlivy.tts.longlivy-tts-release-6 /Users/mrbhardwaj/Documents/Longlivy/modules/longlivy-tts/android/src/release/res

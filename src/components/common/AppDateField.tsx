@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { Modal, Platform, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -13,8 +13,12 @@ import { WheelDatePicker } from './WheelDatePicker';
 interface AppDateFieldProps {
   label: string;
   mode: 'date' | 'time';
-  value: Date;
+  /** `null` shows `placeholder` (e.g. "Not set"); the picker then opens on `pickerStart`. */
+  value: Date | null;
   onChange: (date: Date) => void;
+  placeholder?: string;
+  /** Where the picker starts when `value` is null; defaults to `maximumDate`, then today. */
+  pickerStart?: Date;
   maximumDate?: Date;
   minimumDate?: Date;
   /** 'hero' styles the trigger for a dark gradient background (see OnboardingStepLayout's hero variant) — the picker itself is unchanged. */
@@ -33,11 +37,12 @@ function formatValue(value: Date, mode: 'date' | 'time'): string {
  * platform's native picker UX (a spinner sheet on iOS, the system dialog on
  * Android) instead of asking the user to type "YYYY-MM-DD" correctly.
  */
-export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mode, value, onChange, maximumDate, minimumDate, variant = 'default' }) => {
+export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mode, value, onChange, maximumDate, minimumDate, variant = 'default', placeholder, pickerStart }) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
-  const [draftValue, setDraftValue] = useState(value);
+  const startValue = useMemo(() => value ?? pickerStart ?? maximumDate ?? new Date(), [value, pickerStart, maximumDate]);
+  const [draftValue, setDraftValue] = useState(startValue);
   const hero = variant === 'hero';
   // Date fields get Longlivy's own wheel picker (identical look and
   // interaction on both platforms — see WheelDatePicker); time fields stay
@@ -68,7 +73,7 @@ export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mo
   const openPicker = useCallback(() => {
     if (!useWheelPicker && Platform.OS === 'android') {
       DateTimePickerAndroid.open({
-        value,
+        value: startValue,
         mode,
         maximumDate,
         minimumDate,
@@ -77,10 +82,10 @@ export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mo
         },
       });
     } else {
-      setDraftValue(value);
+      setDraftValue(startValue);
       setModalVisible(true);
     }
-  }, [value, mode, maximumDate, minimumDate, onChange, useWheelPicker]);
+  }, [startValue, mode, maximumDate, minimumDate, onChange, useWheelPicker]);
 
   const confirmModal = useCallback(() => {
     onChange(draftValue);
@@ -108,8 +113,8 @@ export const AppDateField: React.FC<AppDateFieldProps> = React.memo(({ label, mo
           justifyContent: 'space-between',
         }}
       >
-        <AppText variant="bodyLarge" color={hero ? '#FFFFFF' : undefined}>
-          {formatValue(value, mode)}
+        <AppText variant="bodyLarge" color={value ? (hero ? '#FFFFFF' : undefined) : hero ? 'rgba(255,255,255,0.45)' : theme.colors.textTertiary}>
+          {value ? formatValue(value, mode) : placeholder ?? ''}
         </AppText>
         <AppIcon name={mode === 'date' ? 'calendar-outline' : 'time-outline'} size={18} color={hero ? 'rgba(255,255,255,0.55)' : theme.colors.textTertiary} />
       </Pressable>

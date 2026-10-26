@@ -30,7 +30,7 @@ export const AuthHeroLayout: React.FC<AuthHeroLayoutProps> = ({ children, onBack
       <LinearGradient colors={heroGradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
       <GlowOrb size={340} color="#3D5266" opacity={0.28} pulse style={{ top: -110, right: -90 }} />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
-        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl, flexGrow: 1 }}>
+        <ScrollView keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl, flexGrow: 1 }}>
           {onBack ? (
             <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={t('common.back')} hitSlop={12} style={{ width: 32, height: 32, justifyContent: 'center', marginBottom: theme.spacing.sm }}>
               <AppIcon name="chevron-back" size={24} color="#FFFFFF" />

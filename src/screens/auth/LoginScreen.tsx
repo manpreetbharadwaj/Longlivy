@@ -16,6 +16,7 @@ import { selectAuthError, selectAuthStatus } from '@/features/auth/selectors';
 import { DEMO_LOGIN_EMAIL, DEMO_LOGIN_PASSWORD } from '@/mock/demoUser';
 import { env } from '@/config/env';
 import { AuthHeroLayout } from './AuthHeroLayout';
+import { useContinueToAddress } from '@/navigation/useContinueToAddress';
 import { useOnboardingDraft } from '@/features/onboarding/OnboardingContext';
 
 // Deliberately permissive (not RFC 5322) — this only needs to catch "clearly
@@ -30,6 +31,7 @@ export const LoginScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const status = useAppSelector(selectAuthStatus);
   const error = useAppSelector(selectAuthError);
+  useContinueToAddress();
   const { draft, reset: resetOnboardingDraft } = useOnboardingDraft();
 
   // Only the explicit local-mock build is pre-filled with the fictitious demo

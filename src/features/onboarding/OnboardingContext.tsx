@@ -83,6 +83,10 @@ export function useOnboardingDraft(): OnboardingContextValue {
 }
 
 /** Whole-years age as of today, from an ISO `yyyy-mm-dd` date of birth. */
+/** Accepted age range for a date of birth (onboarding and Edit profile). */
+export const MIN_PROFILE_AGE = 13;
+export const MAX_PROFILE_AGE = 90;
+
 export function ageFromDateOfBirth(dateOfBirth: string): number {
   const dob = new Date(dateOfBirth);
   const now = new Date();

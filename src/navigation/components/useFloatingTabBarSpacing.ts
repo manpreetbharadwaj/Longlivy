@@ -1,15 +1,23 @@
+import { useContext } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { getFloatingTabBarHeight } from './FloatingTabBar';
 
 /**
- * How much bottom padding a screen's scrollable content needs to clear the
- * floating tab bar, which is an absolutely-positioned overlay (not a normal
- * layout sibling — see FloatingTabBar's own doc comment for why) and so
- * doesn't automatically reserve space the way a docked tab bar would.
- * Centralized here rather than each screen guessing a number, so the value
- * only needs to change in one place if the bar's own dimensions ever do.
+ * The bottom footprint of the floating tab bar, which is an absolutely
+ * positioned overlay (see FloatingTabBar's doc comment for why) and so
+ * doesn't reserve layout space the way a docked tab bar would.
+ *
+ * Screens reserve this below their scroll viewport (a bottom margin, not
+ * content padding), so content ends above the bar instead of scrolling
+ * underneath it — nothing interactive can sit under the pill or the raised
+ * Home button at any scroll position.
+ *
+ * 0 outside the tab navigator (auth and onboarding stacks), where there is
+ * no bar to clear.
  */
 export function useFloatingTabBarSpacing(): number {
   const insets = useSafeAreaInsets();
-  return getFloatingTabBarHeight(insets.bottom);
+  const insideTabs = useContext(BottomTabBarHeightContext) !== undefined;
+  return insideTabs ? getFloatingTabBarHeight(insets.bottom) : 0;
 }

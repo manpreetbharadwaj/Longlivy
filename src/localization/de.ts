@@ -136,6 +136,11 @@ export const de: typeof en = {
     tagline: 'Fasten · Ernährung · Aktivität · Meditation',
   },
   home: {
+    goal: {
+      setTitle: 'Lege dein Tagesziel fest',
+      setBody: 'Vervollständige dein Profil, damit LongLivy dein tägliches Kalorienziel berechnen kann.',
+      setAction: 'Profil vervollständigen',
+    },
     greeting: {
       morning: 'Guten Morgen',
       afternoon: 'Guten Tag',
@@ -319,9 +324,14 @@ export const de: typeof en = {
       title: 'Passwort zurücksetzen',
       intro: 'Gib die E-Mail-Adresse deines Kontos ein und wir senden dir eine Anleitung zum Zurücksetzen.',
       email: 'E-Mail',
-      submit: 'Link zum Zurücksetzen senden',
-      sent: 'Falls ein Konto für {{email}} existiert, wurde ein Link zum Zurücksetzen gesendet.',
-      unavailable: 'Das Zurücksetzen des Passworts ist noch nicht verfügbar. Bitte kontaktiere den Support.',
+      submit: 'Code zum Zurücksetzen senden',
+      sent: 'Falls ein Konto für {{email}} existiert, haben wir dir einen Code gesendet. Gib ihn mit deinem neuen Passwort ein.',
+      code: 'Code',
+      newPassword: 'Neues Passwort (mindestens 8 Zeichen)',
+      resetSubmit: 'Neues Passwort festlegen',
+      done: 'Dein Passwort wurde geändert. Du kannst dich jetzt anmelden.',
+      backToLogin: 'Zurück zur Anmeldung',
+      failed: 'Etwas ist schiefgelaufen. Bitte versuche es erneut.',
     },
     address: {
       title: 'Wohin sollen wir liefern?',
@@ -332,13 +342,19 @@ export const de: typeof en = {
     emailVerification: {
       title: 'E-Mail bestätigen',
       verifiedTitle: 'E-Mail bestätigt',
-      sentTo: 'Wir haben einen Bestätigungslink an {{email}} gesendet.',
+      sentTo: 'Wir haben einen Bestätigungscode an {{email}} gesendet.',
       yourEmail: 'deine E-Mail',
       verifiedBody: 'Dein Konto ist vollständig eingerichtet.',
-      verifiedButton: 'Ich habe meine E-Mail bestätigt',
+      verifiedButton: 'E-Mail bestätigen',
+      code: 'Bestätigungscode',
+      resend: 'Neuen Code senden',
+      resent: 'Neuer Code gesendet',
+      failed: 'Etwas ist schiefgelaufen. Bitte versuche es erneut.',
     },
   },
   profile: {
+    notSet: 'Nicht angegeben',
+    verifyEmail: 'E-Mail bestätigen',
     title: 'Profil',
     height: 'Größe',
     weight: 'Gewicht',
@@ -353,6 +369,8 @@ export const de: typeof en = {
     goBack: 'Zurück',
   },
   editProfile: {
+    dateOfBirth: 'Geburtsdatum',
+    gender: 'Geschlecht',
     title: 'Profil bearbeiten',
     firstName: 'Vorname',
     lastName: 'Nachname',
@@ -444,6 +462,7 @@ export const de: typeof en = {
     chooseMethod: 'Methode wählen',
   },
   nutrition: {
+    noGoal: 'Kein Tagesziel',
     title: 'Ernährung',
     noItemsLogged: 'Nichts erfasst',
     itemsSummary: '{{kcal}} kcal · {{count}} Einträge',
@@ -612,6 +631,10 @@ export const de: typeof en = {
       resume: 'Fortsetzen',
       fallbackTitle: 'Meditation',
       unguidedFallbackTitle: 'Unbegleitete Meditation',
+      startFailedTitle: 'Sitzung konnte nicht starten',
+      startFailedBody: 'Deine Sitzung konnte nicht gespeichert werden. Prüfe deine Verbindung und versuche es erneut.',
+      startFailedRetry: 'Erneut versuchen',
+      startFailedLeave: 'Verlassen',
     },
     details: {
       notFoundTitle: 'Meditation',
@@ -679,6 +702,7 @@ export const de: typeof en = {
       },
     },
     templatesScreen: {
+      saveFailed: 'Eigene Meditation nicht gespeichert',
       title: 'Eigene Meditation erstellen',
       intro: 'Wähle, wie lange du meditieren möchtest und was du hören willst.',
       newTemplate: 'Neue eigene Meditation',

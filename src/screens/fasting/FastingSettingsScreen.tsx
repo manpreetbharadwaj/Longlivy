@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AppScreen } from '@/components/common/AppScreen';
 import { AppHeader } from '@/components/common/AppHeader';
@@ -9,7 +9,7 @@ import { AppSwitch } from '@/components/common/AppSwitch';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectNotificationSettings } from '@/features/notifications/selectors';
-import { DELIVERABLE_NOTIFICATION_TYPES, toggleNotificationSetting } from '@/features/notifications/notificationSlice';
+import { DELIVERABLE_NOTIFICATION_TYPES, toggleNotificationSettingThunk } from '@/features/notifications/notificationSlice';
 
 const FASTING_EVENT_TYPES = [
   'fasting_begins',
@@ -28,19 +28,25 @@ export const FastingSettingsScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const settings = useAppSelector(selectNotificationSettings).filter((s) => FASTING_EVENT_TYPES.includes(s.type as any));
 
-  const toggle = useCallback((type: (typeof FASTING_EVENT_TYPES)[number]) => dispatch(toggleNotificationSetting(type)), [dispatch]);
+  const toggle = useCallback(
+    (type: (typeof FASTING_EVENT_TYPES)[number]) =>
+      dispatch(toggleNotificationSettingThunk(type))
+        .unwrap()
+        .catch((e: unknown) => Alert.alert('Setting not saved', e instanceof Error ? e.message : 'Please try again.')),
+    [dispatch],
+  );
 
   return (
     <>
       <AppHeader title="Fasting settings" onBack={() => navigation.goBack()} />
-      <AppScreen>
+      <AppScreen belowHeader>
         <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
           Notifications
         </AppText>
         {/* None of these is delivered yet (no push provider / backend events); say so instead of offering live switches. */}
         {settings.some((s) => !DELIVERABLE_NOTIFICATION_TYPES.has(s.type)) ? (
           <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.sm }}>
-            Fasting notifications aren't available yet. Your choices are saved and will apply once they are.
+            Fasting notifications aren't available yet. These switches will turn on once delivery is supported.
           </AppText>
         ) : null}
         <AppCard>

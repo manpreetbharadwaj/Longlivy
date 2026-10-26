@@ -50,6 +50,7 @@ export type ProfileStackParamList = {
   NoiseDevice: undefined;
   Privacy: undefined;
   DataManagement: undefined;
+  EmailVerification: undefined;
 };
 
 export type FastingStackParamList = {

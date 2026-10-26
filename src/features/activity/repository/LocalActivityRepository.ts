@@ -1,5 +1,7 @@
 import { LocalStore } from '@/services/storage/LocalStore';
 import { generateId } from '@/utils/id';
+import { env } from '@/config/env';
+import { SyncedActivityRepository } from './SyncedActivityRepository';
 import type { ActivityRepository } from './ActivityRepository';
 import type { Activity } from '../models';
 import {
@@ -37,4 +39,7 @@ export class LocalActivityRepository extends ActivityRepositoryCore {
   }
 }
 
-export const activityRepository: ActivityRepository = new LocalActivityRepository();
+const localActivityRepository = new LocalActivityRepository();
+
+/** API mode copies finished activities to `/activities`; mock mode stays on the device. */
+export const activityRepository: ActivityRepository = env.useMockApi ? localActivityRepository : new SyncedActivityRepository(localActivityRepository);

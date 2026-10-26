@@ -28,7 +28,7 @@ export const FastingStatisticsScreen: React.FC = () => {
   return (
     <>
       <AppHeader title="Fasting statistics" onBack={() => navigation.goBack()} />
-      <AppScreen>
+      <AppScreen belowHeader>
         {stats.totalSessions === 0 ? (
           <AppText variant="bodyMedium" color={theme.colors.textSecondary} align="center" style={{ marginTop: theme.spacing.xl }}>
             No data available yet.

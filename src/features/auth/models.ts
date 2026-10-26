@@ -44,6 +44,7 @@ export interface RegisterInput {
   gender: 'female' | 'male' | 'diverse';
   heightCm: number;
   weightKg: number;
+  activityLevel?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
   /** Collected after registration in the current app flow, so optional here. */
   address?: string;
   goal?: DemoProfileGoal;

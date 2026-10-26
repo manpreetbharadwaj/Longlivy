@@ -20,7 +20,8 @@ import {
   updateActivityTrackingSnapshotThunk,
 } from '@/features/activity/activitySlice';
 import { useActivityTimer } from '@/features/activity/hooks/useActivityTimer';
-import { useGpsTracking } from '@/features/activity/hooks/useGpsTracking';
+import { GpsTrackingStatus } from '@/features/activity/hooks/useGpsTracking';
+import { useBackgroundGpsTracking, finalizeBackgroundTracking } from '@/features/activity/hooks/useBackgroundGpsTracking';
 import { useActivityCountdown } from '@/features/activity/hooks/useActivityCountdown';
 import { useVoiceCoach } from '@/features/activity/hooks/useVoiceCoach';
 import { ActivityType, ACTIVITY_TYPE_LABELS, GPS_BASED_TYPES } from '@/features/activity/models';
@@ -74,18 +75,14 @@ export const ActiveActivityScreen: React.FC = () => {
   const countdown = useActivityCountdown(activity ? null : pendingType, handleGo);
 
   const { activeDurationMs } = useActivityTimer(activity);
-  const gps = useGpsTracking(
+  const gps = useBackgroundGpsTracking(
     activity?.gpsAvailable ?? false,
     activity?.status === 'active',
-    null,
-    activity?.route,
+    activity?.id ?? null,
+    activity?.userId ?? '',
     activity?.type ?? 'running',
-    {
-      distanceMeters: activity?.distanceMeters,
-      movingDuration: activity?.movingDuration,
-      metHours: activity?.metHours,
-      elevationGainMeters: activity?.elevationGainMeters,
-    }
+    profile.weightKg ?? null,
+    ACTIVITY_TYPE_LABELS[activity?.type ?? 'running']
   );
   useVoiceCoach(activity, activeDurationMs);
 
@@ -187,6 +184,7 @@ export const ActiveActivityScreen: React.FC = () => {
       })
     );
     if (endActivityThunk.fulfilled.match(result)) {
+      if (activity.gpsAvailable) await finalizeBackgroundTracking();
       navigation.replace('ActivitySummary', { activityId: result.payload.id });
     }
   }, [activity, dispatch, navigation, profile.weightKg, gps]);
@@ -325,7 +323,7 @@ export const ActiveActivityScreen: React.FC = () => {
 
 const GpsStatusLine: React.FC<{
   gpsAvailable: boolean;
-  status: ReturnType<typeof useGpsTracking>['status'];
+  status: GpsTrackingStatus;
   message: string | null;
   onOpenSettings: () => void;
 }> = ({

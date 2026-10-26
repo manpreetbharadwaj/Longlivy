@@ -88,7 +88,8 @@ function mapGoal(value: unknown): Goal {
     endDate: text(raw.end_date, raw.endDate),
     // The API returns `active: null` for goals created without the flag; treat that as active.
     active: boolean(raw.active ?? raw.is_active, true),
-    source: raw.source === 'auto' ? 'auto' : 'manual',
+    // POST /energy/targets/calculate stores `longlivy_calculated`; goals created by hand default to `manual`.
+    source: raw.source === 'auto' || raw.source === 'longlivy_calculated' ? 'auto' : 'manual',
   };
 }
 

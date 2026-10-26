@@ -146,15 +146,7 @@ export function isServerId(value: string | null | undefined): value is string {
   return !!value && /^\d+$/.test(value);
 }
 
-/**
- * The API stores `logged_at` without its UTC offset (19:00+02:00 is saved as
- * 19:00Z) and derives the meal's `date` from it, so local wall-clock time is
- * sent to keep the meal on the user's calendar day.
- */
-export function localWallClock(date: Date = new Date()): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-}
+export { localIsoWithOffset } from '@/utils/date/localIsoWithOffset';
 
 // --- foods ---------------------------------------------------------------
 

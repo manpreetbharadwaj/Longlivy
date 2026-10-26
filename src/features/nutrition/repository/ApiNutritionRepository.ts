@@ -1,7 +1,7 @@
 import { NutritionRepository } from './NutritionRepository';
 import { Food, Meal, MealType, Recipe } from '../models';
 import { scaleNutrition } from '../services/NutritionCalculationService';
-import { API_MEAL_TYPES, ApiLineItem, isServerId, localWallClock, mapFood, nutritionApi } from '@/services/api/nutritionApi';
+import { API_MEAL_TYPES, ApiLineItem, isServerId, localIsoWithOffset, mapFood, nutritionApi } from '@/services/api/nutritionApi';
 import { localDateKey } from '@/services/api/laravel';
 import { LocalStore } from '@/services/storage/LocalStore';
 import { FOOD_DATABASE_SEED } from '@/mock/foodDatabaseSeed';
@@ -92,7 +92,7 @@ export class ApiNutritionRepository implements NutritionRepository {
     const existing = meals.find((m) => m.mealType === mealType);
     const item = lineItem(input.food, input.quantity);
     if (existing) return nutritionApi.addMealItem(input.userId, existing.id, item);
-    return nutritionApi.createMeal(input.userId, { mealType, loggedAt: localWallClock(day), items: [item] });
+    return nutritionApi.createMeal(input.userId, { mealType, loggedAt: localIsoWithOffset(day), items: [item] });
   }
 
   async removeMealItem(mealId: string, itemId: string): Promise<Meal | null> {

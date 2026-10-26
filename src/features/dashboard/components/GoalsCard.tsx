@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -9,10 +9,11 @@ import { AppProgressBar } from '@/components/common/AppProgressBar';
 import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { motion } from '@/theme/motion';
-import { selectActiveGoals } from '@/features/goals/selectors';
+import { selectActiveGoals, selectGoalsStatus } from '@/features/goals/selectors';
+import { fetchGoalsThunk } from '@/features/goals/goalsSlice';
 import { selectDailyNutritionTotals } from '@/features/nutrition/selectors';
 import { selectTodayActivityCalories } from '@/features/activity/selectors';
 import { selectTodayMeditationSeconds } from '@/features/meditation/selectors';
@@ -22,18 +23,38 @@ import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 export const GoalsCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const dispatch = useAppDispatch();
   const goals = useAppSelector(selectActiveGoals);
+  const goalsStatus = useAppSelector(selectGoalsStatus);
   const nutritionTotals = useAppSelector(selectDailyNutritionTotals);
   const activityCalories = useAppSelector(selectTodayActivityCalories);
   const meditationSeconds = useAppSelector(selectTodayMeditationSeconds);
 
+  // Goals were otherwise only fetched by the Goals screens, so this card stayed
+  // empty until one of them had been opened.
+  useEffect(() => {
+    if (goalsStatus === 'idle') void dispatch(fetchGoalsThunk());
+  }, [dispatch, goalsStatus]);
+
   const currentValueFor = useCallback(
     (type: string): number => {
       switch (type) {
+        // The server's calculated targets use the `nutrition_*` goal types.
         case 'calories':
+        case 'nutrition_calories':
           return nutritionTotals.calories;
         case 'protein':
+        case 'nutrition_protein':
           return nutritionTotals.protein;
+        case 'carbohydrates':
+        case 'nutrition_carbs':
+          return nutritionTotals.carbohydrates;
+        case 'fat':
+        case 'nutrition_fat':
+          return nutritionTotals.fat;
+        case 'fiber':
+        case 'nutrition_fiber':
+          return nutritionTotals.fiber;
         case 'activity_minutes':
           return activityCalories > 0 ? 1 : 0; // placeholder proxy without a duration selector here
         case 'meditation_minutes':
@@ -52,6 +73,11 @@ export const GoalsCard: React.FC = React.memo(() => {
       <AppText variant="headingSmall" color={dashboardColors.textPrimary} style={{ marginBottom: theme.spacing.sm }}>
         Today's goals
       </AppText>
+      {dailyGoals.length === 0 ? (
+        <AppText variant="bodySmall" color={dashboardColors.textMuted}>
+          No daily goals yet. Tap to see all your goals.
+        </AppText>
+      ) : null}
       {dailyGoals.map((goal, index) => {
         const progress = calculateGoalProgress(currentValueFor(goal.type), goal.target);
         return <GoalRow key={goal.id} index={index} type={goal.type} current={progress.current} target={goal.target} unit={goal.unit} percentage={progress.percentage} exceeded={progress.exceeded} />;

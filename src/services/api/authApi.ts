@@ -1,7 +1,7 @@
 import { apiRequest, apiRequestParsed } from './apiClient';
 import { API_ENDPOINTS } from './apiConfig';
 import { dataField, dataRecord, str } from './laravel';
-import { ApiUser, mapApiUser } from './profileApi';
+import { ApiUser, mapApiUser, toServerActivityLevel } from './profileApi';
 import { ApiError } from '@/utils/apiError';
 
 /** The user shape required by the existing auth repository, plus the server profile. */
@@ -32,6 +32,8 @@ export interface RegisterPayload {
   gender: 'female' | 'male' | 'diverse';
   heightCm: number;
   weightKg: number;
+  /** App activity level; mapped to the API's names (`active` → `high`). */
+  activityLevel?: string;
   address?: string;
 }
 
@@ -74,6 +76,8 @@ function register(payload: RegisterPayload): Promise<AuthApiSession> {
         gender: payload.gender,
         height: payload.heightCm,
         current_weight: payload.weightKg,
+        // Without it the server defaults to `moderate` and computes targets from that.
+        ...(payload.activityLevel && toServerActivityLevel(payload.activityLevel) ? { activity_level: toServerActivityLevel(payload.activityLevel) } : {}),
         ...(payload.address ? { address: payload.address } : {}),
         // The server defaults to UTC; meal days and streaks are computed in this zone.
         ...(deviceTimeZone() ? { timezone: deviceTimeZone() } : {}),
@@ -95,19 +99,40 @@ async function logout(): Promise<void> {
 }
 
 /**
- * The backend has no password-reset or email-verification route (both 404
- * on 2026-10-08). These reject with a clear message instead of guessing.
+ * DELETE /auth/account — permanently deletes the account and its server data.
+ * The API requires the current password and the literal `confirmation: "DELETE"`
+ * (verified 2026-10-19: 422 without either, 200 "Account deleted." with both).
  */
-function unsupportedAuthOperation(operation: string): Promise<never> {
-  return Promise.reject(new ApiError({ kind: 'unknown', message: `${operation} is not available yet.` }));
+async function deleteAccount(password: string): Promise<void> {
+  await apiRequest({ method: 'DELETE', url: API_ENDPOINTS.auth.account, data: { password, confirmation: 'DELETE' } });
 }
 
-function resetPassword(_email: string): Promise<void> {
-  return unsupportedAuthOperation('Password reset');
+/**
+ * Password reset and email verification use 6-digit codes sent by email.
+ * Not in the API document; verified against the live API on 2026-10-19:
+ *  - forgot-password always answers 200 with the same message (no account
+ *    enumeration); reset-password and email/verify answer 422 for a wrong or
+ *    expired code; email/resend is throttled (429).
+ */
+async function requestPasswordReset(email: string): Promise<void> {
+  await apiRequest({ method: 'POST', url: API_ENDPOINTS.auth.forgotPassword, data: { email }, skipAuth: true });
 }
 
-function verifyEmail(_code: string): Promise<void> {
-  return unsupportedAuthOperation('Email verification');
+async function resetPassword(input: { email: string; code: string; password: string }): Promise<void> {
+  await apiRequest({
+    method: 'POST',
+    url: API_ENDPOINTS.auth.resetPassword,
+    data: { email: input.email, code: input.code, password: input.password, password_confirmation: input.password },
+    skipAuth: true,
+  });
 }
 
-export const authApi = { login, register, me, logout, resetPassword, verifyEmail };
+async function verifyEmail(code: string): Promise<void> {
+  await apiRequest({ method: 'POST', url: API_ENDPOINTS.auth.verifyEmail, data: { code } });
+}
+
+async function resendVerificationEmail(): Promise<void> {
+  await apiRequest({ method: 'POST', url: API_ENDPOINTS.auth.resendVerification, data: {} });
+}
+
+export const authApi = { login, register, me, logout, deleteAccount, requestPasswordReset, resetPassword, verifyEmail, resendVerificationEmail };

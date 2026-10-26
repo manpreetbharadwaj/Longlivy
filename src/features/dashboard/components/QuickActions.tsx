@@ -26,6 +26,7 @@ interface QuickAction {
 // up front (matches the reference layout); the remaining four stay exactly
 // as functional as before, just tucked behind "View all actions" instead
 // of always-visible — no action, handler, or navigation target is removed.
+// The secondary row is Enter Weight, Meditate, Statistics and History.
 const ACTIONS: QuickAction[] = [
   { key: 'add_food', icon: 'add-outline', label: 'Add Food', onPress: (nav) => nav.navigate('NutritionTab', { screen: 'FoodSearch', params: { mealType: 'snack' } }) },
   { key: 'scan_barcode', icon: 'scan-outline', label: 'Scan', onPress: (nav) => nav.navigate('NutritionTab', { screen: 'BarcodeScanner' }) },
@@ -38,6 +39,8 @@ const ACTIONS: QuickAction[] = [
   { key: 'enter_weight', icon: 'scale-outline', label: 'Enter Weight', onPress: (nav) => nav.navigate('HomeTab', { screen: 'EnterWeight' }) },
   { key: 'start_meditation', icon: 'leaf-outline', label: 'Meditate', onPress: (nav) => nav.navigate('MeditationTab', { screen: 'MeditationHome' }) },
   { key: 'statistics', icon: 'stats-chart-outline', label: 'Statistics', onPress: (nav) => nav.navigate('StatisticsTab', { screen: 'StatisticsHome' }) },
+  // The unified timeline (fasts, meals, activities, weight, meditation) — lives in the Home stack.
+  { key: 'history', icon: 'time-outline', label: 'History', onPress: (nav) => nav.navigate('HomeTab', { screen: 'History' }) },
 ];
 const PRIMARY_COUNT = 4;
 

@@ -88,6 +88,10 @@ const authSlice = createSlice({
     setOnboardingComplete(state, action: { payload: boolean }) {
       state.onboardingComplete = action.payload;
     },
+    /** POST /auth/email/verify succeeded; the next /auth/me read confirms it from the server. */
+    markEmailVerified(state) {
+      if (state.session) state.session.user.emailVerified = true;
+    },
     markSessionExpired(state) {
       state.session = null;
       state.status = 'failed';
@@ -147,5 +151,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearAuthError, setOnboardingComplete, markSessionExpired } = authSlice.actions;
+export const { clearAuthError, setOnboardingComplete, markSessionExpired, markEmailVerified } = authSlice.actions;
 export default authSlice.reducer;

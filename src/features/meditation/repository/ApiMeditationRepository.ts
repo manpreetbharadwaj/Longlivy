@@ -10,7 +10,7 @@ import {
   SessionEventType,
 } from '../models';
 import { normalizeLegacyMeditationTopic } from '../meditationTaxonomy';
-import { ApiMeditationSession, isSessionInProgressError, meditationApi } from '@/services/api/meditationApi';
+import { ApiMeditationSession, ApiTemplate, ApiTemplateInput, isSessionInProgressError, meditationApi } from '@/services/api/meditationApi';
 import { isServerId, nutritionApi } from '@/services/api/nutritionApi';
 import { LocalStore } from '@/services/storage/LocalStore';
 import { generateId } from '@/utils/id';
@@ -26,8 +26,9 @@ import { BREATHING_SCHEMES_SEED, MEDITATION_CONTENT_SEED } from '@/mock/meditati
  * MEDITATION_BACKEND_CONTRACT.md — not a mock: bundled rows play real audio
  * and every session is still recorded server-side.
  *
- * Breathing schemes and custom templates have no backend endpoint and stay
- * device-local, scoped to the signed-in user.
+ * Breathing schemes have no backend endpoint and stay on the device. Custom
+ * templates are stored in /meditation/templates; the device copy keeps what
+ * the API cannot hold (a bundled music track) and works offline.
  */
 
 /** Per-session detail the API has no column for (title of a bundled track, template, client-measured durations, event log). */
@@ -48,6 +49,8 @@ interface LocalDb {
   /** userId -> favorited bundled meditation ids (the server can only favorite its own records). */
   bundledFavorites: Record<string, string[]>;
   templates: MeditationTemplate[];
+  /** Local template id -> /meditation/templates id. Absent on data saved before template sync. */
+  templateServerIds?: Record<string, string>;
 }
 
 const local = new LocalStore<LocalDb>('@longlivy/meditation_api_local', {
@@ -98,6 +101,33 @@ function toSession(server: ApiMeditationSession, userId: string, meta: SessionMe
   };
 }
 
+/** Only server meditation ids can be referenced; a bundled track stays on the device copy. */
+function toServerTemplate(template: MeditationTemplate): ApiTemplateInput {
+  return {
+    name: template.name,
+    durationSeconds: template.durationSeconds,
+    type: template.type,
+    breathingEnabled: template.breathingEnabled,
+    closingSoundEnabled: template.closingSoundEnabled,
+    backgroundSound: template.backgroundSound,
+    meditationId: isServerId(template.contentId) ? template.contentId : undefined,
+  };
+}
+
+function fromServerTemplate(remote: ApiTemplate, base: MeditationTemplate): MeditationTemplate {
+  return {
+    ...base,
+    name: remote.name,
+    durationSeconds: remote.durationSeconds,
+    type: remote.type,
+    breathingEnabled: remote.breathingEnabled,
+    closingSoundEnabled: remote.closingSoundEnabled,
+    backgroundSound: remote.backgroundSound ?? undefined,
+    // A server meditation wins; otherwise keep the bundled track only this device knows.
+    contentId: remote.meditationId ?? (isServerId(base.contentId) ? undefined : base.contentId),
+  };
+}
+
 export class ApiMeditationRepository implements MeditationRepository {
   private userId = '';
 
@@ -138,19 +168,74 @@ export class ApiMeditationRepository implements MeditationRepository {
   }
 
   async getTemplates(userId: string): Promise<MeditationTemplate[]> {
-    return (await local.read()).templates.filter((t) => t.userId === userId);
+    const db = await local.read();
+    const mine = db.templates.filter((t) => t.userId === userId);
+    let server: ApiTemplate[];
+    try {
+      server = await meditationApi.listTemplates();
+    } catch {
+      return mine; // Offline: the device copy is still usable.
+    }
+    const ids = { ...(db.templateServerIds ?? {}) };
+    const byServerId = new Map(server.map((t) => [t.id, t]));
+    const merged: MeditationTemplate[] = [];
+    for (const template of mine) {
+      const serverId = ids[template.id];
+      const remote = serverId ? byServerId.get(serverId) : undefined;
+      if (serverId && !remote) {
+        // Deleted on another device.
+        delete ids[template.id];
+        continue;
+      }
+      if (remote) {
+        merged.push(fromServerTemplate(remote, template));
+        byServerId.delete(remote.id);
+        continue;
+      }
+      // Saved before template sync (or while offline): upload it now.
+      try {
+        ids[template.id] = (await meditationApi.saveTemplate(null, toServerTemplate(template))).id;
+      } catch {
+        // Stays local; retried on the next load.
+      }
+      merged.push(template);
+    }
+    // Created on another device.
+    for (const remote of byServerId.values()) {
+      const localId = `template_server_${remote.id}`;
+      ids[localId] = remote.id;
+      merged.push(fromServerTemplate(remote, { id: localId, userId } as MeditationTemplate));
+    }
+    await this.updateLocal((current) => ({
+      ...current,
+      templates: [...current.templates.filter((t) => t.userId !== userId), ...merged],
+      templateServerIds: ids,
+    }));
+    return merged;
   }
 
   async saveTemplate(template: MeditationTemplate): Promise<MeditationTemplate> {
-    await this.updateLocal((db) => ({
-      ...db,
-      templates: db.templates.some((t) => t.id === template.id) ? db.templates.map((t) => (t.id === template.id ? template : t)) : [...db.templates, template],
+    const db = await local.read();
+    const ids = { ...(db.templateServerIds ?? {}) };
+    // Server first, so an edit that fails is reported instead of silently diverging.
+    const saved = await meditationApi.saveTemplate(ids[template.id] ?? null, toServerTemplate(template));
+    ids[template.id] = saved.id;
+    await this.updateLocal((current) => ({
+      ...current,
+      templates: current.templates.some((t) => t.id === template.id) ? current.templates.map((t) => (t.id === template.id ? template : t)) : [...current.templates, template],
+      templateServerIds: ids,
     }));
     return template;
   }
 
   async deleteTemplate(templateId: string): Promise<void> {
-    await this.updateLocal((db) => ({ ...db, templates: db.templates.filter((t) => t.id !== templateId) }));
+    const serverId = (await local.read()).templateServerIds?.[templateId];
+    if (serverId) await meditationApi.deleteTemplate(serverId);
+    await this.updateLocal((db) => {
+      const ids = { ...(db.templateServerIds ?? {}) };
+      delete ids[templateId];
+      return { ...db, templates: db.templates.filter((t) => t.id !== templateId), templateServerIds: ids };
+    });
   }
 
   async getReminders(userId: string): Promise<MeditationReminder[]> {
@@ -179,6 +264,8 @@ export class ApiMeditationRepository implements MeditationRepository {
       type: input.type,
       plannedMinutes: input.plannedDurationSeconds / 60,
       meditationId: isServerId(input.meditationId) ? input.meditationId : undefined,
+      templateId: isServerId(input.templateId) ? input.templateId : input.templateId ? (await local.read()).templateServerIds?.[input.templateId] : undefined,
+      title: input.meditationTitle ?? undefined,
     };
     let server: ApiMeditationSession;
     try {

@@ -6,13 +6,13 @@ import { announce } from '../services/VoiceAnnouncer';
 const COACH_INTERVAL_MS = 5 * 60 * 1000;
 
 /**
- * Activation point for "Voice Coach interval processing" — wired to fire
- * only once a real Activity is running (never during the pre-start
- * countdown, never while paused), per the countdown spec's "only at Go"
- * requirement. Deliberately minimal: cadence, distance/pace callouts, and
- * per-activity `voiceCoachSettings` haven't been specified yet, so this
- * only announces elapsed active time every 5 minutes as a placeholder —
- * swap the body out once the full Voice Coach spec lands.
+ * Fallback-only announcer for activities `useBackgroundGpsTracking` never
+ * runs for (non-GPS `other` sessions) — every GPS-based activity type
+ * (running/walking/cycling/hiking) now gets its distance- and time-milestone
+ * announcements from the background location task (see VoiceCoach.ts),
+ * which keeps speaking with the screen locked or the app backgrounded; this
+ * mounted-only hook could do neither, so it stands down whenever that task
+ * owns the session to avoid both of them speaking over each other.
  *
  * Rides on `activeDurationMs` from the existing pause-aware
  * `useActivityTimer` rather than owning a second clock, so it naturally
@@ -20,17 +20,18 @@ const COACH_INTERVAL_MS = 5 * 60 * 1000;
  */
 export function useVoiceCoach(activity: Activity | null, activeDurationMs: number, enabled = true): void {
   const lastAnnouncedRef = useRef(0);
+  const active = enabled && !!activity && activity.status === 'active' && !activity.gpsAvailable;
 
   useEffect(() => {
     lastAnnouncedRef.current = 0;
   }, [activity?.id]);
 
   useEffect(() => {
-    if (!enabled || !activity || activity.status !== 'active') return;
+    if (!active) return;
     const elapsedIntervals = Math.floor(activeDurationMs / COACH_INTERVAL_MS);
     if (elapsedIntervals > 0 && elapsedIntervals !== lastAnnouncedRef.current) {
       lastAnnouncedRef.current = elapsedIntervals;
       announce(`${elapsedIntervals * 5} minutes.`);
     }
-  }, [enabled, activity, activeDurationMs]);
+  }, [active, activeDurationMs]);
 }

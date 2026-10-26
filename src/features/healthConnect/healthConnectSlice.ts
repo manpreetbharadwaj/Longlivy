@@ -9,6 +9,11 @@ import {
   fetchDebugInfo,
   openSettings,
 } from './healthConnectService';
+import { importHealthConnectWorkouts } from './services/HealthConnectWorkoutImport';
+import { selectCurrentUserId } from '@/features/auth/selectors';
+import { selectActivityHistory } from '@/features/activity/selectors';
+import { loadActivityData } from '@/features/activity/activitySlice';
+import type { RootState } from '@/store/store';
 import {
   HealthConnectStatus,
   HealthConnectMetrics,
@@ -102,39 +107,59 @@ export default healthConnectSlice.reducer;
  * Also what re-runs when the app returns from Android's Health Connect
  * settings/permission screen, since permissions may have changed there.
  */
-export const refreshHealthConnectThunk = createAsyncThunk('healthConnect/refresh', async (_, { dispatch }) => {
-  try {
-    const availability = await checkAvailability();
-    if (availability !== 'available') {
-      dispatch(healthConnectActions.statusSet(availability === 'update_required' ? 'update_required' : 'unavailable'));
-      return;
-    }
-    await ensureInitialized();
+export const refreshHealthConnectThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'healthConnect/refresh',
+  async (_, { dispatch, getState }) => {
+    try {
+      const availability = await checkAvailability();
+      if (availability !== 'available') {
+        dispatch(healthConnectActions.statusSet(availability === 'update_required' ? 'update_required' : 'unavailable'));
+        return;
+      }
+      await ensureInitialized();
 
-    const grantedPermissions = await getCurrentPermissions();
-    dispatch(healthConnectActions.grantedRecordTypesSet(grantedPermissions.map((p) => p.recordType)));
+      const grantedPermissions = await getCurrentPermissions();
+      dispatch(healthConnectActions.grantedRecordTypesSet(grantedPermissions.map((p) => p.recordType)));
+      const granted = await hasAllRequiredPermissions();
+      dispatch(healthConnectActions.permissionsChecked(granted));
+      if (!granted) {
+        dispatch(healthConnectActions.statusSet('permission_required'));
+        return;
+      }
+
+      dispatch(healthConnectActions.refreshStarted());
+      const [metrics, debugInfo] = await Promise.all([fetchAllMetrics(), fetchDebugInfo()]);
+      dispatch(healthConnectActions.refreshSucceeded({ metrics, debugInfo }));
+
+      // Workout import, only if ExerciseSession read access was actually granted — best-effort, never fails the vitals refresh above.
+      if (grantedPermissions.some((p) => p.recordType === 'ExerciseSession')) {
+        try {
+          const userId = selectCurrentUserId(getState());
+          if (userId) {
+            const existing = selectActivityHistory(getState());
+            const imported = await importHealthConnectWorkouts(userId, existing);
+            if (imported.imported > 0) dispatch(loadActivityData());
+          }
+        } catch {
+          // Vitals are already refreshed successfully; a failed workout import is reported on the next Sync Now, not here.
+        }
+      }
+    } catch (error) {
+      dispatch(healthConnectActions.refreshFailed(error instanceof Error ? error.message : 'health_connect_refresh_failed'));
+    }
+  }
+);
+
+export const requestHealthConnectPermissionsThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'healthConnect/requestPermissions',
+  async (_, { dispatch }) => {
+    await requestAllPermissions();
     const granted = await hasAllRequiredPermissions();
     dispatch(healthConnectActions.permissionsChecked(granted));
-    if (!granted) {
-      dispatch(healthConnectActions.statusSet('permission_required'));
-      return;
-    }
-
-    dispatch(healthConnectActions.refreshStarted());
-    const [metrics, debugInfo] = await Promise.all([fetchAllMetrics(), fetchDebugInfo()]);
-    dispatch(healthConnectActions.refreshSucceeded({ metrics, debugInfo }));
-  } catch (error) {
-    dispatch(healthConnectActions.refreshFailed(error instanceof Error ? error.message : 'health_connect_refresh_failed'));
+    if (granted) dispatch(refreshHealthConnectThunk());
+    else dispatch(healthConnectActions.statusSet('permission_required'));
   }
-});
-
-export const requestHealthConnectPermissionsThunk = createAsyncThunk('healthConnect/requestPermissions', async (_, { dispatch }) => {
-  await requestAllPermissions();
-  const granted = await hasAllRequiredPermissions();
-  dispatch(healthConnectActions.permissionsChecked(granted));
-  if (granted) dispatch(refreshHealthConnectThunk());
-  else dispatch(healthConnectActions.statusSet('permission_required'));
-});
+);
 
 export const openHealthConnectSettingsThunk = createAsyncThunk('healthConnect/openSettings', async () => {
   openSettings();
@@ -143,8 +168,6 @@ export const openHealthConnectSettingsThunk = createAsyncThunk('healthConnect/op
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
-type HealthConnectThunkApi = { state: { healthConnect: ReturnType<typeof healthConnectSlice.reducer> } };
 
 /**
  * Used specifically when LongLivy comes back to foreground after the user
@@ -155,7 +178,7 @@ type HealthConnectThunkApi = { state: { healthConnect: ReturnType<typeof healthC
  * continuously polling, which point 12 of the spec explicitly forbids.
  * Stops as soon as lastDataReceivedAt actually advances.
  */
-export const refreshWithBoundedRetryThunk = createAsyncThunk<void, void, HealthConnectThunkApi>(
+export const refreshWithBoundedRetryThunk = createAsyncThunk<void, void, { state: RootState }>(
   'healthConnect/refreshWithBoundedRetry',
   async (_, { dispatch, getState }) => {
     const startedFrom = getState().healthConnect.lastDataReceivedAt;

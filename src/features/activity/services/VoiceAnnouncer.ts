@@ -7,8 +7,8 @@ import * as Speech from 'expo-speech';
  * pre-start countdown and Voice Coach one shared place to change rate/voice
  * or swap engines later.
  */
-export function announce(text: string, rate = 1.0): void {
-  Speech.speak(text, { rate });
+export function announce(text: string, options: { rate?: number; language?: string | null; volume?: number } = {}): void {
+  Speech.speak(text, { rate: options.rate ?? 1.0, language: options.language ?? undefined, volume: options.volume });
 }
 
 /** Stops whatever is currently speaking and clears anything queued — used when a countdown is cancelled so no stray announcement fires after the user backs out. */

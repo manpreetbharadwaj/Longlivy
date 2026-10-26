@@ -152,6 +152,11 @@ export const en = {
     tagline: 'Fasting · Nutrition · Activity · Meditation',
   },
   home: {
+    goal: {
+      setTitle: 'Set Your Daily Goal',
+      setBody: 'Complete your profile so LongLivy can calculate your daily calorie target.',
+      setAction: 'Complete profile',
+    },
     greeting: {
       morning: 'Good morning',
       afternoon: 'Good afternoon',
@@ -337,9 +342,14 @@ export const en = {
       title: 'Reset password',
       intro: "Enter the email associated with your account and we'll send reset instructions.",
       email: 'Email',
-      submit: 'Send reset link',
-      sent: 'If an account exists for {{email}}, a reset link has been sent.',
-      unavailable: 'Password reset is not available yet. Please contact support.',
+      submit: 'Send reset code',
+      sent: 'If an account exists for {{email}}, we sent a reset code. Enter it with your new password.',
+      code: 'Reset code',
+      newPassword: 'New password (at least 8 characters)',
+      resetSubmit: 'Set new password',
+      done: 'Your password has been changed. You can now log in.',
+      backToLogin: 'Back to log in',
+      failed: 'Something went wrong. Please try again.',
     },
     address: {
       title: 'Where should we ship to?',
@@ -350,13 +360,19 @@ export const en = {
     emailVerification: {
       title: 'Verify your email',
       verifiedTitle: 'Email verified',
-      sentTo: 'We sent a verification link to {{email}}.',
+      sentTo: 'We sent a verification code to {{email}}.',
       yourEmail: 'your email',
       verifiedBody: 'Your account is fully set up.',
-      verifiedButton: "I've verified my email",
+      verifiedButton: 'Verify email',
+      code: 'Verification code',
+      resend: 'Send a new code',
+      resent: 'New code sent',
+      failed: 'Something went wrong. Please try again.',
     },
   },
   profile: {
+    notSet: 'Not set',
+    verifyEmail: 'Verify email',
     title: 'Profile',
     height: 'Height',
     weight: 'Weight',
@@ -371,6 +387,8 @@ export const en = {
     goBack: 'Go back',
   },
   editProfile: {
+    dateOfBirth: 'Date of birth',
+    gender: 'Gender',
     title: 'Edit profile',
     firstName: 'First name',
     lastName: 'Last name',
@@ -462,6 +480,7 @@ export const en = {
     chooseMethod: 'Choose a method',
   },
   nutrition: {
+    noGoal: 'No daily goal',
     title: 'Nutrition',
     noItemsLogged: 'No items logged',
     itemsSummary: '{{kcal}} kcal · {{count}} items',
@@ -631,6 +650,10 @@ export const en = {
       resume: 'Resume',
       fallbackTitle: 'Meditation',
       unguidedFallbackTitle: 'Unguided meditation',
+      startFailedTitle: 'Session could not start',
+      startFailedBody: 'Your session could not be saved. Check your connection and try again.',
+      startFailedRetry: 'Try again',
+      startFailedLeave: 'Leave',
     },
     details: {
       notFoundTitle: 'Meditation',
@@ -698,6 +721,7 @@ export const en = {
       },
     },
     templatesScreen: {
+      saveFailed: 'Custom meditation not saved',
       title: 'Create custom meditation',
       intro: 'Choose how long to meditate and what you want to hear.',
       newTemplate: 'New custom meditation',

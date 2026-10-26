@@ -21,10 +21,11 @@ const initialState: CalorieState = {
   calorieGoal: 2200,
   calorieGoalSource: 'auto',
   bodyProfile: {
-    age: ageFromDob(DEMO_USER.dateOfBirth),
-    gender: DEMO_USER.gender === 'diverse' ? 'diverse' : DEMO_USER.gender,
-    heightCm: DEMO_USER.heightCm,
-    weightKg: DEMO_USER.weightKg,
+    // Mock-mode starting point; API mode overwrites it from the server profile.
+    age: ageFromDob(DEMO_USER.dateOfBirth!),
+    gender: DEMO_USER.gender!,
+    heightCm: DEMO_USER.heightCm!,
+    weightKg: DEMO_USER.weightKg!,
     activityLevel: DEMO_USER.activityLevel,
   },
 };

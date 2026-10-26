@@ -55,7 +55,9 @@ export const SectionHeroLayout: React.FC<SectionHeroLayoutProps> = ({
   refreshing,
   onRefresh,
   contentContainerStyle,
-  keyboardShouldPersistTaps,
+  // 'handled': a tap on a button while the keyboard is open acts on the first
+  // tap instead of only dismissing the keyboard.
+  keyboardShouldPersistTaps = 'handled',
   scrollRef,
   onScroll,
   edges = ['top', 'left', 'right'],
@@ -65,8 +67,8 @@ export const SectionHeroLayout: React.FC<SectionHeroLayoutProps> = ({
 }) => {
   const { theme } = useTheme();
   // The floating tab bar is an absolutely-positioned overlay, not a docked
-  // bar that reserves its own layout space — so every screen under it has
-  // to add this manually, or its last item can end up underneath the pill.
+  // bar that reserves its own layout space — so the content area stops
+  // above it (the background still runs full-bleed behind the bar).
   // Always called (Rules of Hooks) — `applyTabBarSpacing` only gates whether
   // the result is used, not whether the hook runs.
   const measuredTabBarSpacing = useFloatingTabBarSpacing();
@@ -114,12 +116,15 @@ export const SectionHeroLayout: React.FC<SectionHeroLayoutProps> = ({
         {scroll ? (
           <Animated.ScrollView
             ref={scrollRef}
+            style={{ flex: 1, marginBottom: tabBarSpacing }}
             onScroll={onScroll}
             scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+            // Scrolls a focused field above the keyboard (iOS).
+            automaticallyAdjustKeyboardInsets
             contentContainerStyle={[
-              { padding: theme.spacing.md, paddingBottom: theme.spacing.xxxl + tabBarSpacing },
+              { padding: theme.spacing.md, paddingBottom: theme.spacing.xl },
               contentContainerStyle,
             ]}
             refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" /> : undefined}

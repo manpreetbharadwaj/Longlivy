@@ -173,8 +173,7 @@ export const CreateRecipeScreen: React.FC = () => {
                   {food.name}
                 </AppText>
                 <AppText variant="bodySmall" color="rgba(255,255,255,0.6)">
-                  {food.calories} kcal / {food.servingSize}
-                  {food.unit}
+                  {food.calories} kcal / {food.servingSize} {food.unit}
                 </AppText>
               </View>
             </HeroCard>

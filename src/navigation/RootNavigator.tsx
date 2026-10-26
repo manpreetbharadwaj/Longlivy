@@ -12,7 +12,8 @@ import { bootstrapSession } from '@/features/auth/authSlice';
 import { selectAuthBootstrapped, selectAuthSession, selectAuthUser, selectIsAuthenticated, selectOnboardingComplete } from '@/features/auth/selectors';
 import { hydrateProfileThunk, updateProfile } from '@/features/profile/profileSlice';
 import { hydrateCalorieThunk, setBodyProfile } from '@/features/calories/calorieSlice';
-import { hydrateNotificationSettingsThunk } from '@/features/notifications/notificationSlice';
+import { hydrateNotificationSettingsThunk, syncNotificationSettingsThunk } from '@/features/notifications/notificationSlice';
+import { registerPushDevice, watchPushTokenChanges } from '@/features/notifications/pushDevice';
 import { selectHasAddress, selectProfileHydrated } from '@/features/profile/selectors';
 import { API_PROFILE_DEFAULT } from '@/features/profile/repository';
 import { fromServerActivityLevel } from '@/services/api/profileApi';
@@ -54,8 +55,24 @@ export const RootNavigator: React.FC = () => {
   }, [dispatch]);
 
   const profileId = useAppSelector((state) => state.profile.profile.id);
+  const signedInUserId = authUser?.id;
+  useEffect(() => {
+    if (env.useMockApi || !signedInUserId) return;
+    return watchPushTokenChanges();
+  }, [signedInUserId]);
   useEffect(() => {
     if (!authUser) return;
+    // Signed in (fresh login or restored session): the account's notification settings win.
+    if (!env.useMockApi) dispatch(syncNotificationSettingsThunk()).catch(() => undefined);
+    if (!env.useMockApi) {
+      registerPushDevice()
+        .then((outcome) => {
+          if (__DEV__) console.log(`[push] device registration: ${outcome}`);
+        })
+        .catch((e: unknown) => {
+          if (__DEV__) console.log(`[push] device registration failed: ${e instanceof Error ? e.message : String(e)}`);
+        });
+    }
     // A different account than the one whose profile is stored on this
     // device starts from a blank profile — never another user's local fields.
     // An empty stored id is a profile filled in during onboarding before this

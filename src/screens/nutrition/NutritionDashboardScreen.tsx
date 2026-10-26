@@ -19,6 +19,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { TranslationKey } from '@/localization/types';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectHasCalorieGoal } from '@/features/calories/selectors';
+import { SetDailyGoalPrompt } from '@/features/dashboard/components/SetDailyGoalPrompt';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { motion } from '@/theme/motion';
 import { loadTodayMeals } from '@/features/nutrition/nutritionSlice';
@@ -49,7 +51,8 @@ export const NutritionDashboardScreen: React.FC = () => {
   const meals = useAppSelector(selectTodayMeals);
   const totals = useAppSelector(selectDailyNutritionTotals);
   const progress = useAppSelector(selectNutritionProgress);
-  const ringProgress = useAnimatedProgress(progress.calories.percentage / 100);
+  const hasGoal = useAppSelector(selectHasCalorieGoal);
+  const ringProgress = useAnimatedProgress(hasGoal ? progress.calories.percentage / 100 : 0);
 
   useEffect(() => {
     dispatch(loadTodayMeals());
@@ -63,14 +66,20 @@ export const NutritionDashboardScreen: React.FC = () => {
         <AppProgressRing progress={ringProgress} size={160} strokeWidth={12} color={progress.calories.exceeded ? dashboardColors.warning : '#C9974E'} trackColor={dashboardColors.border} glow>
           <AnimatedNumberText value={Math.round(totals.calories)} variant="metricMedium" color={dashboardColors.textPrimary} />
           <AppText variant="caption" color={dashboardColors.textMuted}>
-            {t('nutrition.ofKcal', { target: progress.calories.target })}
+            {hasGoal ? t('nutrition.ofKcal', { target: progress.calories.target }) : t('nutrition.noGoal')}
           </AppText>
         </AppProgressRing>
-        <AppText variant="bodyMedium" style={{ marginTop: theme.spacing.sm }} color={progress.calories.exceeded ? dashboardColors.warning : dashboardColors.textSecondary}>
-          {progress.calories.exceeded
-            ? t('nutrition.goalExceededBy', { amount: Math.round(progress.calories.exceededBy) })
-            : t('nutrition.kcalRemaining', { amount: Math.round(progress.calories.remaining) })}
-        </AppText>
+        {hasGoal ? (
+          <AppText variant="bodyMedium" style={{ marginTop: theme.spacing.sm }} color={progress.calories.exceeded ? dashboardColors.warning : dashboardColors.textSecondary}>
+            {progress.calories.exceeded
+              ? t('nutrition.goalExceededBy', { amount: Math.round(progress.calories.exceededBy) })
+              : t('nutrition.kcalRemaining', { amount: Math.round(progress.calories.remaining) })}
+          </AppText>
+        ) : (
+          <View style={{ marginTop: theme.spacing.md, alignSelf: 'stretch' }}>
+            <SetDailyGoalPrompt align="center" />
+          </View>
+        )}
         <CardShimmer delay={400} />
       </HeroCard>
 
@@ -78,9 +87,9 @@ export const NutritionDashboardScreen: React.FC = () => {
 
       <SectionTitle title="Macros" />
       <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
-        <MacroTile index={0} label={t('nutrition.macros.protein')} icon="egg-outline" progress={progress.protein} color="#C9974E" />
-        <MacroTile index={1} label={t('nutrition.macros.carbs')} icon="pizza-outline" progress={progress.carbohydrates} color="#6E8FAE" />
-        <MacroTile index={2} label={t('nutrition.macros.fat')} icon="water-outline" progress={progress.fat} color="#8B7FA8" isLast />
+        <MacroTile index={0} label={t('nutrition.macros.protein')} icon="egg-outline" progress={progress.protein} noTarget={!hasGoal} color="#C9974E" />
+        <MacroTile index={1} label={t('nutrition.macros.carbs')} icon="pizza-outline" progress={progress.carbohydrates} noTarget={!hasGoal} color="#6E8FAE" />
+        <MacroTile index={2} label={t('nutrition.macros.fat')} icon="water-outline" progress={progress.fat} noTarget={!hasGoal} color="#8B7FA8" isLast />
       </View>
 
       <SectionTitle title="Today's meals" />
@@ -268,13 +277,15 @@ const SectionTitle: React.FC<{ title: string }> = React.memo(({ title }) => {
 });
 SectionTitle.displayName = 'SectionTitle';
 
-const MacroTile: React.FC<{ index: number; label: string; icon: AppIconName; progress: { current: number; target: number; percentage: number; exceeded: boolean }; color: string; isLast?: boolean }> = React.memo(
-  ({ index, label, icon, progress, color, isLast }) => {
+const MacroTile: React.FC<{ index: number; label: string; icon: AppIconName; progress: { current: number; target: number; percentage: number; exceeded: boolean }; color: string; isLast?: boolean; noTarget?: boolean }> = React.memo(
+  ({ index, label, icon, progress, color, isLast, noTarget }) => {
     const { theme } = useTheme();
     // Mirrors the Home dashboard's NutritionCard macro rows — same
     // useAnimatedProgress -> AppProgressBar chain, same per-macro colors, so
     // the two places the app shows macro progress stay visually consistent.
-    const animatedFraction = useAnimatedProgress(progress.percentage / 100);
+    // Without a daily goal there is no target to measure against (only the built-in default).
+    const exceeded = !noTarget && progress.exceeded;
+    const animatedFraction = useAnimatedProgress(noTarget ? 0 : progress.percentage / 100);
     return (
       <FadeSlideIn delay={index * motion.staggerStepMs} fromY={8} style={{ flex: 1, marginRight: isLast ? 0 : theme.spacing.xs }}>
         <View style={[dashboardCardStyle, { padding: theme.spacing.sm }]}>
@@ -296,12 +307,12 @@ const MacroTile: React.FC<{ index: number; label: string; icon: AppIconName; pro
               {label}
             </AppText>
           </View>
-          <AppText variant="headingSmall" color={progress.exceeded ? dashboardColors.warning : dashboardColors.textPrimary}>
-            <AnimatedNumberText value={Math.round(progress.current)} variant="headingSmall" color={progress.exceeded ? dashboardColors.warning : dashboardColors.textPrimary} />
+          <AppText variant="headingSmall" color={exceeded ? dashboardColors.warning : dashboardColors.textPrimary}>
+            <AnimatedNumberText value={Math.round(progress.current)} variant="headingSmall" color={exceeded ? dashboardColors.warning : dashboardColors.textPrimary} />
             g
           </AppText>
           <AppText variant="caption" color={dashboardColors.textMuted} style={{ marginBottom: theme.spacing.xs }}>
-            / {progress.target}g
+            {noTarget ? '/ —' : `/ ${progress.target}g`}
           </AppText>
           <AppProgressBar progress={animatedFraction} color={color} trackColor={dashboardColors.border} height={5} />
         </View>

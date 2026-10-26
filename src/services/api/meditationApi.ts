@@ -99,7 +99,7 @@ function mapSession(raw: RecordValue): ApiMeditationSession {
   return {
     id: id(raw.id),
     meditationId: meditation ? str(meditation.id) ?? null : null,
-    meditationTitle: meditation ? str(meditation.title) ?? null : null,
+    meditationTitle: (meditation ? str(meditation.title) : undefined) ?? str(raw.title) ?? null,
     type: type && TYPES.includes(type) ? type : 'guided',
     status: str(raw.status) ?? 'active',
     plannedMinutes: num(raw.planned_minutes) ?? 0,
@@ -123,10 +123,15 @@ function activeSession(): Promise<ApiMeditationSession | null> {
   });
 }
 
-/** `planned_minutes` is an integer >= 1; `meditation_id` must be a server (integer) id. */
-function startSession(input: { type: MeditationType; plannedMinutes: number; meditationId?: string }): Promise<ApiMeditationSession> {
+/**
+ * `planned_minutes` is an integer >= 1; `meditation_id` and `template_id` must be
+ * server (integer) ids. `title` keeps bundled tracks identifiable server-side.
+ */
+function startSession(input: { type: MeditationType; plannedMinutes: number; meditationId?: string; templateId?: string; title?: string }): Promise<ApiMeditationSession> {
   const data: RecordValue = { type: input.type, planned_minutes: Math.max(1, Math.round(input.plannedMinutes)) };
   if (input.meditationId) data.meditation_id = Number(input.meditationId);
+  if (input.templateId) data.template_id = Number(input.templateId);
+  if (input.title) data.title = input.title;
   return apiRequestParsed({ method: 'POST', url: API_ENDPOINTS.meditation.sessions, data }, sessionBody);
 }
 
@@ -182,6 +187,79 @@ async function deleteReminder(reminderId: string): Promise<void> {
   await apiRequest({ method: 'DELETE', url: API_ENDPOINTS.meditation.reminder(reminderId) });
 }
 
+// --- custom templates -------------------------------------------------------
+
+/**
+ * `/meditation/templates` — not in the API document; verified 2026-10-19:
+ * GET (list), POST, PUT/DELETE by id (no GET by id). `type` is
+ * guided|free|breathing; `meditation_id` must be a server meditation.
+ */
+export interface ApiTemplate {
+  id: string;
+  name: string;
+  durationSeconds: number;
+  type: MeditationType;
+  breathingEnabled: boolean;
+  closingSoundEnabled: boolean;
+  backgroundSound: string | null;
+  meditationId: string | null;
+}
+
+export interface ApiTemplateInput {
+  name: string;
+  durationSeconds: number;
+  type: MeditationType;
+  breathingEnabled: boolean;
+  closingSoundEnabled: boolean;
+  backgroundSound?: string;
+  meditationId?: string;
+}
+
+function mapTemplate(raw: RecordValue): ApiTemplate {
+  const name = str(raw.name);
+  const durationSeconds = num(raw.duration_seconds);
+  if (!name || durationSeconds === undefined) throw new ApiError({ kind: 'malformed' });
+  const type = str(raw.type) as MeditationType | undefined;
+  return {
+    id: id(raw.id),
+    name,
+    durationSeconds,
+    type: type && TYPES.includes(type) ? type : 'free',
+    breathingEnabled: raw.breathing_enabled === true,
+    closingSoundEnabled: raw.closing_sound_enabled === true,
+    backgroundSound: str(raw.background_sound) ?? null,
+    meditationId: str(raw.meditation_id) ?? null,
+  };
+}
+
+function templateWire(input: ApiTemplateInput): RecordValue {
+  return {
+    name: input.name,
+    duration_seconds: Math.max(1, Math.round(input.durationSeconds)),
+    type: input.type,
+    breathing_enabled: input.breathingEnabled,
+    closing_sound_enabled: input.closingSoundEnabled,
+    background_sound: input.backgroundSound ?? null,
+    meditation_id: input.meditationId ? Number(input.meditationId) : null,
+  };
+}
+
+function listTemplates(): Promise<ApiTemplate[]> {
+  return apiRequestParsed({ method: 'GET', url: API_ENDPOINTS.meditation.templates }, (body) => dataList(body, 'templates').map(mapTemplate));
+}
+
+function saveTemplate(templateId: string | null, input: ApiTemplateInput): Promise<ApiTemplate> {
+  const data = templateWire(input);
+  return apiRequestParsed(
+    templateId ? { method: 'PUT', url: API_ENDPOINTS.meditation.template(templateId), data } : { method: 'POST', url: API_ENDPOINTS.meditation.templates, data },
+    (body) => mapTemplate(dataRecord(body, 'template')),
+  );
+}
+
+async function deleteTemplate(templateId: string): Promise<void> {
+  await apiRequest({ method: 'DELETE', url: API_ENDPOINTS.meditation.template(templateId) });
+}
+
 export const meditationApi = {
   listContents,
   getContent,
@@ -192,4 +270,7 @@ export const meditationApi = {
   listReminders,
   saveReminder,
   deleteReminder,
+  listTemplates,
+  saveTemplate,
+  deleteTemplate,
 };

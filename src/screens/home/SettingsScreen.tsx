@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ProfileStackParamList } from '@/navigation/types';
@@ -12,6 +12,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { ThemePreference } from '@/contexts/ThemeContext';
 import { useAppPreferences, AppLanguage } from '@/contexts/AppPreferencesContext';
 import { useTranslation } from '@/localization';
+import { VoiceCoachingSettings } from '@/features/activity/components/VoiceCoachingSettings';
+import { HealthConnectSettings } from '@/features/healthConnect/components/HealthConnectSettings';
 
 export const SettingsScreen: React.FC = () => {
   const { theme, preference, setPreference } = useTheme();
@@ -67,13 +69,17 @@ export const SettingsScreen: React.FC = () => {
         <ToggleRow label={t('settings.liveMoments.haptics')} value={preferences.hapticsEnabled} onChange={setHapticsEnabled} last />
       </HeroCard>
 
+      <SectionLabel>Voice coaching</SectionLabel>
+      <VoiceCoachingSettings />
+
+      {Platform.OS === 'android' ? (
+        <>
+          <SectionLabel>Health Connect</SectionLabel>
+          <HealthConnectSettings />
+        </>
+      ) : null}
+
       <SectionLabel>{t('settings.data.title')}</SectionLabel>
-      {/* Temporarily disabled from Profile UI. Keep Health Integration implementation for possible future use. */}
-      {/* <HeroCard onPress={() => navigation.navigate('HealthIntegrations')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
-        <AppText variant="headingSmall" color="#FFFFFF" align="center">
-          {t('settings.data.healthIntegrations')}
-        </AppText>
-      </HeroCard> */}
       <HeroCard onPress={() => navigation.navigate('Privacy')} style={{ marginBottom: theme.spacing.xs, paddingVertical: theme.spacing.sm }}>
         <AppText variant="headingSmall" color="#FFFFFF" align="center">
           {t('settings.data.privacy')}

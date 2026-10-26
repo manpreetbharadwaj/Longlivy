@@ -7,6 +7,8 @@ import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { HeroOptionCard } from '@/components/common/HeroOptionCard';
+import { AppDateField } from '@/components/common/AppDateField';
+import { MIN_PROFILE_AGE, MAX_PROFILE_AGE } from '@/features/onboarding/OnboardingContext';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -20,6 +22,24 @@ import type { DemoUserProfile } from '@/mock/demoUser';
 
 const ACTIVITY_LEVELS: DemoUserProfile['activityLevel'][] = ['sedentary', 'light', 'moderate', 'active', 'very_active'];
 const GOALS: DemoUserProfile['goal'][] = ['weight_loss', 'maintenance', 'muscle_gain'];
+const GENDERS: NonNullable<DemoUserProfile['gender']>[] = ['female', 'male', 'diverse'];
+
+const now = new Date();
+// Same accepted range as onboarding; the picker cannot leave it.
+const MAX_DOB = new Date(now.getFullYear() - MIN_PROFILE_AGE, now.getMonth(), now.getDate());
+const MIN_DOB = new Date(now.getFullYear() - MAX_PROFILE_AGE, now.getMonth(), now.getDate());
+const DEFAULT_PICKER_DOB = new Date(now.getFullYear() - 30, 0, 1);
+
+/** `YYYY-MM-DD` in local time — the format /profile stores and returns. */
+function toIsoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Parses `YYYY-MM-DD` as a local calendar date (not UTC midnight). */
+function fromIsoDate(value: string | undefined): Date | null {
+  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : null;
+}
 
 export const EditProfileScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -31,28 +51,36 @@ export const EditProfileScreen: React.FC = () => {
 
   const [firstName, setFirstName] = useState(profile.firstName);
   const [lastName, setLastName] = useState(profile.lastName);
-  const [heightCm, setHeightCm] = useState(String(profile.heightCm));
-  const [weightKg, setWeightKg] = useState(String(profile.weightKg));
+  const [heightCm, setHeightCm] = useState(profile.heightCm != null ? String(profile.heightCm) : '');
+  const [weightKg, setWeightKg] = useState(profile.weightKg != null ? String(profile.weightKg) : '');
   const [activityLevel, setActivityLevel] = useState<DemoUserProfile['activityLevel']>(profile.activityLevel);
   const [goal, setGoal] = useState<DemoUserProfile['goal']>(profile.goal);
   const [avatarId, setAvatarId] = useState<string | undefined>(profile.avatarId);
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(fromIsoDate(profile.dateOfBirth));
+  const [gender, setGender] = useState<DemoUserProfile['gender']>(profile.gender);
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const save = useCallback(() => {
     const payload: Partial<DemoUserProfile> = {
       firstName,
       lastName,
-      heightCm: Number(heightCm),
-      weightKg: Number(weightKg),
       activityLevel,
       goal,
     };
+    // An empty ("Not set") or invalid field is left unchanged rather than saved as 0.
+    const height = Number(heightCm.replace(',', '.'));
+    const weight = Number(weightKg.replace(',', '.'));
+    if (heightCm.trim() && Number.isFinite(height) && height > 0) payload.heightCm = height;
+    if (weightKg.trim() && Number.isFinite(weight) && weight > 0) payload.weightKg = weight;
     if (avatarId) payload.avatarId = avatarId;
+    // Optional for existing accounts: only sent once chosen (both are needed before the server can calculate targets).
+    if (dateOfBirth) payload.dateOfBirth = toIsoDate(dateOfBirth);
+    if (gender) payload.gender = gender;
     dispatch(saveProfileChangesThunk(payload))
       .unwrap()
       .then(() => navigation.goBack())
       .catch((message: string) => Alert.alert(t('states.errorTitle'), message));
-  }, [t, dispatch, firstName, lastName, heightCm, weightKg, activityLevel, goal, avatarId, navigation]);
+  }, [t, dispatch, firstName, lastName, heightCm, weightKg, activityLevel, goal, avatarId, dateOfBirth, gender, navigation]);
 
   // A profile can already hold a goal onboarding never offers (general wellness) - keep it selectable so opening this screen never silently changes it.
   const goalOptions = GOALS.includes(profile.goal) ? GOALS : [profile.goal, ...GOALS];
@@ -102,6 +130,28 @@ export const EditProfileScreen: React.FC = () => {
           <HeroTextField label={t('editProfile.weightKg')} value={weightKg} onChangeText={setWeightKg} keyboardType="numeric" />
         </View>
       </View>
+
+      <View style={{ marginBottom: theme.spacing.md }}>
+        <AppDateField
+          label={t('editProfile.dateOfBirth')}
+          mode="date"
+          variant="hero"
+          value={dateOfBirth}
+          placeholder={t('profile.notSet')}
+          pickerStart={DEFAULT_PICKER_DOB}
+          maximumDate={MAX_DOB}
+          minimumDate={MIN_DOB}
+          onChange={setDateOfBirth}
+        />
+      </View>
+
+      <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
+        {t('editProfile.gender')}
+      </AppText>
+      {GENDERS.map((option) => (
+        <HeroOptionCard key={option} title={t(`enums.gender.${option}`)} selected={gender === option} onPress={() => setGender(option)} style={{ marginBottom: theme.spacing.xs }} />
+      ))}
+      <View style={{ height: theme.spacing.sm }} />
 
       <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
         {t('editProfile.activityLevel')}

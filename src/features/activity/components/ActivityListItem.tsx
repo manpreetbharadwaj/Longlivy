@@ -91,9 +91,26 @@ export const ActivityListItem: React.FC<{ activity: Activity; onPress: () => voi
             <ActivityFigure type={activity.type} size={44} />
           </View>
           <View style={{ flex: 1 }}>
-            <AppText variant="headingSmall" color="#FFFFFF" weight="700">
-              {ACTIVITY_TYPE_LABELS[activity.type]}
-            </AppText>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <AppText variant="headingSmall" color="#FFFFFF" weight="700">
+                {ACTIVITY_TYPE_LABELS[activity.type]}
+              </AppText>
+              {activity.source === 'imported' ? (
+                <View
+                  style={{
+                    marginLeft: theme.spacing.xs,
+                    paddingHorizontal: 6,
+                    paddingVertical: 1,
+                    borderRadius: 6,
+                    backgroundColor: 'rgba(255,255,255,0.14)',
+                  }}
+                >
+                  <AppText variant="caption" color="rgba(255,255,255,0.7)">
+                    Health Connect
+                  </AppText>
+                </View>
+              ) : null}
+            </View>
             <AppText variant="bodySmall" color="rgba(255,255,255,0.75)" style={{ marginTop: 1 }}>
               {formatWhen(activity.startTimestamp)}
             </AppText>

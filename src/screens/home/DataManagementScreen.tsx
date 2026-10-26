@@ -10,6 +10,7 @@ import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
+import { HeroTextField } from '@/components/common/HeroTextField';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { store as reduxStore } from '@/store/store';
@@ -21,6 +22,7 @@ import { loadActivityData } from '@/features/activity/activitySlice';
 import { loadMeditationData } from '@/features/meditation/meditationSlice';
 import { loadWeightHistory } from '@/features/weight/weightSlice';
 import { env } from '@/config/env';
+import { authService } from '@/services/auth/authService';
 
 /** Domains that make up "your data" for export/deletion — deliberately excludes UI-only state (theme, nav). */
 function exportableSnapshot() {
@@ -50,6 +52,7 @@ export const DataManagementScreen: React.FC = () => {
   const meditations = useAppSelector((s) => s.meditation.history.length);
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [password, setPassword] = useState('');
 
   const rows = [
     { label: 'Fasting sessions stored', value: fasting },
@@ -80,6 +83,16 @@ export const DataManagementScreen: React.FC = () => {
   const performDeletion = useCallback(async () => {
     setDeleting(true);
     try {
+      if (!env.useMockApi) {
+        // The server account goes first: if the password is wrong or the
+        // request fails, nothing on the device is touched.
+        try {
+          await authService.deleteAccount(password);
+        } catch (e) {
+          Alert.alert('Account not deleted', e instanceof Error ? e.message : 'Please try again.');
+          return;
+        }
+      }
       await LocalStore.clearAll();
       // In API mode the bearer token lives in SecureStore, not a LocalStore;
       // revoke and clear it so "signs you out" is actually true.
@@ -101,14 +114,14 @@ export const DataManagementScreen: React.FC = () => {
     } finally {
       setDeleting(false);
     }
-  }, [dispatch]);
+  }, [dispatch, password]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
-      'Delete all my data?',
+      env.useMockApi ? 'Delete all my data?' : 'Delete your account?',
       env.useMockApi
         ? 'This permanently clears everything stored on this device — fasting, nutrition, activity, meditation and weight history — and signs you out. This cannot be undone.'
-        : 'This clears everything stored on this device and signs you out. Records saved to your LongLivy account are kept — account deletion is not available yet.',
+        : 'This permanently deletes your LongLivy account and everything saved to it, clears this device and signs you out. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete everything', style: 'destructive', onPress: performDeletion },
@@ -121,7 +134,7 @@ export const DataManagementScreen: React.FC = () => {
       <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.md }}>
         {env.useMockApi
           ? 'All data currently lives on this device via local mock repositories. Each item below carries a source tag so its origin stays traceable once real sync is added.'
-          : 'Your fasting, nutrition, weight and meditation records are stored in your LongLivy account. Activity history, fasting plans and custom meditations are stored on this device.'}
+          : 'Your fasting, nutrition, weight, activity and meditation records, fasting plans and custom meditations are stored in your LongLivy account. Days you skip in a fasting plan stay on this device.'}
       </AppText>
       <HeroCard style={{ marginBottom: theme.spacing.lg }}>
         {rows.map((r) => (
@@ -150,9 +163,20 @@ export const DataManagementScreen: React.FC = () => {
         Delete your data
       </AppText>
       <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" style={{ marginBottom: theme.spacing.sm }}>
-        Permanently erase all locally stored data and sign out of this device.
+        {env.useMockApi
+          ? 'Permanently erase all locally stored data and sign out of this device.'
+          : 'Permanently delete your LongLivy account and all of its data. Enter your password to confirm.'}
       </AppText>
-      <AppGradientButton label="Delete all my data" onPress={handleDelete} loading={deleting} colors={['#DD7A68', '#C4463A']} />
+      {!env.useMockApi ? (
+        <HeroTextField label="Password" value={password} onChangeText={setPassword} isPassword autoCapitalize="none" style={{ marginBottom: theme.spacing.sm }} />
+      ) : null}
+      <AppGradientButton
+        label={env.useMockApi ? 'Delete all my data' : 'Delete my account'}
+        onPress={handleDelete}
+        loading={deleting}
+        disabled={!env.useMockApi && !password}
+        colors={['#DD7A68', '#C4463A']}
+      />
     </TabHeroLayout>
   );
 };

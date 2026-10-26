@@ -1,7 +1,7 @@
 import { FastingRepository } from './FastingRepository';
 import { FASTING_METHODS, FastingMethodId, FastingPlan, FastingPlanDayOverride, FastingSession } from '../models';
 import { getLocalTimeZone } from '../services/FastingSchedule';
-import { ApiFast, fastingApi, isFastAlreadyActiveError, MAX_PLANNED_HOURS } from '@/services/api/fastingApi';
+import { ApiFast, ApiFastingPlan, ApiFastingPlanInput, fastingApi, isFastAlreadyActiveError, MAX_PLANNED_HOURS } from '@/services/api/fastingApi';
 import { LocalStore } from '@/services/storage/LocalStore';
 import { ApiError } from '@/utils/apiError';
 
@@ -24,13 +24,16 @@ interface FastMeta {
 const metaStore = new LocalStore<Record<string, FastMeta>>('@longlivy/fasting_api_meta', {});
 
 /**
- * Fasting plans and per-day overrides have no backend endpoint yet (see
- * BACKEND_API_REQUIREMENTS.txt). They stay in this device-local store, scoped
- * to the signed-in user's id.
+ * Fasting plans are stored in /fasting/plans; this store is the device copy
+ * (offline use) plus the local-id -> server-id map. Plan ids stay local
+ * because fasts and overrides already reference them. Per-day overrides stay
+ * here only: the API has no route to create them (GET/DELETE-by-date only).
  */
 interface PlanDb {
   plans: FastingPlan[];
   planOverrides: FastingPlanDayOverride[];
+  /** Local plan id -> /fasting/plans id. Absent on data saved before plan sync. */
+  planServerIds?: Record<string, string>;
 }
 const planStore = new LocalStore<PlanDb>('@longlivy/fasting_plans_api', { plans: [], planOverrides: [] });
 
@@ -78,6 +81,45 @@ function toSession(fast: ApiFast, userId: string, meta: FastMeta | undefined): F
     extensionCount: meta?.extensionCount ?? 0,
     source: meta?.fastingPlanId ? 'plan' : 'manual',
     eatingHours: meta?.eatingHours ?? eatingHours,
+  };
+}
+
+function toServerPlan(plan: FastingPlan): ApiFastingPlanInput {
+  return {
+    method: plan.method,
+    category: plan.category,
+    recurring: plan.recurring,
+    startTime: plan.startTime,
+    endTime: plan.endTime,
+    weekdays: plan.weekdays,
+    // The API stores calendar dates; plans created by FastingService carry a full ISO timestamp.
+    startDate: plan.startDate.slice(0, 10),
+    endDate: plan.endDate ? plan.endDate.slice(0, 10) : null,
+    timezone: plan.timezone,
+    active: plan.active,
+    fastingHours: plan.fastingHours ?? null,
+    eatingHours: plan.eatingHours ?? null,
+    notificationSettings: plan.notificationSettings,
+  };
+}
+
+function fromServerPlan(remote: ApiFastingPlan, base: Pick<FastingPlan, 'id' | 'userId'> & Partial<FastingPlan>): FastingPlan {
+  const known = FASTING_METHODS.find((m) => m.id === remote.method);
+  return {
+    ...base,
+    method: (known?.id ?? 'individual') as FastingMethodId,
+    category: (remote.category === 'intermittent' || remote.category === 'longer' || remote.category === 'individual' ? remote.category : known?.category ?? 'individual') as FastingPlan['category'],
+    recurring: remote.recurring,
+    startTime: remote.startTime,
+    endTime: remote.endTime,
+    weekdays: remote.weekdays,
+    startDate: remote.startDate,
+    endDate: remote.endDate ?? undefined,
+    timezone: remote.timezone,
+    active: remote.active,
+    fastingHours: remote.fastingHours ?? undefined,
+    eatingHours: remote.eatingHours ?? undefined,
+    notificationSettings: remote.notificationSettings ?? base.notificationSettings ?? { fastingBegins: true, fastingEnds: true, eatingPhaseBegins: true },
   };
 }
 
@@ -131,10 +173,12 @@ export class ApiFastingRepository implements FastingRepository {
   async startFast(input: Parameters<FastingRepository['startFast']>[0]): Promise<{ session: FastingSession; alreadyActive: boolean }> {
     this.userId = input.userId;
     try {
+      const serverPlanId = input.fastingPlanId ? (await planStore.read()).planServerIds?.[input.fastingPlanId] : undefined;
       const fast = await fastingApi.start({
         fastingType: input.method,
         plannedHours: wholeHours(input.startTimestamp, input.plannedEndTimestamp),
         startedAt: input.startTimestamp,
+        fastingPlanId: serverPlanId,
       });
       await this.writeMeta(fast.id, {
         plannedEndTimestamp: input.plannedEndTimestamp,
@@ -215,15 +259,63 @@ export class ApiFastingRepository implements FastingRepository {
   }
 
   async getPlans(userId: string): Promise<FastingPlan[]> {
-    return (await planStore.read()).plans.filter((p) => p.userId === userId);
+    const db = await planStore.read();
+    const mine = db.plans.filter((p) => p.userId === userId);
+    let server: ApiFastingPlan[];
+    try {
+      server = await fastingApi.listPlans();
+    } catch {
+      return mine; // Offline: the device copy is still usable.
+    }
+    const ids = { ...(db.planServerIds ?? {}) };
+    const byServerId = new Map(server.map((p) => [p.id, p]));
+    const merged: FastingPlan[] = [];
+    for (const plan of mine) {
+      const serverId = ids[plan.id];
+      const remote = serverId ? byServerId.get(serverId) : undefined;
+      if (serverId && !remote) {
+        // Deleted on another device.
+        delete ids[plan.id];
+        continue;
+      }
+      if (remote) {
+        merged.push(fromServerPlan(remote, plan));
+        byServerId.delete(remote.id);
+        continue;
+      }
+      // Saved before plan sync (or while offline): upload it now.
+      try {
+        const saved = await fastingApi.savePlan(null, toServerPlan(plan));
+        ids[plan.id] = saved.id;
+        merged.push(fromServerPlan(saved, plan));
+      } catch {
+        merged.push(plan); // Stays local; retried on the next load.
+      }
+    }
+    // Created on another device.
+    for (const remote of byServerId.values()) {
+      const localId = `plan_server_${remote.id}`;
+      ids[localId] = remote.id;
+      merged.push(fromServerPlan(remote, { id: localId, userId }));
+    }
+    const latest = await planStore.read();
+    await planStore.write({ ...latest, plans: [...latest.plans.filter((p) => p.userId !== userId), ...merged], planServerIds: ids });
+    return merged;
   }
 
   async savePlan(plan: FastingPlan): Promise<FastingPlan> {
     const db = await planStore.read();
-    let plans = db.plans.some((p) => p.id === plan.id) ? db.plans.map((p) => (p.id === plan.id ? plan : p)) : [...db.plans, plan];
-    if (plan.active) plans = plans.map((p) => (p.id === plan.id || p.userId !== plan.userId ? p : { ...p, active: false }));
-    await planStore.write({ ...db, plans });
-    return plan;
+    const ids = { ...(db.planServerIds ?? {}) };
+    // Server first, so a save that fails is reported instead of silently diverging.
+    const saved = await fastingApi.savePlan(ids[plan.id] ?? null, toServerPlan(plan));
+    ids[plan.id] = saved.id;
+    const stored = fromServerPlan(saved, plan);
+    const current = await planStore.read();
+    let plans = current.plans.some((p) => p.id === plan.id) ? current.plans.map((p) => (p.id === plan.id ? stored : p)) : [...current.plans, stored];
+    // The server deactivates the user's other plans when one is activated; mirror that locally.
+    if (stored.active) plans = plans.map((p) => (p.id === plan.id || p.userId !== plan.userId ? p : { ...p, active: false }));
+    await planStore.write({ ...current, plans, planServerIds: ids });
+    return stored;
   }
 
   async getPlanOverrides(planId: string): Promise<FastingPlanDayOverride[]> {
@@ -239,6 +331,9 @@ export class ApiFastingRepository implements FastingRepository {
   }
 
   async removePlanDayOverride(planId: string, date: string): Promise<void> {
+    const serverId = (await planStore.read()).planServerIds?.[planId];
+    // The API can only list/delete overrides; deleting keeps a server copy (if any) in step.
+    if (serverId) await fastingApi.deletePlanOverride(serverId, date).catch(() => undefined);
     const db = await planStore.read();
     await planStore.write({ ...db, planOverrides: db.planOverrides.filter((o) => !(o.planId === planId && o.date === date)) });
   }

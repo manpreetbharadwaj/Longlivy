@@ -58,7 +58,7 @@ async function calculate(direction: TargetDirection): Promise<NutritionTargets> 
 async function save(key: NutritionTargetKey, existing: NutritionTarget | undefined, changes: { target?: number; active?: boolean }): Promise<NutritionTarget> {
   if (existing) {
     const goal = await goalsApi.updateGoal(existing.goalId, { target: changes.target, active: changes.active });
-    // A manual edit keeps `source: longlivy_calculated` on the server (reported); the app records it as manual.
+    // Editing the value switches the server's `source` to `manual` (verified 2026-10-16).
     return { goalId: goal.id, target: goal.target, active: goal.active, source: changes.target !== undefined ? 'manual' : existing.source };
   }
   const goal = await goalsApi.createGoal({

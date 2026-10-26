@@ -30,7 +30,11 @@ export const WeightStepScreen: React.FC = () => {
       totalSteps={7}
       title={t('onboarding.weight.title')}
       subtitle={t('onboarding.weight.subtitle')}
-      onNext={() => navigation.navigate('ActivityLevelStep')}
+      onNext={() => {
+        // The ruler only reports drags; keep the weight shown when the user accepts the default.
+        if (draft.weightKg == null) update({ weightKg });
+        navigation.navigate('ActivityLevelStep');
+      }}
       onBack={() => navigation.goBack()}
       dimBackground
     >

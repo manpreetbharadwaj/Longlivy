@@ -5,12 +5,10 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OnboardingStackParamList } from '@/navigation/types';
 import { AppDateField } from '@/components/common/AppDateField';
 import { useTranslation } from '@/localization';
-import { useOnboardingDraft, ageFromDateOfBirth } from '@/features/onboarding/OnboardingContext';
+import { useOnboardingDraft, ageFromDateOfBirth, MIN_PROFILE_AGE as MIN_AGE, MAX_PROFILE_AGE as MAX_AGE } from '@/features/onboarding/OnboardingContext';
 import { HumanBodyVisualizer } from '@/features/onboarding/components/three/HumanBodyVisualizer';
 import { OnboardingStepLayout } from './OnboardingStepLayout';
 
-const MIN_AGE = 13;
-const MAX_AGE = 90;
 const DEFAULT_DOB = new Date(new Date().getFullYear() - 27, 0, 1);
 
 function toIsoDate(d: Date): string {
@@ -41,7 +39,14 @@ export const AgeStepScreen: React.FC = () => {
       totalSteps={7}
       title={t('onboarding.age.title')}
       subtitle={t('onboarding.age.subtitle')}
-      onNext={() => navigation.navigate('Height')}
+      onNext={() => {
+        // The picker only reports changes; keep the date shown when the user accepts the default.
+        if (!draft.dateOfBirth) {
+          const iso = toIsoDate(dob);
+          update({ dateOfBirth: iso, age: ageFromDateOfBirth(iso) });
+        }
+        navigation.navigate('Height');
+      }}
       onBack={() => navigation.goBack()}
       dimBackground
     >

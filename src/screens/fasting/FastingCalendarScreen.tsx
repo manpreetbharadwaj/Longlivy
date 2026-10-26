@@ -46,7 +46,7 @@ export const FastingCalendarScreen: React.FC = () => {
   return (
     <>
       <AppHeader title="Fasting calendar" onBack={() => navigation.goBack()} />
-      <AppScreen>
+      <AppScreen belowHeader>
         <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.sm }}>
           {new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
         </AppText>

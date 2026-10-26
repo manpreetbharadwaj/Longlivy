@@ -12,6 +12,7 @@ import { selectFastingHistory } from '@/features/fasting/selectors';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
 import { FastingSession, FastingStatus } from '@/features/fasting/models';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFloatingTabBarSpacing } from '@/navigation/components/useFloatingTabBarSpacing';
 import { sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
 import { fastingStatusLabel } from '@/features/fasting/services/fastingFormat';
 
@@ -26,6 +27,7 @@ const STATUS_TONE: Record<FastingStatus, 'success' | 'warning' | 'info' | 'neutr
 
 export const FastingHistoryScreen: React.FC = () => {
   const { theme } = useTheme();
+  const tabBarSpacing = useFloatingTabBarSpacing();
   const navigation = useNavigation();
   const history = useAppSelector(selectFastingHistory);
 
@@ -47,13 +49,15 @@ export const FastingHistoryScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['left', 'right']}>
       <AppHeader title="Fasting history" onBack={() => navigation.goBack()} />
       <FlatList
         data={history}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: theme.spacing.md, flexGrow: 1 }}
+        // The floating tab bar overlays the screen; the list's viewport stops above it.
+        style={{ marginBottom: tabBarSpacing }}
+        contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.md, flexGrow: 1 }}
         ListEmptyComponent={<AppEmptyState title="No fasting history yet" message="Completed and ended fasts will appear here." />}
       />
     </SafeAreaView>

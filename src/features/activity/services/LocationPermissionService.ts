@@ -10,9 +10,13 @@ export type ActivityLocationPreparation =
     };
 
 /**
- * Handles the foreground-only permission gate before the countdown begins.
- * Background location is intentionally not requested: this Activity build
- * tracks while its screen is active and does not claim lock-screen support.
+ * Handles the permission gate before the countdown begins. Only the
+ * foreground location permission is requested — tracking continues with the
+ * screen locked via a genuine Android foreground service (see
+ * useBackgroundGpsTracking), which Android grants location access to without
+ * the separate "Allow all the time" background permission. That stronger
+ * permission is deliberately not requested: nothing here needs location
+ * access while the app isn't actively tracking a workout.
  */
 export async function prepareActivityLocation(): Promise<ActivityLocationPreparation> {
   let servicesEnabled = false;

@@ -15,6 +15,8 @@ import { motion } from '@/theme/motion';
 import { useTranslation } from '@/localization';
 import { TranslationKey } from '@/localization/types';
 import { selectDailySummary } from '../selectors';
+import { selectHasCalorieGoal } from '@/features/calories/selectors';
+import { SetDailyGoalPrompt } from './SetDailyGoalPrompt';
 import { DailyRing } from '../models';
 import { dashboardColors, dashboardHeroCardStyle } from '../dashboardTheme';
 
@@ -40,6 +42,7 @@ export const DailyPulseCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const summary = useAppSelector(selectDailySummary);
+  const hasGoal = useAppSelector(selectHasCalorieGoal);
   const exceeded = summary.energy.exceededBy > 0;
 
   return (
@@ -48,20 +51,24 @@ export const DailyPulseCard: React.FC = React.memo(() => {
         <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
           {t('home.pulse.title')}
         </AppText>
-        <AppBadge label={exceeded ? t('home.pulse.goalExceeded') : t('home.pulse.onTrack')} tone={exceeded ? 'warning' : 'success'} />
+        {hasGoal ? <AppBadge label={exceeded ? t('home.pulse.goalExceeded') : t('home.pulse.onTrack')} tone={exceeded ? 'warning' : 'success'} /> : null}
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: theme.spacing.md }}>
-        <AnimatedNumberText
-          value={exceeded ? summary.energy.exceededBy : summary.energy.remaining}
-          formatter={(n) => `${exceeded ? '+' : ''}${Math.round(n)}`}
-          variant="metricLarge"
-          color={exceeded ? dashboardColors.warning : dashboardColors.textPrimary}
-        />
-        <AppText variant="bodyMedium" color={dashboardColors.textSecondary} style={{ marginLeft: 6, marginBottom: 8 }}>
-          {exceeded ? t('home.pulse.kcalOver') : t('home.pulse.kcalRemaining')}
-        </AppText>
-      </View>
+      {hasGoal ? (
+        <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: theme.spacing.md }}>
+          <AnimatedNumberText
+            value={exceeded ? summary.energy.exceededBy : summary.energy.remaining}
+            formatter={(n) => `${exceeded ? '+' : ''}${Math.round(n)}`}
+            variant="metricLarge"
+            color={exceeded ? dashboardColors.warning : dashboardColors.textPrimary}
+          />
+          <AppText variant="bodyMedium" color={dashboardColors.textSecondary} style={{ marginLeft: 6, marginBottom: 8 }}>
+            {exceeded ? t('home.pulse.kcalOver') : t('home.pulse.kcalRemaining')}
+          </AppText>
+        </View>
+      ) : (
+        <SetDailyGoalPrompt />
+      )}
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         {summary.rings.map((ring, index) => (

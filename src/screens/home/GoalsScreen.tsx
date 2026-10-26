@@ -88,7 +88,7 @@ export const GoalsScreen: React.FC = () => {
   return (
     <>
       <AppHeader title={t('history.allGoals')} onBack={() => navigation.goBack()} />
-      <AppScreen refreshing={status === 'loading'} onRefresh={loadGoals}>
+      <AppScreen belowHeader refreshing={status === 'loading'} onRefresh={loadGoals}>
         {isInitialLoading ? <AppLoader label="Loading goals…" /> : null}
         {isError ? <AppErrorState message={error ?? undefined} onRetry={loadGoals} /> : null}
         {isEmpty ? <AppEmptyState title={t('states.emptyTitle')} message="Create a goal to start tracking your progress." /> : null}

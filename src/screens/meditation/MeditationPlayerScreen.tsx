@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Pressable, BackHandler } from 'react-native';
+import { View, Pressable, BackHandler, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -66,7 +66,7 @@ export const MeditationPlayerScreen: React.FC = () => {
     isPlayableAmbientSoundId(route.params.ambientSoundId) ? route.params.ambientSoundId! : null
   );
   const [showSoundscapePicker, setShowSoundscapePicker] = useState(false);
-  const startedRef = useRef(false);
+  const startedRef = useRef(-1);
   const sessionIdPromiseRef = useRef<Promise<string | null>>(Promise.resolve(null));
 
   const title = route.params.title ?? meditation?.title ?? (route.params.type === 'free' ? t('meditation.player.unguidedFallbackTitle') : t('meditation.player.fallbackTitle'));
@@ -136,9 +136,13 @@ export const MeditationPlayerScreen: React.FC = () => {
     }, [navigation])
   );
 
+  // Audio and the timer start only once the session exists, so the elapsed
+  // time matches the session's start and a failed start never plays a
+  // session that is not being recorded. "Try again" bumps the attempt.
+  const [startAttempt, setStartAttempt] = useState(0);
   useEffect(() => {
-    if (startedRef.current || isComingSoon) return;
-    startedRef.current = true;
+    if (startedRef.current === startAttempt || isComingSoon) return;
+    startedRef.current = startAttempt;
     sessionIdPromiseRef.current = dispatch(
       startMeditationSessionThunk({
         meditationId: route.params.meditationId,
@@ -148,13 +152,19 @@ export const MeditationPlayerScreen: React.FC = () => {
         templateId: route.params.templateId ?? null,
       })
     ).then((result) => {
-      if (!startMeditationSessionThunk.fulfilled.match(result)) return null;
+      if (!startMeditationSessionThunk.fulfilled.match(result)) {
+        Alert.alert(t('meditation.player.startFailedTitle'), t('meditation.player.startFailedBody'), [
+          { text: t('meditation.player.startFailedLeave'), style: 'cancel', onPress: () => navigation.goBack() },
+          { text: t('meditation.player.startFailedRetry'), onPress: () => setStartAttempt((n) => n + 1) },
+        ]);
+        return null;
+      }
       setSessionId(result.payload.id);
+      audioSession.start();
       return result.payload.id;
     });
-    audioSession.start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [startAttempt]);
 
   const togglePause = useCallback(() => {
     if (!sessionId) return;

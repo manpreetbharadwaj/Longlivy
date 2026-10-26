@@ -15,6 +15,11 @@ export const API_ENDPOINTS = {
     register: '/auth/register',
     me: '/auth/me',
     logout: '/auth/logout',
+    account: '/auth/account',
+    forgotPassword: '/auth/forgot-password',
+    resetPassword: '/auth/reset-password',
+    verifyEmail: '/auth/email/verify',
+    resendVerification: '/auth/email/resend',
   },
   profile: '/profile',
   goals: {
@@ -32,6 +37,8 @@ export const API_ENDPOINTS = {
     summary: '/fasting/summary',
     byId: (id: string) => `/fasting/${seg(id)}`,
     end: (id: string) => `/fasting/${seg(id)}/end`,
+    plans: '/fasting/plans',
+    plan: (id: string) => `/fasting/plans/${seg(id)}`,
   },
   weightLogs: {
     collection: '/weight-logs',
@@ -64,6 +71,17 @@ export const API_ENDPOINTS = {
     bmr: '/energy/bmr',
     calculateTargets: '/energy/targets/calculate',
   },
+  notifications: {
+    settings: '/notification-settings',
+  },
+  devices: {
+    collection: '/devices',
+    byToken: (token: string) => `/devices/${seg(token)}`,
+  },
+  activities: {
+    collection: '/activities',
+    byId: (id: string) => `/activities/${seg(id)}`,
+  },
   meditation: {
     contents: '/meditation',
     byId: (id: string) => `/meditation/${seg(id)}`,
@@ -77,6 +95,8 @@ export const API_ENDPOINTS = {
     goals: '/meditation/goals',
     reminders: '/meditation/reminders',
     reminder: (id: string) => `/meditation/reminders/${seg(id)}`,
+    templates: '/meditation/templates',
+    template: (id: string) => `/meditation/templates/${seg(id)}`,
   },
 } as const;
 

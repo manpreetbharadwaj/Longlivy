@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FastingStackParamList } from '@/navigation/types';
 import { AppScreen } from '@/components/common/AppScreen';
@@ -49,9 +49,12 @@ export const FastingPlansScreen: React.FC = () => {
     setOverridesByPlan(map);
   }, [currentUserId]);
 
-  useEffect(() => {
-    loadAll();
-  }, [loadAll]);
+  // Reload on focus: the schedule editor saves a plan and comes back here.
+  useFocusEffect(
+    useCallback(() => {
+      loadAll();
+    }, [loadAll])
+  );
 
   const toggleSkip = useCallback(
     async (plan: FastingPlan, dateKey: string, currentlySkipped: boolean) => {
@@ -73,7 +76,7 @@ export const FastingPlansScreen: React.FC = () => {
   return (
     <>
       <AppHeader title="My fasting plans" onBack={() => navigation.goBack()} />
-      <AppScreen>
+      <AppScreen belowHeader>
         {plans.length === 0 ? (
           <AppEmptyState
             icon="calendar-outline"

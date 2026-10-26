@@ -17,13 +17,25 @@ async function loginAndPersist(session: AuthApiSession): Promise<AuthApiSession>
  */
 async function logout(): Promise<void> {
   try {
-    if (await tokenStorage.getAccessToken()) await authApi.logout();
+    if (await tokenStorage.getAccessToken()) {
+      // While the token is still valid, so the server stops pushing to this device.
+      const { unregisterPushDevice } = await import('@/features/notifications/pushDevice');
+      await unregisterPushDevice().catch(() => undefined);
+      await authApi.logout();
+    }
   } catch {
     // Server revocation is best-effort; the local token is removed regardless.
   } finally {
     await tokenStorage.clearTokens();
     await clearCalorieRepository();
   }
+}
+
+/** Deletes the server account; the token dies with it, so it is only cleared locally afterwards. */
+async function deleteAccount(password: string): Promise<void> {
+  await authApi.deleteAccount(password);
+  await tokenStorage.clearTokens();
+  await clearCalorieRepository();
 }
 
 /** Called by the API client after a protected request receives 401. */
@@ -35,4 +47,4 @@ async function expireLocalSession(): Promise<void> {
   store.dispatch(markSessionExpired());
 }
 
-export const authService = { loginAndPersist, logout, expireLocalSession };
+export const authService = { loginAndPersist, logout, deleteAccount, expireLocalSession };

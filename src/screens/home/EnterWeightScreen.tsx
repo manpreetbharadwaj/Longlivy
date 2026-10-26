@@ -9,7 +9,7 @@ import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { deleteWeightThunk, logWeightThunk, updateWeightThunk } from '@/features/weight/weightSlice';
+import { deleteWeightThunk, logWeightThunk, syncProfileWeightThunk, updateWeightThunk } from '@/features/weight/weightSlice';
 import { selectCurrentWeight, selectWeightHistory } from '@/features/weight/selectors';
 import { setBodyProfile } from '@/features/calories/calorieSlice';
 
@@ -47,6 +47,7 @@ export const EnterWeightScreen: React.FC = () => {
     }
     // Editing an older entry must not change the current body weight.
     if (!editingId || editingId === current?.id) dispatch(setBodyProfile({ weightKg: parsed }));
+    void dispatch(syncProfileWeightThunk());
     if (editingId) {
       setEditingId(null);
       setWeight(current ? String(current.weightKg) : '');
@@ -70,6 +71,7 @@ export const EnterWeightScreen: React.FC = () => {
           onPress: async () => {
             const result = await dispatch(deleteWeightThunk(id));
             if (deleteWeightThunk.rejected.match(result)) Alert.alert('Entry not deleted', result.error.message ?? 'Please try again.');
+            else void dispatch(syncProfileWeightThunk());
             if (editingId === id) setEditingId(null);
           },
         },

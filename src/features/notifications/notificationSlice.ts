@@ -2,6 +2,8 @@ import { env } from '@/config/env';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppNotification, NotificationEventType, NotificationSetting } from './models';
 import { LocalStore } from '@/services/storage/LocalStore';
+import { notificationsApi } from '@/services/api/notificationsApi';
+import type { RootState } from '@/store/store';
 
 /**
  * The only notification type the app actually delivers: meditation reminders,
@@ -15,6 +17,33 @@ export const DELIVERABLE_NOTIFICATION_TYPES: ReadonlySet<NotificationEventType> 
 const settingsStore = new LocalStore<Partial<Record<NotificationEventType, boolean>>>('@longlivy/notification_settings', {});
 
 export const hydrateNotificationSettingsThunk = createAsyncThunk('notification/hydrateSettings', () => settingsStore.read());
+
+/**
+ * API mode, once signed in: the account's settings (GET /notification-settings)
+ * replace the device copy, which stays as the offline cache.
+ */
+export const syncNotificationSettingsThunk = createAsyncThunk('notification/syncSettings', async () => {
+  const server = await notificationsApi.getSettings();
+  await settingsStore.write(server);
+  return server;
+});
+
+/** Flips one setting immediately; in API mode it is saved to the account and rolled back if that fails. */
+export const toggleNotificationSettingThunk = createAsyncThunk<void, NotificationEventType, { state: RootState }>(
+  'notification/toggleSetting',
+  async (type, { dispatch, getState }) => {
+    dispatch(toggleNotificationSetting(type));
+    if (env.useMockApi) return;
+    const enabled = getState().notification.settings.find((s) => s.type === type)?.enabled;
+    if (enabled === undefined) return;
+    try {
+      await notificationsApi.updateSettings({ [type]: enabled });
+    } catch (e) {
+      dispatch(toggleNotificationSetting(type));
+      throw e;
+    }
+  },
+);
 
 interface NotificationState {
   settings: NotificationSetting[];
@@ -69,12 +98,15 @@ const notificationSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(hydrateNotificationSettingsThunk.fulfilled, (state, action) => {
+    const apply = (state: NotificationState, saved: Partial<Record<NotificationEventType, boolean>>) => {
       for (const setting of state.settings) {
-        const saved = action.payload[setting.type];
-        if (typeof saved === 'boolean') setting.enabled = saved;
+        const value = saved[setting.type];
+        if (typeof value === 'boolean') setting.enabled = value;
       }
-    });
+    };
+    builder
+      .addCase(hydrateNotificationSettingsThunk.fulfilled, (state, action) => apply(state, action.payload))
+      .addCase(syncNotificationSettingsThunk.fulfilled, (state, action) => apply(state, action.payload));
   },
 });
 

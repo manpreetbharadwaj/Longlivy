@@ -9,7 +9,6 @@ import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { useFloatingTabBarSpacing } from '@/navigation/components/useFloatingTabBarSpacing';
 import { motion } from '@/theme/motion';
 import { loadActivityData } from '@/features/activity/activitySlice';
 import { selectActiveActivity, selectActivityHistory, selectActivityStats } from '@/features/activity/selectors';
@@ -30,7 +29,6 @@ export const ActivityHomeScreen: React.FC = () => {
   const active = useAppSelector(selectActiveActivity);
   const history = useAppSelector(selectActivityHistory);
   const stats = useAppSelector(selectActivityStats);
-  const tabBarSpacing = useFloatingTabBarSpacing();
 
   useEffect(() => {
     dispatch(loadActivityData());
@@ -40,7 +38,7 @@ export const ActivityHomeScreen: React.FC = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      <ActivityHeroLayout title={t('activity.title')} contentContainerStyle={{ paddingBottom: theme.spacing.xxxl + tabBarSpacing }}>
+      <ActivityHeroLayout title={t('activity.title')}>
         {/* Activity summary — one unified metrics card */}
         <FadeSlideIn delay={0 * motion.staggerStepMs}>
           <ActivitySummaryCard activities={stats.totalActivities} distanceKm={stats.totalDistanceMeters / 1000} calories={stats.totalCalories} />

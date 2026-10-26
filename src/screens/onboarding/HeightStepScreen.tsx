@@ -55,7 +55,11 @@ export const HeightStepScreen: React.FC = () => {
       totalSteps={7}
       title={t('onboarding.height.title')}
       subtitle={t('onboarding.height.subtitle')}
-      onNext={() => navigation.navigate('Weight')}
+      onNext={() => {
+        // The ruler only reports drags; keep the height shown when the user accepts the default.
+        if (draft.heightCm == null) update({ heightCm });
+        navigation.navigate('Weight');
+      }}
       onBack={() => navigation.goBack()}
       dimBackground
     >

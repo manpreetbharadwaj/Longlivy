@@ -83,7 +83,15 @@ export class MockAuthRepository implements AuthRepository {
     return delay(db.session);
   }
 
-  async resetPassword(_email: string): Promise<void> {
+  async requestPasswordReset(_email: string): Promise<void> {
+    await delay(undefined, 400);
+  }
+
+  async confirmPasswordReset(_input: { email: string; code: string; password: string }): Promise<void> {
+    await delay(undefined, 400);
+  }
+
+  async resendVerificationEmail(): Promise<void> {
     await delay(undefined, 400);
   }
 

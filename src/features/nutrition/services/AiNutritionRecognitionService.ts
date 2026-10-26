@@ -71,14 +71,25 @@ function toRecognizedItem(food: Food, quantity: number, confidence: number): AiR
   };
 }
 
+const WORD_NUMBERS: Record<string, number> = {
+  a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7,
+  eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13,
+  fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18,
+  nineteen: 19, twenty: 20,
+};
+const WORD_NUMBER_PATTERN = Object.keys(WORD_NUMBERS).join('|');
+
+/** Speech dictates "two", "a", "a couple of" more often than digits — spoken-number words are checked first, then a literal digit. */
 function extractQuantityNear(text: string, keyword: string): number | null {
   const idx = text.indexOf(keyword);
   if (idx === -1) return null;
-  const windowStart = Math.max(0, idx - 15);
+  const windowStart = Math.max(0, idx - 20);
   const window = text.slice(windowStart, idx + keyword.length);
-  const match = window.match(/(\d+)\s*(g|grams?|ml|kg)?/);
-  if (!match) return null;
-  const value = Number(match[1]);
+  const wordMatch = window.match(new RegExp(`\\b(${WORD_NUMBER_PATTERN})\\b(?:\\s+\\w+){0,2}\\s*$`));
+  if (wordMatch) return WORD_NUMBERS[wordMatch[1]];
+  const digitMatch = window.match(/(\d+)\s*(g|grams?|ml|kg)?\s*$/);
+  if (!digitMatch) return null;
+  const value = Number(digitMatch[1]);
   return Number.isFinite(value) && value > 0 ? value : null;
 }
 

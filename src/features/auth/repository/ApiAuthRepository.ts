@@ -130,8 +130,16 @@ export class ApiAuthRepository implements AuthRepository {
     }
   }
 
-  async resetPassword(email: string): Promise<void> {
-    await authApi.resetPassword(email);
+  async requestPasswordReset(email: string): Promise<void> {
+    await authApi.requestPasswordReset(email);
+  }
+
+  async confirmPasswordReset(input: { email: string; code: string; password: string }): Promise<void> {
+    await authApi.resetPassword(input);
+  }
+
+  async resendVerificationEmail(): Promise<void> {
+    await authApi.resendVerificationEmail();
   }
 
   async verifyEmail(code: string): Promise<void> {

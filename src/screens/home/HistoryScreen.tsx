@@ -15,6 +15,7 @@ import { selectUnifiedHistory, selectHistoryActiveFilters } from '@/features/his
 import { toggleHistoryFilter } from '@/features/history/historySlice';
 import { HistoryCategory, HistoryItem } from '@/features/history/models';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFloatingTabBarSpacing } from '@/navigation/components/useFloatingTabBarSpacing';
 
 const CATEGORIES: { key: HistoryCategory; icon: AppIconName }[] = [
   { key: 'fasting', icon: 'timer-outline' },
@@ -34,6 +35,7 @@ const ICON: Record<HistoryCategory, AppIconName> = {
 
 export const HistoryScreen: React.FC = () => {
   const { theme } = useTheme();
+  const tabBarSpacing = useFloatingTabBarSpacing();
   const { t } = useTranslation();
   const dateLocale = useDateLocale();
   const navigation = useNavigation();
@@ -62,7 +64,7 @@ export const HistoryScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['left', 'right']}>
       <AppHeader title={t('history.title')} onBack={() => navigation.goBack()} />
       <View style={{ paddingHorizontal: theme.spacing.md, marginBottom: theme.spacing.sm }}>
         <FlatList
@@ -79,7 +81,9 @@ export const HistoryScreen: React.FC = () => {
         data={items}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ padding: theme.spacing.md, paddingTop: 0, flexGrow: 1 }}
+        // The floating tab bar overlays the screen; the list's viewport stops above it.
+        style={{ marginBottom: tabBarSpacing }}
+        contentContainerStyle={{ padding: theme.spacing.md, paddingTop: 0, paddingBottom: theme.spacing.md, flexGrow: 1 }}
         ListEmptyComponent={<AppEmptyState title={t('history.emptyTitle')} message={t('history.emptyMessage')} />}
       />
     </SafeAreaView>

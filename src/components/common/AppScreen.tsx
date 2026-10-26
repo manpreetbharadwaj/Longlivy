@@ -11,23 +11,27 @@ interface AppScreenProps {
   style?: ViewStyle;
   refreshing?: boolean;
   onRefresh?: () => void;
+  /** Set when an `AppHeader` sits above this screen: the header already pads for the top safe area, so this skips it. */
+  belowHeader?: boolean;
 }
 
 export const AppScreen: React.FC<AppScreenProps> = React.memo(
-  ({ children, scroll = true, padded = true, style, refreshing, onRefresh }) => {
+  ({ children, scroll = true, padded = true, style, refreshing, onRefresh, belowHeader = false }) => {
     const { theme } = useTheme();
     // Same reasoning as SectionHeroLayout: the floating tab bar is an
     // absolutely-positioned overlay, not a docked bar that reserves layout
-    // space, so screens under it must add this manually or their last item
-    // ends up hidden behind the opaque pill.
+    // space, so the content area stops above it.
     const tabBarSpacing = useFloatingTabBarSpacing();
-    const content = { padding: padded ? theme.spacing.md : 0, paddingBottom: theme.spacing.xxxl + tabBarSpacing };
+    const content = { padding: padded ? theme.spacing.md : 0, paddingBottom: theme.spacing.xl };
 
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={belowHeader ? ['left', 'right'] : ['top', 'left', 'right']}>
         {scroll ? (
           <ScrollView
+            style={{ flex: 1, marginBottom: tabBarSpacing }}
             contentContainerStyle={[content, style]}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets
             showsVerticalScrollIndicator={false}
             refreshControl={
               onRefresh ? (
@@ -38,7 +42,7 @@ export const AppScreen: React.FC<AppScreenProps> = React.memo(
             {children}
           </ScrollView>
         ) : (
-          <View style={[{ flex: 1 }, content, style]}>{children}</View>
+          <View style={[{ flex: 1, marginBottom: tabBarSpacing }, content, style]}>{children}</View>
         )}
       </SafeAreaView>
     );

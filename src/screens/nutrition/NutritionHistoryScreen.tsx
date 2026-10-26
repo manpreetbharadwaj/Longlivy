@@ -1,6 +1,8 @@
 import React from 'react';
 import { FlatList, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NutritionStackParamList } from '@/navigation/types';
 import { TabHeroLayout } from '@/components/common/TabHeroLayout';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
@@ -11,7 +13,7 @@ import { selectTodayMeals } from '@/features/nutrition/selectors';
 
 export const NutritionHistoryScreen: React.FC = () => {
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<NutritionStackParamList>>();
   const meals = useAppSelector(selectTodayMeals);
 
   return (
@@ -23,7 +25,7 @@ export const NutritionHistoryScreen: React.FC = () => {
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <HeroCard style={{ marginBottom: theme.spacing.sm }}>
+          <HeroCard onPress={() => navigation.navigate('MealDetails', { mealId: item.id })} style={{ marginBottom: theme.spacing.sm }} scaleOnPress>
             <AppText variant="headingSmall" color="#FFFFFF" style={{ textTransform: 'capitalize' }}>
               {item.mealType}
             </AppText>

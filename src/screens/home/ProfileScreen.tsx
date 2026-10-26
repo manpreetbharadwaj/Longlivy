@@ -17,6 +17,8 @@ import { motion } from '@/theme/motion';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUserProfile } from '@/features/profile/selectors';
 import { logoutThunk } from '@/features/auth/authSlice';
+import { selectAuthSession } from '@/features/auth/selectors';
+import { env } from '@/config/env';
 import { dashboardColors, dashboardCardStyle } from '@/features/dashboard/dashboardTheme';
 
 export const ProfileScreen: React.FC = () => {
@@ -25,6 +27,9 @@ export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const dispatch = useAppDispatch();
   const profile = useAppSelector(selectUserProfile);
+  // Shown only while the server reports the email as unverified; verification is optional for sign-in.
+  const session = useAppSelector(selectAuthSession);
+  const needsEmailVerification = !env.useMockApi && session?.user.emailVerified === false;
 
   const handleLogout = () => dispatch(logoutThunk());
 
@@ -65,8 +70,8 @@ export const ProfileScreen: React.FC = () => {
       </AppText>
 
       <View style={[dashboardCardStyle, { marginTop: theme.spacing.xl, padding: theme.spacing.sm }]}>
-        <StatRow index={0} icon="resize-outline" label={t('profile.height')} value={`${profile.heightCm} ${t('units.cm')}`} />
-        <StatRow index={1} icon="scale-outline" label={t('profile.weight')} value={`${profile.weightKg} ${t('units.kg')}`} />
+        <StatRow index={0} icon="resize-outline" label={t('profile.height')} value={profile.heightCm != null ? `${profile.heightCm} ${t('units.cm')}` : t('profile.notSet')} />
+        <StatRow index={1} icon="scale-outline" label={t('profile.weight')} value={profile.weightKg != null ? `${profile.weightKg} ${t('units.kg')}` : t('profile.notSet')} />
         <StatRow index={2} icon="walk-outline" label={t('profile.activityLevel')} value={t(`enums.activityLevel.${profile.activityLevel}`)} onPress={() => navigation.navigate('EditProfile')} />
         <StatRow index={3} icon="flag-outline" label={t('profile.goal')} value={t(`enums.goal.${profile.goal}`)} onPress={() => navigation.navigate('EditProfile')} isLast />
       </View>
@@ -76,7 +81,10 @@ export const ProfileScreen: React.FC = () => {
         <ActionRow index={1} icon="settings-outline" label={t('profile.settings')} onPress={() => navigation.navigate('Settings')} />
         {/* Temporarily disabled from Profile UI. Keep Health Integration implementation for possible future use. */}
         {/* <ActionRow index={2} icon="heart-outline" label={t('profile.healthIntegrations')} onPress={() => navigation.navigate('HealthIntegrations')} /> */}
-        <ActionRow index={2} icon="shield-checkmark-outline" label={t('profile.privacy')} onPress={() => navigation.navigate('Privacy')} isLast />
+        <ActionRow index={2} icon="shield-checkmark-outline" label={t('profile.privacy')} onPress={() => navigation.navigate('Privacy')} isLast={!needsEmailVerification} />
+        {needsEmailVerification ? (
+          <ActionRow index={3} icon="mail-outline" label={t('profile.verifyEmail')} onPress={() => navigation.navigate('EmailVerification')} isLast />
+        ) : null}
       </View>
 
       <Pressable

@@ -14,6 +14,15 @@ import { OnboardingProvider } from '@/features/onboarding/OnboardingContext';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { navigationRef, navigateToMeditationHome } from '@/navigation/navigationRef';
 import { withErrorBoundary } from '@/components/hoc/withErrorBoundary';
+import {
+  registerWorkoutNotificationResponseListener,
+  ensureBackgroundNotificationTaskRegistered,
+} from '@/features/activity/services/WorkoutNotificationActions';
+
+/** True for a response to the active-workout notification (Pause/Resume/Stop) — meditation-reminder notifications carry no `data` at all, so this is the only identifying signal available on either. */
+function isWorkoutNotificationResponse(response: Notifications.NotificationResponse): boolean {
+  return response.notification.request.content.data?.kind === 'active-workout';
+}
 
 /**
  * Minimum useful behavior for a tapped Meditation reminder (Phase 6 Section
@@ -21,17 +30,30 @@ import { withErrorBoundary } from '@/components/hoc/withErrorBoundary';
  * and a cold start from the notification (the initial response is checked
  * once on mount) — not a deep link into a specific session, which the
  * current navigation architecture doesn't support without meaningfully more
- * work; documented as a limitation rather than built here.
+ * work; documented as a limitation rather than built here. Explicitly skips
+ * a response that's actually for the active-workout notification (see
+ * WorkoutNotificationActions.ts, which owns handling those) — this listener
+ * has no `data` to distinguish a meditation reminder by, so a workout
+ * response is the one thing it excludes rather than the one thing it looks for.
  */
 function useMeditationReminderNotificationTap(): void {
   useEffect(() => {
     Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response) navigateToMeditationHome();
+      if (response && !isWorkoutNotificationResponse(response)) navigateToMeditationHome();
     });
-    const subscription = Notifications.addNotificationResponseReceivedListener(() => {
-      navigateToMeditationHome();
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      if (!isWorkoutNotificationResponse(response)) navigateToMeditationHome();
     });
     return () => subscription.remove();
+  }, []);
+}
+
+/** Active-workout notification actions (Pause/Resume/Stop) — registered once at app start, independent of whether ActiveActivityScreen is ever mounted this session. */
+function useWorkoutNotificationActions(): void {
+  useEffect(() => {
+    const unsubscribe = registerWorkoutNotificationResponseListener();
+    void ensureBackgroundNotificationTaskRegistered();
+    return unsubscribe;
   }, []);
 }
 
@@ -40,6 +62,7 @@ const RootNavigatorSafe = withErrorBoundary(RootNavigator, 'Longlivy');
 const NavigationRoot: React.FC = () => {
   const { theme } = useTheme();
   useMeditationReminderNotificationTap();
+  useWorkoutNotificationActions();
 
   // React Navigation's own screen wrapper (`Background`, from
   // @react-navigation/elements) paints every screen — and the space around

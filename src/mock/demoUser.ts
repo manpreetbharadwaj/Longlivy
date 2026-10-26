@@ -17,10 +17,11 @@ export interface DemoUserProfile {
   firstName: string;
   lastName: string;
   email: string;
-  dateOfBirth: string;
-  gender: 'female' | 'male' | 'diverse';
-  heightCm: number;
-  weightKg: number;
+  /** Optional: an API account may not have these yet; screens show "Not set" instead of a stand-in value. */
+  dateOfBirth?: string;
+  gender?: 'female' | 'male' | 'diverse';
+  heightCm?: number;
+  weightKg?: number;
   address?: string;
   activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
   /** Sessions per week of deliberate exercise, distinct from `activityLevel`'s overall daily-movement tier. */

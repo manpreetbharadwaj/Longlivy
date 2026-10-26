@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, View } from 'react-native';
+import { Alert, FlatList, Pressable, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MeditationStackParamList } from '@/navigation/types';
@@ -107,11 +107,11 @@ export const MeditationTemplatesScreen: React.FC = () => {
 
   const canSave = minutes != null && (audio !== 'sounds' || soundId != null) && (audio !== 'music' || trackId != null);
 
-  const save = useCallback(() => {
+  const save = useCallback(async () => {
     if (minutes == null || !canSave) return;
     const existing = templates.find((template) => template.id === editingId);
     const backgroundSound = audio === 'sounds' ? soundId ?? undefined : audio === 'music' ? layerSoundId ?? undefined : undefined;
-    dispatch(
+    const result = await dispatch(
       saveMeditationTemplateThunk({
         breathingEnabled: false,
         closingSoundEnabled: true,
@@ -125,6 +125,10 @@ export const MeditationTemplatesScreen: React.FC = () => {
         contentId: audio === 'music' ? trackId ?? undefined : undefined,
       })
     );
+    if (saveMeditationTemplateThunk.rejected.match(result)) {
+      Alert.alert(t('meditation.templatesScreen.saveFailed'), result.error.message ?? '');
+      return;
+    }
     resetForm();
     setSavedNote(true);
   }, [audio, canSave, currentUserId, dispatch, editingId, layerSoundId, minutes, name, resetForm, soundId, t, templates, trackId]);
