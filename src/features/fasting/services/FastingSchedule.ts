@@ -94,9 +94,19 @@ export function calendarDayDifference(to: Date, from: Date): number {
   return Math.round((a - b) / (24 * MS_PER_HOUR));
 }
 
+/**
+ * Some Android builds resolve the device's timezone to a raw UTC-offset
+ * string (e.g. "GMT+05:30") instead of a named IANA zone - typically when
+ * "Automatic timezone" is off and the user picked a generic offset rather
+ * than a city. The backend's timezone validation only accepts canonical
+ * IANA identifiers, so a raw offset is rejected outright. Every real IANA
+ * zone is either "UTC" or a "Region/City" pair, so anything else falls
+ * back to "UTC" rather than sending a value the server will reject.
+ */
 export function getLocalTimeZone(): string {
   try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return zone === 'UTC' || zone?.includes('/') ? zone : 'UTC';
   } catch {
     return 'UTC';
   }

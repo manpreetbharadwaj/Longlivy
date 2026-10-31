@@ -78,24 +78,36 @@ export const BarcodeScannerScreen: React.FC = () => {
         </View>
 
         {canUseCamera ? (
-          <View style={styles.cameraWrap}>
+          // Fixed-height, clipped preview only while the camera is actually showing
+          // (`permission.granted`) — the permission prompt below needs to size itself
+          // to its own content instead, or a longer message/larger system font wraps
+          // to more lines than the old fixed 320px ever accounted for and gets cut off
+          // by this same box's `overflow: hidden`.
+          <View style={permission?.granted ? styles.cameraWrap : styles.cameraWrapUnsized}>
             {!permission ? null : !permission.granted ? (
               <View style={styles.permissionBox}>
                 <AppIcon name="camera-outline" size={32} color="rgba(255,255,255,0.6)" />
-                <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
+                <AppText
+                  variant="bodyMedium"
+                  color="rgba(255,255,255,0.6)"
+                  align="center"
+                  style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.sm, paddingHorizontal: theme.spacing.md }}
+                >
                   Longlivy needs camera access to scan barcodes.
                 </AppText>
                 <AppGradientButton label="Allow camera access" onPress={requestPermission} colors={NUTRITION_GRADIENT} style={{ alignSelf: 'center' }} fullWidth={false} />
               </View>
             ) : (
-              <CameraView
-                style={StyleSheet.absoluteFill}
-                facing="back"
-                barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'qr'] }}
-                onBarcodeScanned={scanned ? undefined : handleScanned}
-              />
+              <>
+                <CameraView
+                  style={StyleSheet.absoluteFill}
+                  facing="back"
+                  barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'qr'] }}
+                  onBarcodeScanned={scanned ? undefined : handleScanned}
+                />
+                <View style={styles.frame} pointerEvents="none" />
+              </>
             )}
-            <View style={styles.frame} pointerEvents="none" />
           </View>
         ) : null}
 
@@ -156,11 +168,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     overflow: 'hidden',
   },
+  /** Same box, minus the fixed height/clip — used while showing the permission
+   * prompt, whose content (icon + wrapped message + button) may be taller than
+   * the camera preview's fixed 320px, especially at larger system font sizes. */
+  cameraWrapUnsized: {
+    backgroundColor: '#000',
+  },
   permissionBox: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
   },
   frame: {
     position: 'absolute',

@@ -9,34 +9,19 @@ import { AppText } from '@/components/common/AppText';
 import { AppSegmentedControl } from '@/components/common/AppSegmentedControl';
 import { AppSwitch } from '@/components/common/AppSwitch';
 import { useTheme } from '@/hooks/useTheme';
-import { ThemePreference } from '@/contexts/ThemeContext';
 import { useAppPreferences, AppLanguage } from '@/contexts/AppPreferencesContext';
 import { useTranslation } from '@/localization';
 import { VoiceCoachingSettings } from '@/features/activity/components/VoiceCoachingSettings';
 import { HealthConnectSettings } from '@/features/healthConnect/components/HealthConnectSettings';
 
 export const SettingsScreen: React.FC = () => {
-  const { theme, preference, setPreference } = useTheme();
+  const { theme } = useTheme();
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const { preferences, setUnitSystem, setLanguage, setLiveMomentsEnabled, setHapticsEnabled } = useAppPreferences();
 
   return (
     <TabHeroLayout title={t('settings.title')} onBack={() => navigation.goBack()}>
-      <SectionLabel>{t('settings.appearance')}</SectionLabel>
-      <HeroCard style={{ marginBottom: theme.spacing.md }}>
-        <AppSegmentedControl
-          variant="hero"
-          segments={[
-            { key: 'light', label: t('settings.theme.light') },
-            { key: 'dark', label: t('settings.theme.dark') },
-            { key: 'system', label: t('settings.theme.system') },
-          ]}
-          selectedKey={preference}
-          onChange={(k) => setPreference(k as ThemePreference)}
-        />
-      </HeroCard>
-
       <SectionLabel>{t('settings.units.title')}</SectionLabel>
       <HeroCard style={{ marginBottom: theme.spacing.md }}>
         <AppSegmentedControl

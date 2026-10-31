@@ -414,12 +414,6 @@ export const en = {
   },
   settings: {
     title: 'Settings',
-    appearance: 'Appearance',
-    theme: {
-      light: 'Light',
-      dark: 'Dark',
-      system: 'System',
-    },
     units: {
       title: 'Units',
       metric: 'Metric',
@@ -445,12 +439,6 @@ export const en = {
       title: 'Support',
       feedback: 'Send feedback',
     },
-  },
-  notifications: {
-    title: 'Notifications',
-    empty: 'No notifications yet',
-    emptyMessage: 'Reminders and milestones will appear here.',
-    markAllRead: 'Mark all as read',
   },
   fasting: {
     title: 'Fasting',

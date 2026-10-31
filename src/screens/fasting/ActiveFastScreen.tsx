@@ -68,14 +68,28 @@ export const ActiveFastScreen: React.FC = () => {
   const reachedPlannedEnd = activeFast ? Date.now() >= new Date(activeFast.plannedEndTimestamp).getTime() : false;
 
   const handleEnd = useCallback(async () => {
-    setConfirmEnd(false);
+    // Deliberately does NOT close the dialog first — it stays open with its confirm
+    // button showing a spinner (ConfirmDialog's `confirmLoading`) for the whole
+    // request, so the session the user is about to end stays visible and there's no
+    // gap where the dialog has vanished but nothing yet indicates a request is in
+    // flight. The dialog only closes once the request actually settles, below.
     if (!activeFast || ending) return;
     setEnding(true);
     const result = await dispatch(endFastThunk(activeFast));
     setEnding(false);
+    setConfirmEnd(false);
     if (endFastThunk.fulfilled.match(result)) {
-      navigation.replace('FastSummary', { sessionId: result.payload.id });
+      // The backend has confirmed the session is saved — only now is it safe to say so.
+      Alert.alert('Saved', 'Your fasting session has been saved successfully.', [
+        { text: 'OK', onPress: () => navigation.replace('FastSummary', { sessionId: result.payload.id }) },
+      ]);
     } else {
+      // Rejected via the `.fulfilled.match()` pattern, not `.unwrap()` — `result.error` is
+      // already the plain object `createAsyncThunk` always produces, and `.message` on it
+      // is read directly here (no `instanceof Error` check to trip over, unlike the bug
+      // fixed in SelectFastingMethodScreen's catch block for the same class of error).
+      // The active session itself was never touched locally, so it's still exactly as it
+      // was before the attempt — nothing to roll back.
       Alert.alert('Fast not ended', result.error.message ?? 'Please try again.');
     }
   }, [activeFast, dispatch, ending, navigation]);
@@ -285,6 +299,7 @@ export const ActiveFastScreen: React.FC = () => {
         accentColor="#C4463A"
         onConfirm={handleEnd}
         onCancel={() => setConfirmEnd(false)}
+        confirmLoading={ending}
       />
     </FastingHeroLayout>
   );

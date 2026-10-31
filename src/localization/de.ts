@@ -396,12 +396,6 @@ export const de: typeof en = {
   },
   settings: {
     title: 'Einstellungen',
-    appearance: 'Darstellung',
-    theme: {
-      light: 'Hell',
-      dark: 'Dunkel',
-      system: 'System',
-    },
     units: {
       title: 'Einheiten',
       metric: 'Metrisch',
@@ -427,12 +421,6 @@ export const de: typeof en = {
       title: 'Support',
       feedback: 'Feedback senden',
     },
-  },
-  notifications: {
-    title: 'Benachrichtigungen',
-    empty: 'Noch keine Benachrichtigungen',
-    emptyMessage: 'Erinnerungen und Meilensteine erscheinen hier.',
-    markAllRead: 'Alle als gelesen markieren',
   },
   fasting: {
     title: 'Fasten',

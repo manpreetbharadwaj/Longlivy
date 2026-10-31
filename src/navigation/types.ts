@@ -38,7 +38,6 @@ export type HomeStackParamList = {
   HomeDashboard: undefined;
   History: undefined;
   Goals: undefined;
-  Notifications: undefined;
   EnterWeight: undefined;
 };
 

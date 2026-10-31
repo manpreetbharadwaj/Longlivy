@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Pressable } from 'react-native';
+import { Alert, View, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FastingStackParamList } from '@/navigation/types';
@@ -54,6 +54,21 @@ const BLOCK_REASON: Record<ScheduleEditBlock, string> = {
   would_already_be_over: 'With this model your current fast would already be over, so it applies from your next cycle.',
   extended: 'You extended this fast, so it keeps its window. The change applies from your next cycle.',
 };
+
+/**
+ * Pulls a usable message out of a thunk rejection, whether it's a real `Error`/`ApiError`
+ * (direct `dispatch` failures, synchronous throws) or the plain, serialized object RTK's
+ * `.unwrap()` throws for an async thunk's rejection (see the call site for why that's the
+ * normal case here). Returns null only when neither shape yields a non-empty string.
+ */
+function extractErrorMessage(err: unknown): string | null {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message?: unknown }).message === 'string') {
+    const message = (err as { message: string }).message;
+    return message.length > 0 ? message : null;
+  }
+  return null;
+}
 
 function dateForMinutes(minutes: number): Date {
   const d = new Date();
@@ -120,6 +135,8 @@ export const SelectFastingMethodScreen: React.FC = () => {
   const startTouchedRef = useRef(false);
   const [applyTo, setApplyTo] = useState<'next' | 'current'>('next');
   const isSubmittingRef = useRef(false);
+  /** Lets the Retry button on the error alert re-invoke the latest `confirm` without a stale-closure self-reference. */
+  const confirmRef = useRef<() => void>(() => {});
 
   // A one-off longer fast has no daily anchor to inherit, so until the user picks a time it starts from now; the daily models go back to the saved schedule's time.
   useEffect(() => {
@@ -172,13 +189,37 @@ export const SelectFastingMethodScreen: React.FC = () => {
       const { session, alreadyActive } = await dispatch(startFastThunk({ methodId, schedule })).unwrap();
       if (alreadyActive) navigation.replace('ActiveFast');
       else if (session) navigation.replace('FastingStarted');
-      else navigation.goBack();
-    } catch {
-      // Rejected - the slice records the error; stay here rather than navigating away from a failed save.
+      else {
+        // The chosen start time hasn't happened yet (e.g. "fasting starts at 11:40 pm" and
+        // it's currently morning) — FastingService deliberately only saves the schedule in
+        // this case rather than starting a fast that hasn't begun. Silently going back here
+        // previously left the user with no indication anything happened at all.
+        Alert.alert('Schedule saved', 'Your fast will begin automatically at your scheduled start time.');
+        navigation.goBack();
+      }
+    } catch (err) {
+      // Rejected - the slice already recorded the error; this just makes sure the user
+      // actually sees it instead of the button silently going back to normal.
+      //
+      // `.unwrap()` on a createAsyncThunk rejection throws `action.error`, which Redux
+      // Toolkit always runs through `miniSerializeError` first (RTK's default, since no
+      // `serializeError` option is set below) — a plain `{ name, message, stack, code }`
+      // object, never an actual `Error` instance. An `err instanceof Error` check here
+      // was therefore always false, silently discarding the real ApiError message (the
+      // specific reason — timeout, validation, expired session, ...) in favor of this
+      // fallback on every single failure. Read `.message` directly instead.
+      const message = extractErrorMessage(err) ?? 'Something went wrong starting your fast. Please try again.';
+      Alert.alert('Could not start fasting', message, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Retry', onPress: () => confirmRef.current() },
+      ]);
     } finally {
       isSubmittingRef.current = false;
     }
   }, [activeFast, dispatch, editBlockedNoFast, effectiveApplyTo, error, methodId, mode, navigation, schedule]);
+  useEffect(() => {
+    confirmRef.current = confirm;
+  }, [confirm]);
 
   const startsNow = summary?.inProgress ?? false;
   const ctaLabel = mode === 'edit' ? 'Save changes' : !daily ? 'Start this fast' : startsNow ? 'Start fasting' : 'Save schedule';

@@ -6,13 +6,11 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import Animated, { SharedValue, useSharedValue, useAnimatedStyle, withTiming, interpolate, Extrapolation } from 'react-native-reanimated';
 import { HomeStackParamList, MainTabParamList } from '@/navigation/types';
 import { AppText } from '@/components/common/AppText';
-import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
 import { useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { selectUserProfile } from '@/features/profile/selectors';
 import { UserAvatar } from '@/features/profile/components/UserAvatar';
-import { selectUnreadNotificationCount } from '@/features/notifications/selectors';
 import { useTranslation } from '@/localization';
 import { TranslationKey } from '@/localization/types';
 import { dashboardColors } from '../dashboardTheme';
@@ -37,7 +35,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({ scr
   const navigation =
     useNavigation<CompositeNavigationProp<NativeStackNavigationProp<HomeStackParamList>, BottomTabNavigationProp<MainTabParamList>>>();
   const profile = useAppSelector(selectUserProfile);
-  const unread = useAppSelector(selectUnreadNotificationCount);
 
   const greetingStyle = useAnimatedStyle(() => {
     if (!scrollY) return { opacity: 1, transform: [{ scale: 1 }, { translateY: 0 }] };
@@ -58,36 +55,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = React.memo(({ scr
           {profile.firstName}
         </AppText>
       </Animated.View>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <PressScale onPress={() => navigation.navigate('Notifications')} accessibilityLabel={t('notifications.title')} style={{ marginRight: theme.spacing.sm }}>
-          <View>
-            <AppIcon name="notifications-outline" size={22} color={dashboardColors.textPrimary} />
-            {unread > 0 ? (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: -2,
-                  right: -4,
-                  backgroundColor: dashboardColors.accent,
-                  borderRadius: 8,
-                  minWidth: 16,
-                  height: 16,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingHorizontal: 2,
-                }}
-              >
-                <AppText variant="caption" color={dashboardColors.background} weight="700">
-                  {unread}
-                </AppText>
-              </View>
-            ) : null}
-          </View>
-        </PressScale>
-        <PressScale onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })} accessibilityLabel={t('profile.title')}>
-          <UserAvatar size={40} avatarId={profile.avatarId} name={profile.firstName} />
-        </PressScale>
-      </View>
+      <PressScale onPress={() => navigation.navigate('ProfileTab', { screen: 'Profile' })} accessibilityLabel={t('profile.title')}>
+        <UserAvatar size={40} avatarId={profile.avatarId} name={profile.firstName} />
+      </PressScale>
     </View>
   );
 });

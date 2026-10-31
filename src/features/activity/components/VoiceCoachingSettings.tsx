@@ -13,12 +13,26 @@ import {
   TimeAnnouncementInterval,
   readVoiceCoachSettings,
   writeVoiceCoachSettings,
-  listInstalledLanguages,
   speakTestAnnouncement,
 } from '../services/VoiceCoach';
 
 const DISTANCE_OPTIONS: DistanceAnnouncementInterval[] = [0.5, 1, 2, 5];
 const TIME_OPTIONS: TimeAnnouncementInterval[] = ['off', 5, 10, 15, 30];
+
+/**
+ * The only two non-default voice languages Longlivy curates — previously
+ * this list came from whichever TTS language packs happened to be installed
+ * on the device (alphabetically first 3), which is how a stray "as-IN" voice
+ * ended up offered here. `key` is the exact language code passed to the TTS
+ * engine (see VoiceCoach.ts / expo-speech), unchanged from before; `label` is
+ * just the on-screen text. Both engines already fall back to the device's
+ * default voice if a given code has no installed voice, so selecting one
+ * that isn't actually available degrades gracefully rather than crashing.
+ */
+const CURATED_LANGUAGES: { key: string; label: string }[] = [
+  { key: 'ar', label: 'AR' },
+  { key: 'bg-BG', label: 'BG' },
+];
 
 /**
  * Compact Voice Coaching panel for the existing Settings screen — reads and
@@ -29,7 +43,6 @@ const TIME_OPTIONS: TimeAnnouncementInterval[] = ['off', 5, 10, 15, 30];
 export const VoiceCoachingSettings: React.FC = () => {
   const { theme } = useTheme();
   const [settings, setSettings] = useState<VoiceCoachSettings>(DEFAULT_VOICE_COACH_SETTINGS);
-  const [languages, setLanguages] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -37,7 +50,6 @@ export const VoiceCoachingSettings: React.FC = () => {
       setSettings(s);
       setLoaded(true);
     });
-    listInstalledLanguages().then(setLanguages);
   }, []);
 
   const update = useCallback((patch: Partial<VoiceCoachSettings>) => {
@@ -50,10 +62,7 @@ export const VoiceCoachingSettings: React.FC = () => {
 
   if (!loaded) return null;
 
-  const languageSegments = [
-    { key: 'device', label: 'Device default' },
-    ...languages.slice(0, 3).map((lang) => ({ key: lang, label: lang })),
-  ];
+  const languageSegments = [{ key: 'device', label: 'Device default' }, ...CURATED_LANGUAGES];
 
   return (
     <HeroCard style={{ marginBottom: theme.spacing.md }}>

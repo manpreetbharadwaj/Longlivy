@@ -4,7 +4,6 @@ import { HomeStackParamList } from './types';
 import { HomeDashboardScreen } from '@/screens/home/HomeDashboardScreen';
 import { HistoryScreen } from '@/screens/home/HistoryScreen';
 import { GoalsScreen } from '@/screens/home/GoalsScreen';
-import { NotificationsScreen } from '@/screens/home/NotificationsScreen';
 import { EnterWeightScreen } from '@/screens/home/EnterWeightScreen';
 import { withErrorBoundary } from '@/components/hoc/withErrorBoundary';
 
@@ -17,7 +16,6 @@ export const HomeNavigator: React.FC = () => (
     <Stack.Screen name="HomeDashboard" component={HomeDashboard} />
     <Stack.Screen name="History" component={HistoryScreen} />
     <Stack.Screen name="Goals" component={GoalsScreen} />
-    <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="EnterWeight" component={EnterWeightScreen} />
   </Stack.Navigator>
 );

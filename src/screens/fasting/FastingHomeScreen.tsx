@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -45,13 +45,28 @@ export const FastingHomeScreen: React.FC = () => {
   const isRunning = state.phase !== 'idle';
   const accent = state.phase === 'eating' ? EATING_ACCENT : FASTING_ACCENT;
 
+  // `loadFastingData` keeps re-firing on every mount (tab refocus included) so the
+  // screen never shows stale data, but re-showing the full-screen loader for that
+  // background refresh — rather than just for the very first load — replaced the
+  // already-rendered content with a blank loading state on every return visit, which
+  // is the "refresh indicator briefly appears and disappears" flicker: not a hung
+  // request, a loader firing for reloads that didn't need one.
   useEffect(() => {
     dispatch(loadFastingData());
   }, [dispatch]);
+  // Derived from `status`, adjusted during render rather than in an effect (React's own
+  // recommended pattern for "remember something from a previous render") so marking it
+  // true doesn't cost an extra effect-triggered render cycle.
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [prevStatus, setPrevStatus] = useState(status);
+  if (status !== prevStatus) {
+    setPrevStatus(status);
+    if (status === 'succeeded' || status === 'failed') setHasLoadedOnce(true);
+  }
 
   return (
     <FastingHeroLayout title={t('fasting.title')}>
-      {status === 'loading' && !activeFast ? (
+      {status === 'loading' && !activeFast && !hasLoadedOnce ? (
         <AppLoader label={t('common.loading')} />
       ) : (
         <>
