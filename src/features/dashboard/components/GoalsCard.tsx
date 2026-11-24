@@ -9,11 +9,13 @@ import { AppProgressBar } from '@/components/common/AppProgressBar';
 import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { motion } from '@/theme/motion';
 import { selectActiveGoals, selectGoalsStatus } from '@/features/goals/selectors';
 import { fetchGoalsThunk } from '@/features/goals/goalsSlice';
+import { goalTypeLabel } from '@/features/goals/models';
 import { selectDailyNutritionTotals } from '@/features/nutrition/selectors';
 import { selectTodayActivityCalories } from '@/features/activity/selectors';
 import { selectTodayMeditationSeconds } from '@/features/meditation/selectors';
@@ -22,6 +24,7 @@ import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const GoalsCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const dispatch = useAppDispatch();
   const goals = useAppSelector(selectActiveGoals);
@@ -71,16 +74,27 @@ export const GoalsCard: React.FC = React.memo(() => {
   return (
     <HeroCard onPress={() => navigation.navigate('Goals')} style={[dashboardCardElevated, { marginBottom: theme.spacing.sm }]} scaleOnPress>
       <AppText variant="headingSmall" color={dashboardColors.textPrimary} style={{ marginBottom: theme.spacing.sm }}>
-        Today's goals
+        {t('home.goalsCard.title')}
       </AppText>
       {dailyGoals.length === 0 ? (
         <AppText variant="bodySmall" color={dashboardColors.textMuted}>
-          No daily goals yet. Tap to see all your goals.
+          {t('home.goalsCard.empty')}
         </AppText>
       ) : null}
       {dailyGoals.map((goal, index) => {
         const progress = calculateGoalProgress(currentValueFor(goal.type), goal.target);
-        return <GoalRow key={goal.id} index={index} type={goal.type} current={progress.current} target={goal.target} unit={goal.unit} percentage={progress.percentage} exceeded={progress.exceeded} />;
+        return (
+          <GoalRow
+            key={goal.id}
+            index={index}
+            type={goalTypeLabel(goal.type, t)}
+            current={progress.current}
+            target={goal.target}
+            unit={goal.unit}
+            percentage={progress.percentage}
+            exceeded={progress.exceeded}
+          />
+        );
       })}
     </HeroCard>
   );
@@ -97,7 +111,7 @@ const GoalRow: React.FC<{ index: number; type: string; current: number; target: 
         <View style={{ marginBottom: theme.spacing.xs }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
             <AppText variant="bodySmall" style={{ textTransform: 'capitalize' }} color={dashboardColors.textMuted}>
-              {type.replace('_', ' ')}
+              {type}
             </AppText>
             <AppText variant="bodySmall" color={dashboardColors.textPrimary}>
               <AnimatedNumberText value={Math.round(current)} variant="bodySmall" color={dashboardColors.textPrimary} />

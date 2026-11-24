@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Pressable } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Pressable, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/types';
@@ -83,12 +82,8 @@ export const LoginScreen: React.FC = () => {
   return (
     <AuthHeroLayout>
       <View style={{ alignItems: 'center', marginTop: theme.spacing.xl, marginBottom: theme.spacing.xl }}>
-        <View style={{ width: 56, height: 56, borderRadius: 18, overflow: 'hidden', marginBottom: theme.spacing.md }}>
-          <LinearGradient colors={['#3D5266', '#3D5266']} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <AppText variant="headingLarge" color="#FFFFFF" weight="800">
-              L
-            </AppText>
-          </LinearGradient>
+        <View style={{ width: 56, height: 56, borderRadius: 18, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000', marginBottom: theme.spacing.md }}>
+          <Image source={require('../../../assets/images/logo-mark-gold.png')} style={{ width: '70%', height: '70%' }} resizeMode="contain" />
         </View>
         <AppText variant="displayMedium" color="#FFFFFF" align="center">
           {t('auth.login.title')}
@@ -148,7 +143,7 @@ export const LoginScreen: React.FC = () => {
             {t('auth.login.newToLonglivy')}{' '}
           </AppText>
           <Pressable onPress={openRegister} hitSlop={8}>
-            <AppText variant="bodyMedium" color="#5C7A94">
+            <AppText variant="bodyMedium" color="#9C7A3E">
               {t('auth.login.createAccount')}
             </AppText>
           </Pressable>

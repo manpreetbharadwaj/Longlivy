@@ -43,13 +43,13 @@ export interface SectionEnvironment {
 export const sectionEnvironments: Record<SectionKey, SectionEnvironment> = {
   generic: {
     gradient: heroGradient,
-    orbs: [{ size: 340, color: '#3D5266', opacity: 0.12, style: { top: -110, right: -90 } }],
+    orbs: [{ size: 340, color: '#8A6A33', opacity: 0.12, style: { top: -110, right: -90 } }],
   },
   home: {
     gradient: homeHeroGradient,
     orbs: [
       { size: 380, color: '#5C6B78', opacity: 0.12, pulse: true, style: { top: -130, right: -100 } },
-      { size: 300, color: '#3D5266', opacity: 0.08, style: { bottom: 120, left: -120 } },
+      { size: 300, color: '#8A6A33', opacity: 0.08, style: { bottom: 120, left: -120 } },
     ],
   },
   fasting: {

@@ -7,6 +7,7 @@ import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { HeroChip } from '@/components/common/HeroChip';
 import { AppText } from '@/components/common/AppText';
 import { useTheme } from '@/hooks/useTheme';
+import { ctaGradient } from '@/theme/gradients';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { activityRepository } from '@/features/activity/repository/MockActivityRepository';
 import { ActivityType, ACTIVITY_TYPE_LABELS, SELECTABLE_ACTIVITY_TYPES } from '@/features/activity/models';
@@ -73,7 +74,7 @@ export const ManualActivityScreen: React.FC = () => {
         keyboardType="numeric"
         style={{ marginBottom: theme.spacing.md }}
       />
-      <AppGradientButton label="Save activity" onPress={save} loading={saving} colors={['#6E8FAE', '#3D5266']} />
+      <AppGradientButton label="Save activity" onPress={save} loading={saving} colors={ctaGradient} />
     </TabHeroLayout>
   );
 };

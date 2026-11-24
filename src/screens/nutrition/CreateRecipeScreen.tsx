@@ -120,7 +120,7 @@ export const CreateRecipeScreen: React.FC = () => {
             Ingredients
           </AppText>
           {ingredients.map(({ food, quantityText }) => (
-            <HeroCard key={food.id} style={{ marginBottom: theme.spacing.xs, borderColor: '#5C7A94', borderWidth: 2 }}>
+            <HeroCard key={food.id} style={{ marginBottom: theme.spacing.xs, borderColor: '#9C7A3E', borderWidth: 2 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <AppText variant="bodyMedium" color="#FFFFFF" style={{ flex: 1, marginRight: theme.spacing.sm }}>
                   {food.name}
@@ -164,7 +164,7 @@ export const CreateRecipeScreen: React.FC = () => {
               scaleOnPress
               style={{
                 marginBottom: theme.spacing.xs,
-                borderColor: selected ? '#5C7A94' : 'rgba(255,255,255,0.14)',
+                borderColor: selected ? '#9C7A3E' : 'rgba(255,255,255,0.14)',
                 borderWidth: selected ? 2 : 1.5,
               }}
             >

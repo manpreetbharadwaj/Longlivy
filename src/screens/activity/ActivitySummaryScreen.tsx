@@ -8,6 +8,7 @@ import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { HeroCard } from '@/components/common/HeroCard';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
+import { ctaGradient } from '@/theme/gradients';
 import { activityRepository } from '@/features/activity/repository/MockActivityRepository';
 import { Activity, ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
 import { ActivityHeroLayout } from './ActivityHeroLayout';
@@ -71,7 +72,7 @@ export const ActivitySummaryScreen: React.FC = () => {
           {activity.gpsUnavailableReason}
         </AppText>
       ) : null}
-      <AppGradientButton label="Done" onPress={() => navigation.popToTop()} colors={['#6E8FAE', '#3D5266']} style={{ marginTop: theme.spacing.lg }} />
+      <AppGradientButton label="Done" onPress={() => navigation.popToTop()} colors={ctaGradient} style={{ marginTop: theme.spacing.lg }} />
     </ActivityHeroLayout>
   );
 };

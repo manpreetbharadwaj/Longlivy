@@ -34,6 +34,7 @@ import {
 } from '@/features/activity/services/ActivityCalculator';
 import { selectUserProfile } from '@/features/profile/selectors';
 import { prepareActivityLocation } from '@/features/activity/services/LocationPermissionService';
+import { ctaGradient } from '@/theme/gradients';
 import { ActivityFigure } from '@/features/activity/components/ActivityFigure';
 import { getActivityImage } from '@/features/activity/activityImages';
 import { ActivityHeroLayout } from './ActivityHeroLayout';
@@ -306,7 +307,7 @@ export const ActiveActivityScreen: React.FC = () => {
       <View style={{ flexDirection: 'row', marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
         {isPaused ? (
           <View style={{ flex: 1 }}>
-            <AppGradientButton label="Resume" onPress={handleResume} colors={['#6E8FAE', '#3D5266']} />
+            <AppGradientButton label="Resume" onPress={handleResume} colors={ctaGradient} />
           </View>
         ) : (
           <View style={{ flex: 1 }}>

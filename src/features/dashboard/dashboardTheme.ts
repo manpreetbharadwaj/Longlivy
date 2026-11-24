@@ -27,9 +27,9 @@ export const dashboardColors = {
   textSecondary: '#A6A5A2',
   textMuted: '#706F6C',
 
-  accent: '#5C7A94',
-  accentBright: '#7A97B0',
-  accentDark: '#3D5266',
+  accent: '#9C7A3E',
+  accentBright: '#CBA05F',
+  accentDark: '#8A6A33',
 
   border: 'rgba(255,255,255,0.08)',
   borderStrong: 'rgba(255,255,255,0.12)',

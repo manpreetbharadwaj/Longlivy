@@ -32,6 +32,23 @@ export type MeditationAvailability = 'available' | 'coming_soon';
  */
 export type MeditationVisualTheme = 'sunrise' | 'night' | 'calm' | 'focus' | 'ocean' | 'forest' | 'breathing';
 export type SessionStatus = 'started' | 'paused' | 'resumed' | 'completed' | 'ended_prematurely' | 'cancelled';
+
+export function sessionStatusLabel(status: SessionStatus, t: (key: import('@/localization').TranslationKey) => string): string {
+  switch (status) {
+    case 'started':
+      return t('history.sessionStatus.started');
+    case 'paused':
+      return t('history.sessionStatus.paused');
+    case 'resumed':
+      return t('history.sessionStatus.resumed');
+    case 'completed':
+      return t('history.sessionStatus.completed');
+    case 'ended_prematurely':
+      return t('history.sessionStatus.ended_prematurely');
+    case 'cancelled':
+      return t('history.sessionStatus.cancelled');
+  }
+}
 export type SessionEventType =
   | 'started'
   | 'paused'

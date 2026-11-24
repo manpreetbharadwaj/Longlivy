@@ -17,15 +17,15 @@ export type AvatarArt = React.FC<AvatarArtProps>;
  * Shared visual system so the set reads as one family:
  *  - 100×100 viewBox, motif kept within an ~18–82 inset
  *  - a two-tone dark "disc" (steel top-light over near-black) matching the
- *    app's dark hero surfaces and blue/steel accent
- *  - one ink tone for primary shapes, one steel accent for support
+ *    app's dark hero surfaces and gold brand accent
+ *  - one ink tone for primary shapes, one gold accent for support
  *  - consistent 6-unit rounded strokes
  */
 const DISC_BASE = '#17181B';
 const DISC_LIGHT = '#2A2F37';
 const INK = '#F2F1EE';
-const ACCENT = '#7A97B0';
-const ACCENT_SOFT = 'rgba(122,151,176,0.22)';
+const ACCENT = '#CBA05F';
+const ACCENT_SOFT = 'rgba(203,160,95,0.22)';
 const PETAL_SOFT = 'rgba(242,241,238,0.14)';
 const STROKE = 6;
 

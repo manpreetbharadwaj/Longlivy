@@ -9,6 +9,7 @@ import { AppIcon } from '@/components/common/AppIcon';
 import { GlowOrb } from '@/components/common/GlowOrb';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppSelector } from '@/store/hooks';
 import { selectActiveFast } from '@/features/fasting/selectors';
 import { motion } from '@/theme/motion';
@@ -28,6 +29,7 @@ const AUTO_ADVANCE_MS = 1900;
 export const FastingStartedScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<FastingStackParamList>>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const activeFast = useAppSelector(selectActiveFast);
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
@@ -53,15 +55,15 @@ export const FastingStartedScreen: React.FC = () => {
   const markStyle = useAnimatedStyle(() => ({ opacity: opacity.value, transform: [{ scale: scale.value }] }));
 
   const eatingHours = activeFast?.eatingHours ?? 0;
-  const methodLabel = activeFast ? sessionModelLabel(activeFast) : null;
+  const methodLabel = activeFast ? sessionModelLabel(activeFast, t) : null;
   const plannedEnd = activeFast ? new Date(activeFast.plannedEndTimestamp) : null;
 
   return (
-    <Pressable style={{ flex: 1 }} onPress={goToTimeline} accessibilityRole="button" accessibilityLabel="Continue to your fasting timeline">
+    <Pressable style={{ flex: 1 }} onPress={goToTimeline} accessibilityRole="button" accessibilityLabel={t('fasting.started.continueLabel')}>
       <FastingHeroLayout scroll={false}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <View style={{ width: 148, height: 148, alignItems: 'center', justifyContent: 'center', marginBottom: theme.spacing.lg }}>
-            <GlowOrb size={148} color="#3D5266" opacity={0.22} pulse />
+            <GlowOrb size={148} color="#8A6A33" opacity={0.22} pulse />
             <Animated.View
               style={[
                 {
@@ -83,21 +85,23 @@ export const FastingStartedScreen: React.FC = () => {
 
           <FadeSlideIn delay={motion.duration.base}>
             <AppText variant="displayMedium" color="#FFFFFF" align="center">
-              Fasting started
+              {t('fasting.started.title')}
             </AppText>
           </FadeSlideIn>
           {methodLabel ? (
             <FadeSlideIn delay={motion.duration.base + motion.staggerStepMs * 2}>
               <AppText variant="bodyLarge" color="rgba(255,255,255,0.7)" align="center" style={{ marginTop: theme.spacing.xs }}>
                 {methodLabel}
-                {plannedEnd ? ` · ${eatingHours > 0 ? 'eating window begins' : 'planned end'} ${formatDayClock(plannedEnd, new Date())}` : ''}
+                {plannedEnd
+                  ? ` · ${eatingHours > 0 ? t('fasting.started.eatingWindowBegins') : t('fasting.started.plannedEnd')} ${formatDayClock(plannedEnd, new Date(), t)}`
+                  : ''}
               </AppText>
             </FadeSlideIn>
           ) : null}
 
           <FadeSlideIn delay={motion.duration.base + motion.staggerStepMs * 5}>
             <AppText variant="bodySmall" color="rgba(255,255,255,0.4)" align="center" style={{ marginTop: theme.spacing.xl }}>
-              Tap anywhere to continue
+              {t('fasting.started.tapToContinue')}
             </AppText>
           </FadeSlideIn>
         </View>

@@ -9,6 +9,7 @@ import { AppProgressRing } from '@/components/common/AppProgressRing';
 import { AppBadge } from '@/components/common/AppBadge';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useFastingCycle } from '@/features/fasting/hooks/useFastingCycle';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
 import { sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
@@ -22,6 +23,7 @@ const FASTING_ACCENT = '#8B7FA8';
 
 export const FastingCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const { state, activeFast, now } = useFastingCycle({ settle: true });
   const isEating = state.phase === 'eating';
@@ -41,12 +43,12 @@ export const FastingCard: React.FC = React.memo(() => {
         <View style={{ flex: 1, marginLeft: theme.spacing.md }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
             <AppText variant="label" color={FASTING_ACCENT} style={{ letterSpacing: 0.5 }}>
-              FASTING
+              {t('home.fastingCard.eyebrow').toUpperCase()}
             </AppText>
             {isRunning ? (
               <FadeSlideIn delay={250} fromY={4}>
                 <View style={{ marginLeft: theme.spacing.xxs }}>
-                  <AppBadge label={isEating ? 'Eating window' : 'Active'} tone="success" />
+                  <AppBadge label={isEating ? t('home.fastingCard.eatingWindow') : t('home.fastingCard.active')} tone="success" />
                 </View>
               </FadeSlideIn>
             ) : null}
@@ -54,24 +56,30 @@ export const FastingCard: React.FC = React.memo(() => {
           {isRunning ? (
             <>
               <AppText variant="metricMedium" color={dashboardColors.textPrimary}>
-                {isEating ? formatSpan(state.remainingMs) : formatDurationHM(state.elapsedMs)}
+                {isEating ? formatSpan(state.remainingMs, t) : formatDurationHM(state.elapsedMs)}
               </AppText>
               <AppText variant="bodySmall" color={dashboardColors.textMuted}>
                 {isEating
-                  ? `until fasting begins ${state.nextFastStart ? formatDayClock(state.nextFastStart, now) : ''}`
+                  ? t('home.fastingCard.untilFastingBegins', { time: state.nextFastStart ? formatDayClock(state.nextFastStart, now, t) : '' })
                   : state.goalReached
-                    ? 'Goal time reached'
-                    : `${formatSpan(state.remainingMs)} left${state.nextTransition?.kind === 'eating_begins' ? ` · eating ${formatDayClock(state.nextTransition.at, now)}` : ''}`}
-                {activeFast ? ` · ${sessionModelLabel(activeFast)}` : ''}
+                    ? t('home.fastingCard.goalTimeReached')
+                    : t('home.fastingCard.remainingLeft', {
+                        span:
+                          formatSpan(state.remainingMs, t) +
+                          (state.nextTransition?.kind === 'eating_begins'
+                            ? ` · ${t('home.fastingCard.eatingAt', { time: formatDayClock(state.nextTransition.at, now, t) })}`
+                            : ''),
+                      })}
+                {activeFast ? ` · ${sessionModelLabel(activeFast, t)}` : ''}
               </AppText>
             </>
           ) : (
             <>
               <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
-                {state.nextFastStart ? 'Next fast' : 'Ready when you are'}
+                {state.nextFastStart ? t('home.fastingCard.nextFast') : t('home.fastingCard.readyWhenYouAre')}
               </AppText>
               <AppText variant="bodySmall" color={dashboardColors.textMuted} style={{ marginTop: 1 }}>
-                {state.nextFastStart ? `Begins ${formatDayClock(state.nextFastStart, now)}` : 'Start a fast to begin your journey.'}
+                {state.nextFastStart ? t('home.fastingCard.begins', { time: formatDayClock(state.nextFastStart, now, t) }) : t('home.fastingCard.startJourney')}
               </AppText>
             </>
           )}
@@ -80,7 +88,7 @@ export const FastingCard: React.FC = React.memo(() => {
           <Pressable
             onPress={goToFasting}
             accessibilityRole="button"
-            accessibilityLabel="Start fast"
+            accessibilityLabel={t('home.fastingCard.startFast')}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -92,7 +100,7 @@ export const FastingCard: React.FC = React.memo(() => {
             }}
           >
             <AppText variant="bodySmall" weight="700" color={dashboardColors.background}>
-              Start Fast
+              {t('home.fastingCard.startFast')}
             </AppText>
             <AppIcon name="arrow-forward" size={13} color={dashboardColors.background} />
           </Pressable>

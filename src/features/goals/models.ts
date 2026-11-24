@@ -15,6 +15,26 @@ export type GoalType =
   // of the domain model to an untyped object.
   | (string & {});
 
+const KNOWN_GOAL_TYPES = [
+  'calories',
+  'protein',
+  'carbohydrates',
+  'fat',
+  'fiber',
+  'fasting_hours',
+  'activity_minutes',
+  'meditation_minutes',
+  'meditation_sessions',
+  'weight',
+] as const;
+type KnownGoalType = (typeof KNOWN_GOAL_TYPES)[number];
+
+/** Known goal types get a proper translated label; an unrecognized server-defined type falls back to a humanized version of its raw id (same fallback the old `.replace('_', ' ')` display gave). */
+export function goalTypeLabel(type: GoalType, t: (key: import('@/localization').TranslationKey) => string): string {
+  if ((KNOWN_GOAL_TYPES as readonly string[]).includes(type)) return t(`enums.goalType.${type as KnownGoalType}`);
+  return type.replace(/_/g, ' ');
+}
+
 export interface Goal {
   id: string;
   userId: string;

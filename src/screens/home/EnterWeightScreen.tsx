@@ -110,7 +110,7 @@ export const EnterWeightScreen: React.FC = () => {
               key={entry.id}
               onPress={() => startEdit(entry.id, entry.weightKg)}
               accessibilityLabel={`Edit ${entry.weightKg} kg entry`}
-              style={{ marginBottom: theme.spacing.xs, borderColor: editingId === entry.id ? '#5C7A94' : 'rgba(255,255,255,0.14)', borderWidth: editingId === entry.id ? 2 : 1.5 }}
+              style={{ marginBottom: theme.spacing.xs, borderColor: editingId === entry.id ? '#9C7A3E' : 'rgba(255,255,255,0.14)', borderWidth: editingId === entry.id ? 2 : 1.5 }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{ flex: 1 }}>

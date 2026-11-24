@@ -96,7 +96,7 @@ export const AddFoodScreen: React.FC = () => {
       title={food.name}
       onBack={() => navigation.goBack()}
       rightElement={
-        <Pressable onPress={toggleFavorite} accessibilityRole="button" accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'} hitSlop={8}>
+        <Pressable onPress={toggleFavorite} accessibilityRole="button" accessibilityLabel={isFavorite ? t('nutrition.addFood.removeFavorite') : t('nutrition.addFood.addFavorite')} hitSlop={8}>
           <AppIcon name={isFavorite ? 'star' : 'star-outline'} size={22} color={isFavorite ? '#E5BC72' : 'rgba(255,255,255,0.6)'} />
         </Pressable>
       }
@@ -106,19 +106,19 @@ export const AddFoodScreen: React.FC = () => {
         {food.category}
       </AppText>
 
-      <HeroTextField label={`Quantity (${food.unit})`} value={quantity} onChangeText={setQuantity} keyboardType="numeric" style={{ marginBottom: theme.spacing.md }} />
+      <HeroTextField label={t('nutrition.addFood.quantityLabel', { unit: food.unit })} value={quantity} onChangeText={setQuantity} keyboardType="numeric" style={{ marginBottom: theme.spacing.md }} />
 
       {scaled ? (
         <HeroCard style={{ marginBottom: theme.spacing.lg }}>
-          <NutrientRow index={0} label="Calories" value={scaled.calories} unit=" kcal" />
-          <NutrientRow index={1} label="Protein" value={scaled.protein} unit=" g" />
-          <NutrientRow index={2} label="Carbohydrates" value={scaled.carbohydrates} unit=" g" />
-          <NutrientRow index={3} label="Fat" value={scaled.fat} unit=" g" last={scaled.fiber === undefined} />
-          {scaled.fiber !== undefined ? <NutrientRow index={4} label="Fiber" value={scaled.fiber} unit=" g" last /> : null}
+          <NutrientRow index={0} label={t('nutrition.addFood.calories')} value={scaled.calories} unit=" kcal" />
+          <NutrientRow index={1} label={t('nutrition.addFood.protein')} value={scaled.protein} unit=" g" />
+          <NutrientRow index={2} label={t('nutrition.addFood.carbohydrates')} value={scaled.carbohydrates} unit=" g" />
+          <NutrientRow index={3} label={t('nutrition.addFood.fat')} value={scaled.fat} unit=" g" last={scaled.fiber === undefined} />
+          {scaled.fiber !== undefined ? <NutrientRow index={4} label={t('nutrition.addFood.fiber')} value={scaled.fiber} unit=" g" last /> : null}
         </HeroCard>
       ) : null}
 
-      <AppGradientButton label={`Add to ${route.params.mealType}`} onPress={handleAdd} loading={saving} colors={NUTRITION_GRADIENT} />
+      <AppGradientButton label={t('nutrition.addFood.addToMeal', { mealType: route.params.mealType })} onPress={handleAdd} loading={saving} colors={NUTRITION_GRADIENT} />
     </TabHeroLayout>
   );
 };

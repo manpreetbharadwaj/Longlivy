@@ -126,7 +126,7 @@ export const BarcodeScannerScreen: React.FC = () => {
                 This product isn't in the food database yet. Add it manually and it'll be found next time.
               </AppText>
               <Pressable onPress={() => navigation.navigate('MyFoods', { barcode: manualCode || undefined })} accessibilityRole="button">
-                <AppText variant="bodyMedium" color="#5C7A94">
+                <AppText variant="bodyMedium" color="#9C7A3E">
                   Add this product manually
                 </AppText>
               </Pressable>

@@ -27,7 +27,7 @@ export const AutophagyInfoCard: React.FC = React.memo(() => {
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <AppIcon name="flask-outline" size={20} color="#6E8FAE" />
+        <AppIcon name="flask-outline" size={20} color="#9C7A3E" />
         <AppText variant="headingSmall" color="#FFFFFF" style={{ marginLeft: theme.spacing.xs, flex: 1 }}>
           About autophagy
         </AppText>

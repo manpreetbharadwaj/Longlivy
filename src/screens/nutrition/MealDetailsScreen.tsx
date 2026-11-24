@@ -125,7 +125,7 @@ export const MealDetailsScreen: React.FC = () => {
           <FadeSlideIn key={item.id} delay={index * motion.staggerStepMs} fromY={8}>
             <HeroCard
               onPress={editing ? undefined : () => startEdit(item)}
-              style={{ marginBottom: theme.spacing.sm, borderColor: editing ? '#5C7A94' : 'rgba(255,255,255,0.14)', borderWidth: editing ? 2 : 1.5 }}
+              style={{ marginBottom: theme.spacing.sm, borderColor: editing ? '#9C7A3E' : 'rgba(255,255,255,0.14)', borderWidth: editing ? 2 : 1.5 }}
               scaleOnPress={!editing}
             >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

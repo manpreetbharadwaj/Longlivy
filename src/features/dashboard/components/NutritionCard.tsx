@@ -10,6 +10,7 @@ import { AppProgressBar } from '@/components/common/AppProgressBar';
 import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppSelector } from '@/store/hooks';
 import { useAnimatedProgress } from '@/hooks/useAnimatedProgress';
 import { motion } from '@/theme/motion';
@@ -19,6 +20,7 @@ import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const NutritionCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const progress = useAppSelector(selectNutritionProgress);
   const hasGoal = useAppSelector(selectHasCalorieGoal);
@@ -31,15 +33,15 @@ export const NutritionCard: React.FC = React.memo(() => {
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.sm }}>
         <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
-          Nutrition summary
+          {t('home.nutritionCard.title')}
         </AppText>
         <AppText variant="bodySmall" color={dashboardColors.accent}>
-          View details
+          {t('home.nutritionCard.viewDetails')}
         </AppText>
       </View>
-      <MacroRow index={0} label="Protein" icon="egg-outline" progress={progress.protein} noTarget={!hasGoal} color="#C9974E" />
-      <MacroRow index={1} label="Carbs" icon="pizza-outline" progress={progress.carbohydrates} noTarget={!hasGoal} color="#6E8FAE" />
-      <MacroRow index={2} label="Fat" icon="water-outline" progress={progress.fat} noTarget={!hasGoal} color="#8B7FA8" isLast />
+      <MacroRow index={0} label={t('nutrition.macros.protein')} icon="egg-outline" progress={progress.protein} noTarget={!hasGoal} color="#C9974E" />
+      <MacroRow index={1} label={t('nutrition.macros.carbs')} icon="pizza-outline" progress={progress.carbohydrates} noTarget={!hasGoal} color="#6E8FAE" />
+      <MacroRow index={2} label={t('nutrition.macros.fat')} icon="water-outline" progress={progress.fat} noTarget={!hasGoal} color="#8B7FA8" isLast />
     </HeroCard>
   );
 });
@@ -56,6 +58,7 @@ const MacroRow: React.FC<{
   /** No daily goal on the account: there is no target to show (only the built-in default). */
   noTarget?: boolean;
 }> = React.memo(({ index, label, icon, progress, color, isLast, noTarget }) => {
+  const { t } = useTranslation();
   const animatedFraction = useAnimatedProgress(noTarget ? 0 : progress.percentage / 100);
   return (
     <FadeSlideIn delay={index * motion.staggerStepMs} fromY={6}>
@@ -80,7 +83,7 @@ const MacroRow: React.FC<{
             </AppText>
             <AppText variant="bodySmall" color={dashboardColors.textPrimary}>
               <AnimatedNumberText value={Math.round(progress.current)} variant="bodySmall" color={dashboardColors.textPrimary} />
-              {noTarget ? 'g / —' : `g / ${progress.target}g`}
+              {noTarget ? t('home.nutritionCard.gramsNoTarget') : t('home.nutritionCard.gramsOfTarget', { target: progress.target })}
             </AppText>
           </View>
           <AppProgressBar progress={animatedFraction} color={color} trackColor={dashboardColors.border} height={6} />

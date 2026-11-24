@@ -7,9 +7,11 @@ import { AppCard } from '@/components/common/AppCard';
 import { AppText } from '@/components/common/AppText';
 import { AppSwitch } from '@/components/common/AppSwitch';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectNotificationSettings } from '@/features/notifications/selectors';
 import { DELIVERABLE_NOTIFICATION_TYPES, toggleNotificationSettingThunk } from '@/features/notifications/notificationSlice';
+import { notificationTypeLabel, notificationTypeDescription } from '@/features/notifications/models';
 
 const FASTING_EVENT_TYPES = [
   'fasting_begins',
@@ -24,6 +26,7 @@ const FASTING_EVENT_TYPES = [
 
 export const FastingSettingsScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const settings = useAppSelector(selectNotificationSettings).filter((s) => FASTING_EVENT_TYPES.includes(s.type as any));
@@ -32,21 +35,21 @@ export const FastingSettingsScreen: React.FC = () => {
     (type: (typeof FASTING_EVENT_TYPES)[number]) =>
       dispatch(toggleNotificationSettingThunk(type))
         .unwrap()
-        .catch((e: unknown) => Alert.alert('Setting not saved', e instanceof Error ? e.message : 'Please try again.')),
-    [dispatch],
+        .catch((e: unknown) => Alert.alert(t('fasting.settings.saveFailedTitle'), e instanceof Error ? e.message : t('fasting.settings.saveFailedBody'))),
+    [dispatch, t],
   );
 
   return (
     <>
-      <AppHeader title="Fasting settings" onBack={() => navigation.goBack()} />
+      <AppHeader title={t('fasting.menu.settings')} onBack={() => navigation.goBack()} />
       <AppScreen belowHeader>
         <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.xs }}>
-          Notifications
+          {t('fasting.settings.notifications')}
         </AppText>
         {/* None of these is delivered yet (no push provider / backend events); say so instead of offering live switches. */}
         {settings.some((s) => !DELIVERABLE_NOTIFICATION_TYPES.has(s.type)) ? (
           <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.sm }}>
-            Fasting notifications aren't available yet. These switches will turn on once delivery is supported.
+            {t('fasting.settings.notDeliverableNotice')}
           </AppText>
         ) : null}
         <AppCard>
@@ -63,16 +66,16 @@ export const FastingSettingsScreen: React.FC = () => {
               }}
             >
               <View style={{ flex: 1, marginRight: theme.spacing.sm }}>
-                <AppText variant="bodyMedium">{s.label}</AppText>
+                <AppText variant="bodyMedium">{notificationTypeLabel(s, t)}</AppText>
                 <AppText variant="caption" color={theme.colors.textSecondary}>
-                  {s.description}
+                  {notificationTypeDescription(s, t)}
                 </AppText>
               </View>
               <AppSwitch
                 value={s.enabled}
                 onValueChange={() => toggle(s.type as any)}
                 disabled={!DELIVERABLE_NOTIFICATION_TYPES.has(s.type)}
-                accessibilityLabel={s.label}
+                accessibilityLabel={notificationTypeLabel(s, t)}
               />
             </View>
           ))}

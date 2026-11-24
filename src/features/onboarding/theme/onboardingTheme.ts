@@ -22,12 +22,12 @@ export const onboardingGradient = ['#0A0908', '#100E0C', '#19160F'] as const;
 /** Slightly lifted panel tone for glass surfaces sitting on top of the base gradient. */
 export const onboardingPanelGradient = ['#19160F', '#201C15'] as const;
 
-/** The one bold accent — muted steel blue, matching the app's `primary` token. Reserved for things that genuinely need to stand out: the primary CTA, a selected state, a data highlight — not every icon/border in the flow (see `onboardingNeutral` for those). */
-export const onboardingAccent = '#5C7A94';
+/** The one bold accent — muted premium gold (v7 rebrand), matching the app's `primary` token. Reserved for things that genuinely need to stand out: the primary CTA, a selected state, a data highlight — not every icon/border in the flow (see `onboardingNeutral` for those). */
+export const onboardingAccent = '#9C7A3E';
 /** Deeper stop for the accent gradient — keeps the CTA from reading as a flat sticker. */
-export const onboardingAccentDeep = '#3D5266';
+export const onboardingAccentDeep = '#8A6A33';
 /** A lighter tint of the same accent hue — reserved for numeric/data moments (ruler pickers, calorie count-up) so it reads as "your data, in focus" rather than a second, unrelated brand color. Muted, not neon. */
-export const onboardingData = '#7A97B0';
+export const onboardingData = '#CBA05F';
 
 /** Warm taupe/graphite — the default tone for decorative icon tiles, badges and preview rows that aren't a primary action or a live selection, so blue doesn't end up on every element on screen simultaneously. */
 export const onboardingNeutral = '#9A9186';
@@ -40,7 +40,7 @@ export const onboardingGlow = [onboardingAccent, onboardingAccentDeep] as const;
 /** Glass-surface tokens shared by every onboarding component (cards, inputs, chips). */
 export const onboardingGlass = {
   fill: 'rgba(255,255,255,0.05)',
-  fillSelected: 'rgba(92,122,148,0.18)',
+  fillSelected: 'rgba(156,122,62,0.18)',
   border: 'rgba(255,255,255,0.12)',
   borderSelected: onboardingAccent,
   textPrimary: '#F2F1EE',

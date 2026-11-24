@@ -75,7 +75,7 @@ export const AiMealReviewScreen: React.FC = () => {
   return (
     <TabHeroLayout title="Review before saving" onBack={() => navigation.goBack()}>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.md }}>
-        <AppIcon name="information-circle-outline" size={18} color="#6E8FAE" />
+        <AppIcon name="information-circle-outline" size={18} color="#9C7A3E" />
         <AppText variant="bodySmall" color="rgba(255,255,255,0.7)" style={{ marginLeft: theme.spacing.xxs, flex: 1 }}>
           {SOURCE_LABEL[route.params.source]}-based recognition is an estimate. Check and adjust each item before
           saving — nothing is stored automatically.

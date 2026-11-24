@@ -10,15 +10,17 @@ import { AppBadge } from '@/components/common/AppBadge';
 import { AppIconTile } from '@/components/common/AppIconTile';
 import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { selectActiveActivity, selectTodayActivityCalories } from '@/features/activity/selectors';
-import { ACTIVITY_TYPE_LABELS } from '@/features/activity/models';
+import { activityTypeLabel, activityStatusLabel } from '@/features/activity/models';
 import { homeIconTileStyle } from '../homeIconTileStyle';
 import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const ActivityCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const active = useAppSelector(selectActiveActivity);
   const todayCalories = useAppSelector(selectTodayActivityCalories);
@@ -57,15 +59,15 @@ export const ActivityCard: React.FC = React.memo(() => {
           </Animated.View>
           <View>
             <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
-              Activity
+              {t('home.activityCard.title')}
             </AppText>
             <AppText variant="bodySmall" color={dashboardColors.textMuted}>
               <AnimatedNumberText value={todayCalories} variant="bodySmall" color={dashboardColors.textMuted} />
-              {' kcal burned today'}
+              {` ${t('home.activityCard.kcalBurnedToday')}`}
             </AppText>
           </View>
         </View>
-        {active ? <AppBadge label={`${ACTIVITY_TYPE_LABELS[active.type]} · ${active.status}`} tone="info" /> : null}
+        {active ? <AppBadge label={`${activityTypeLabel(active.type, t)} · ${activityStatusLabel(active.status, t)}`} tone="info" /> : null}
       </View>
     </HeroCard>
   );

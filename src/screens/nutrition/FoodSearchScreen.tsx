@@ -9,6 +9,7 @@ import { HeroCard } from '@/components/common/HeroCard';
 import { AppText } from '@/components/common/AppText';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { searchFoodsThunk } from '@/features/nutrition/nutritionSlice';
 import { selectFoodSearchResults, selectFoodSearchStatus } from '@/features/nutrition/selectors';
@@ -17,6 +18,7 @@ import { Food } from '@/features/nutrition/models';
 
 export const FoodSearchScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<NutritionStackParamList>>();
   const route = useRoute<RouteProp<NutritionStackParamList, 'FoodSearch'>>();
   const dispatch = useAppDispatch();
@@ -51,12 +53,12 @@ export const FoodSearchScreen: React.FC = () => {
   );
 
   return (
-    <TabHeroLayout title={`Add to ${route.params.mealType}`} onBack={() => navigation.goBack()} scroll={false}>
+    <TabHeroLayout title={t('nutrition.foodSearch.title', { mealType: route.params.mealType })} onBack={() => navigation.goBack()} scroll={false}>
       <View style={{ marginBottom: theme.spacing.sm }}>
-        <HeroTextField placeholder="Search foods, brands, categories…" value={query} onChangeText={setQuery} autoFocus />
+        <HeroTextField placeholder={t('nutrition.foodSearch.searchPlaceholder')} value={query} onChangeText={setQuery} autoFocus />
         <Pressable onPress={() => navigation.navigate('MyFoods')} accessibilityRole="button" style={{ marginTop: theme.spacing.xs, alignSelf: 'flex-start' }}>
-          <AppText variant="bodySmall" color="#5C7A94">
-            Create own food instead
+          <AppText variant="bodySmall" color="#9C7A3E">
+            {t('nutrition.foodSearch.createOwnFood')}
           </AppText>
         </Pressable>
       </View>
@@ -89,10 +91,10 @@ export const FoodSearchScreen: React.FC = () => {
                 <AppIcon name="search-outline" size={30} color="rgba(255,255,255,0.5)" />
               </View>
               <AppText variant="headingSmall" color="#FFFFFF" align="center">
-                No foods found
+                {t('nutrition.foodSearch.emptyTitle')}
               </AppText>
               <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.xxs }}>
-                Try a different search term, or create your own food entry.
+                {t('nutrition.foodSearch.emptyMessage')}
               </AppText>
             </View>
           }

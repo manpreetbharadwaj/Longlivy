@@ -5,11 +5,15 @@ import { AppScreen } from '@/components/common/AppScreen';
 import { AppHeader } from '@/components/common/AppHeader';
 import { AppText } from '@/components/common/AppText';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation, useDateLocale } from '@/localization';
 import { useAppSelector } from '@/store/hooks';
 import { selectFastingHistory, selectActiveFast } from '@/features/fasting/selectors';
+import { fastingStatusLabel } from '@/features/fasting/services/fastingFormat';
 
 export const FastingCalendarScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const navigation = useNavigation();
   const history = useAppSelector(selectFastingHistory);
   const activeFast = useAppSelector(selectActiveFast);
@@ -45,10 +49,10 @@ export const FastingCalendarScreen: React.FC = () => {
 
   return (
     <>
-      <AppHeader title="Fasting calendar" onBack={() => navigation.goBack()} />
+      <AppHeader title={t('fasting.menu.calendar')} onBack={() => navigation.goBack()} />
       <AppScreen belowHeader>
         <AppText variant="headingSmall" style={{ marginBottom: theme.spacing.sm }}>
-          {new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+          {new Date().toLocaleDateString(dateLocale, { month: 'long', year: 'numeric' })}
         </AppText>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {daysInMonth.map((day) => {
@@ -85,9 +89,9 @@ export const FastingCalendarScreen: React.FC = () => {
           })}
         </View>
         <View style={{ flexDirection: 'row', marginTop: theme.spacing.md, flexWrap: 'wrap' }}>
-          <LegendDot color={theme.colors.success} label="Completed" />
-          <LegendDot color={theme.colors.warning} label="Ended early" />
-          <LegendDot color={theme.colors.fasting} label="Active" />
+          <LegendDot color={theme.colors.success} label={fastingStatusLabel('completed', t)} />
+          <LegendDot color={theme.colors.warning} label={fastingStatusLabel('ended_prematurely', t)} />
+          <LegendDot color={theme.colors.fasting} label={fastingStatusLabel('active', t)} />
         </View>
       </AppScreen>
     </>

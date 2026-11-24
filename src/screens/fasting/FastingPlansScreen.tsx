@@ -11,14 +11,19 @@ import { AppButton } from '@/components/common/AppButton';
 import { AppBadge } from '@/components/common/AppBadge';
 import { AppEmptyState } from '@/components/common/AppEmptyState';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation, useDateLocale } from '@/localization';
 import { fastingRepository } from '@/features/fasting/repository/MockFastingRepository';
 import { FastingPlan, FastingPlanDayOverride } from '@/features/fasting/models';
 import { scheduleFromPlan, formatModelLabel } from '@/features/fasting/services/fastingPlanSchedule';
 import { selectCurrentUserId } from '@/features/auth/selectors';
 import { useAppSelector } from '@/store/hooks';
 
-const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const UPCOMING_DAYS = 14;
+// 2024-01-07 is a Sunday — used as a reference date so weekday index 0..6 can
+// be formatted through Intl (locale-aware) instead of a static English array.
+function weekdayShort(dayIndex: number, locale: string): string {
+  return new Date(2024, 0, 7 + dayIndex).toLocaleDateString(locale, { weekday: 'short' });
+}
 
 /** The local calendar date (yyyy-mm-dd). `toISOString()` would give the UTC date, which is the previous day for a local midnight east of UTC. */
 function toDateKey(d: Date): string {
@@ -33,6 +38,7 @@ function toDateKey(d: Date): string {
 export const FastingPlansScreen: React.FC = () => {
   const currentUserId = useAppSelector(selectCurrentUserId);
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<FastingStackParamList>>();
   const [plans, setPlans] = useState<FastingPlan[] | null>(null);
   const [overridesByPlan, setOverridesByPlan] = useState<Record<string, FastingPlanDayOverride[]>>({});
@@ -75,28 +81,27 @@ export const FastingPlansScreen: React.FC = () => {
 
   return (
     <>
-      <AppHeader title="My fasting plans" onBack={() => navigation.goBack()} />
+      <AppHeader title={t('fasting.plans.title')} onBack={() => navigation.goBack()} />
       <AppScreen belowHeader>
         {plans.length === 0 ? (
           <AppEmptyState
             icon="calendar-outline"
-            title="No recurring plans yet"
-            message="Choose a fasting model and when it begins - it repeats every day."
-            actionLabel="Set up a schedule"
+            title={t('fasting.plans.emptyTitle')}
+            message={t('fasting.plans.emptyMessage')}
+            actionLabel={t('fasting.plans.setUpSchedule')}
             onAction={() => navigation.navigate('SelectFastingMethod', { mode: 'edit' })}
           />
         ) : (
           <>
             <AppText variant="bodySmall" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.md }}>
-              Tap an upcoming day to skip it just for that occurrence — the rest of the recurring plan stays
-              unchanged.
+              {t('fasting.plans.tapToSkipHint')}
             </AppText>
             {plans.map((plan) => (
               <PlanCard key={plan.id} plan={plan} overrides={overridesByPlan[plan.id] ?? []} onToggleSkip={toggleSkip} busyKey={busyKey} />
             ))}
           </>
         )}
-        <AppButton label="Change schedule" variant="outline" onPress={() => navigation.navigate('SelectFastingMethod', { mode: 'edit' })} style={{ marginTop: theme.spacing.sm }} />
+        <AppButton label={t('fasting.plans.changeSchedule')} variant="outline" onPress={() => navigation.navigate('SelectFastingMethod', { mode: 'edit' })} style={{ marginTop: theme.spacing.sm }} />
       </AppScreen>
     </>
   );
@@ -109,6 +114,8 @@ const PlanCard: React.FC<{
   onToggleSkip: (plan: FastingPlan, dateKey: string, currentlySkipped: boolean) => void;
 }> = ({ plan, overrides, busyKey, onToggleSkip }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
+  const dateLocale = useDateLocale();
   const skippedDates = useMemo(() => new Set(overrides.filter((o) => o.action === 'skip').map((o) => o.date)), [overrides]);
 
   const schedule = useMemo(() => scheduleFromPlan(plan), [plan]);
@@ -129,12 +136,14 @@ const PlanCard: React.FC<{
     <AppCard style={{ marginBottom: theme.spacing.md }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing.xs }}>
         <AppText variant="headingSmall">
-          {schedule ? `${formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours })} · ${plan.startTime}–${plan.endTime}` : plan.method}
+          {schedule
+            ? `${formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours }, t)} · ${plan.startTime}–${plan.endTime}`
+            : plan.method}
         </AppText>
-        <AppBadge label={plan.active ? 'Active' : 'Paused'} tone={plan.active ? 'success' : 'neutral'} />
+        <AppBadge label={plan.active ? t('fasting.plans.active') : t('fasting.plans.paused')} tone={plan.active ? 'success' : 'neutral'} />
       </View>
       <AppText variant="caption" color={theme.colors.textSecondary} style={{ marginBottom: theme.spacing.sm }}>
-        {plan.weekdays.map((d) => WEEKDAY_LABELS[d]).join(', ')}
+        {plan.weekdays.map((d) => weekdayShort(d, dateLocale)).join(', ')}
       </AppText>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
         {upcoming.map((day) => {
@@ -144,7 +153,7 @@ const PlanCard: React.FC<{
           return (
             <AppBadge
               key={key}
-              label={`${day.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}${skipped ? ' · skipped' : ''}${busy ? '…' : ''}`}
+              label={`${day.toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric' })}${skipped ? ` · ${t('fasting.plans.skipped')}` : ''}${busy ? '…' : ''}`}
               tone={skipped ? 'warning' : 'neutral'}
             />
           );
@@ -157,7 +166,7 @@ const PlanCard: React.FC<{
           return (
             <AppButton
               key={key}
-              label={`${skipped ? 'Unskip' : 'Skip'} ${day.toLocaleDateString(undefined, { weekday: 'short' })}`}
+              label={`${skipped ? t('fasting.plans.unskip') : t('fasting.plans.skip')} ${day.toLocaleDateString(dateLocale, { weekday: 'short' })}`}
               variant={skipped ? 'outline' : 'ghost'}
               fullWidth={false}
               onPress={() => onToggleSkip(plan, key, skipped)}

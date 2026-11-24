@@ -47,6 +47,13 @@ export interface Activity {
   createdAt: string;
 }
 
+/**
+ * English fallback map — kept (and still exported) for the handful of
+ * non-component contexts that can't call `useTranslation()` (background
+ * push-notification scheduling in `ActiveWorkoutNotification.ts`). Every
+ * on-screen usage should go through `activityTypeLabel` instead so the
+ * label follows the active language.
+ */
 export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   running: 'Running',
   walking: 'Walking',
@@ -55,6 +62,36 @@ export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   jogging: 'Jogging',
   other: 'Other',
 };
+
+export function activityTypeLabel(type: ActivityType, t: (key: import('@/localization').TranslationKey) => string): string {
+  switch (type) {
+    case 'running':
+      return t('enums.activityType.running');
+    case 'walking':
+      return t('enums.activityType.walking');
+    case 'cycling':
+      return t('enums.activityType.cycling');
+    case 'hiking':
+      return t('enums.activityType.hiking');
+    case 'jogging':
+      return t('enums.activityType.jogging');
+    case 'other':
+      return t('enums.activityType.other');
+  }
+}
+
+export function activityStatusLabel(status: ActivityStatus, t: (key: import('@/localization').TranslationKey) => string): string {
+  switch (status) {
+    case 'active':
+      return t('enums.activityStatus.active');
+    case 'paused':
+      return t('enums.activityStatus.paused');
+    case 'completed':
+      return t('enums.activityStatus.completed');
+    case 'cancelled':
+      return t('enums.activityStatus.cancelled');
+  }
+}
 
 export const GPS_BASED_TYPES: ActivityType[] = ['running', 'walking', 'cycling', 'hiking', 'jogging'];
 

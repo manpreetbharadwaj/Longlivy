@@ -956,7 +956,7 @@ export const NoiseDeviceScreen: React.FC = () => {
               <AppButton label={isHkDeepRefreshing ? 'Running Deep Refresh…' : 'Deep Refresh'} onPress={handleHealthKitDeepRefresh} disabled={isHkDeepRefreshing} style={{ marginBottom: theme.spacing.sm }} />
               {hkDeepRefreshVerdict ? (
                 <>
-                  <HeroCard style={{ marginBottom: theme.spacing.sm, borderWidth: 1, borderColor: 'rgba(122,151,176,0.35)' }}>
+                  <HeroCard style={{ marginBottom: theme.spacing.sm, borderWidth: 1, borderColor: 'rgba(203,160,95,0.35)' }}>
                     <AppText variant="bodySmall" weight="600" color="#FFFFFF">
                       {hkDeepRefreshVerdict.headline}
                     </AppText>
@@ -1149,7 +1149,7 @@ export const NoiseDeviceScreen: React.FC = () => {
 
             {pipelineVerdict ? (
               <>
-                <HeroCard style={{ marginBottom: theme.spacing.sm, borderWidth: 1, borderColor: 'rgba(122,151,176,0.35)' }}>
+                <HeroCard style={{ marginBottom: theme.spacing.sm, borderWidth: 1, borderColor: 'rgba(203,160,95,0.35)' }}>
                   <AppText variant="bodySmall" weight="600" color="#FFFFFF">
                     {pipelineVerdict.headline}
                   </AppText>
@@ -1619,7 +1619,7 @@ export const NoiseDeviceScreen: React.FC = () => {
                           {c.uuid}
                         </AppText>
                         {vendorLabel ? (
-                          <AppText variant="caption" color="rgba(122,151,176,0.85)">
+                          <AppText variant="caption" color="rgba(203,160,95,0.85)">
                             {vendorLabel}
                           </AppText>
                         ) : null}
@@ -1652,7 +1652,7 @@ export const NoiseDeviceScreen: React.FC = () => {
                       {knownVendorChannelLabel(stat.characteristicUUID) ? <AppBadge label="Verified channel" tone="info" /> : null}
                     </View>
                     {knownVendorChannelLabel(stat.characteristicUUID) ? (
-                      <AppText variant="caption" color="rgba(122,151,176,0.85)" style={{ marginTop: 2 }}>
+                      <AppText variant="caption" color="rgba(203,160,95,0.85)" style={{ marginTop: 2 }}>
                         {knownVendorChannelLabel(stat.characteristicUUID)}
                       </AppText>
                     ) : null}
@@ -1708,12 +1708,12 @@ const FilterChip: React.FC<{ label: string; active: boolean; onPress: () => void
         paddingVertical: 4,
         borderRadius: theme.radius.pill,
         marginLeft: theme.spacing.xs,
-        backgroundColor: active ? 'rgba(92,122,148,0.25)' : 'rgba(255,255,255,0.08)',
+        backgroundColor: active ? 'rgba(156,122,62,0.25)' : 'rgba(255,255,255,0.08)',
         borderWidth: 1,
-        borderColor: active ? 'rgba(92,122,148,0.6)' : 'rgba(255,255,255,0.14)',
+        borderColor: active ? 'rgba(156,122,62,0.6)' : 'rgba(255,255,255,0.14)',
       }}
     >
-      <AppText variant="caption" color={active ? '#7A97B0' : 'rgba(255,255,255,0.6)'}>
+      <AppText variant="caption" color={active ? '#CBA05F' : 'rgba(255,255,255,0.6)'}>
         {label}
       </AppText>
     </Pressable>
@@ -1877,7 +1877,7 @@ const FieldRow: React.FC<{
             </AppText>
           </View>
         ) : field.status === 'not_available' && isSyncing ? (
-          <AppText variant="bodySmall" color="rgba(122,151,176,0.85)">
+          <AppText variant="bodySmall" color="rgba(203,160,95,0.85)">
             Syncing…
           </AppText>
         ) : (

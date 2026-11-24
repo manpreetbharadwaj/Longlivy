@@ -19,11 +19,11 @@ export const heroGradient = ['#08080A', '#0F0F11', '#17171A'] as const;
 /** Slightly lighter variant for hero cards/panels sitting on top of `heroGradient`. */
 export const heroPanelGradient = ['#17171A', '#1D1D21'] as const;
 
-/** Muted steel-blue glow accent — restrained (no longer neon cyan), used sparingly for CTA glow / highlight moments. */
-export const accentGlow = ['#7A97B0', '#3D5266'] as const;
+/** Muted premium-gold glow accent (v7 rebrand, matches the logo mark) — restrained, used sparingly for CTA glow / highlight moments. */
+export const accentGlow = ['#CBA05F', '#8A6A33'] as const;
 
-/** Primary CTA gradient — the muted steel accent deepening, used on the hero gradient buttons. */
-export const ctaGradient = ['#5C7A94', '#3D5266'] as const;
+/** Primary CTA gradient — the muted gold accent deepening, used on the hero gradient buttons. */
+export const ctaGradient = ['#9C7A3E', '#8A6A33'] as const;
 
 /** Per-pillar gradients for the "What is Longlivy" pillar intro — pairs with `colors.ts`'s flat fasting/nutrition/activity/meditation tokens. */
 export const pillarGradients = {

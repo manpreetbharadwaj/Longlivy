@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import { View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Animated, {
@@ -198,13 +197,9 @@ const SignalChip: React.FC<SignalSpec> = ({ icon, family, labelKey, accent, styl
  * "live signal"/biohacking read) so the mark feels instrumented, not
  * decorative.
  *
- * LOGO PLACEHOLDER: the "L" glyph below is a temporary stand-in for the
- * final Longlivy logo, which is still with the designer. The 92x92 gradient
- * tile is the exact slot the finished mark will drop into — same size,
- * same position, same surrounding rings/spacing already tuned around it.
- * Swapping it later is a one-line change: replace the `<AppText>L</AppText>`
- * below with an `<Image source={...} />` (or an SVG mark) sized to fill
- * this same tile; nothing else on this screen needs to move.
+ * The 92x92 tile hosts the final Longlivy gold mark (assets/images/logo-mark-gold.png)
+ * on a solid black backing, same size/position/surrounding rings tuned for the
+ * original placeholder.
  */
 // One full breathe cycle (rest -> peak -> rest), in ms — matches the original
 // two-leg timing's total duration (1900 + 1900) so the pace is unchanged.
@@ -250,13 +245,8 @@ const SignalMark: React.FC = () => {
           rotateStyle,
         ]}
       />
-      {/* --- Final Longlivy logo drops in here, same 92x92 tile --- */}
-      <Animated.View style={[{ width: 92, height: 92, borderRadius: 28, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }, markStyle]}>
-        <LinearGradient colors={onboardingCtaGradient} style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-          <AppText variant="displayMedium" color="#FFFFFF" weight="800">
-            L
-          </AppText>
-        </LinearGradient>
+      <Animated.View style={[{ width: 92, height: 92, borderRadius: 28, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#000000' }, markStyle]}>
+        <Image source={require('../../../assets/images/logo-mark-gold.png')} style={{ width: '70%', height: '70%' }} resizeMode="contain" />
       </Animated.View>
     </View>
   );

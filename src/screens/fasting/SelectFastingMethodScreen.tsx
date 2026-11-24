@@ -11,8 +11,10 @@ import { AppIcon } from '@/components/common/AppIcon';
 import { HeroChip } from '@/components/common/HeroChip';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FASTING_METHODS, FastingMethodId } from '@/features/fasting/models';
+import { fastingMethodName, fastingMethodShortExplanation } from '@/features/fasting/services/fastingPlanSchedule';
 import { env } from '@/config/env';
 import { MAX_PLANNED_HOURS } from '@/services/api/fastingApi';
 import { SafetyNotice } from '@/features/fasting/components/SafetyNotice';
@@ -36,24 +38,27 @@ import { FastingHeroLayout } from './FastingHeroLayout';
 
 type Category = 'intermittent' | 'longer' | 'individual';
 
-const CATEGORY_SEGMENTS = [
-  { key: 'intermittent', label: 'Intermittent' },
-  { key: 'longer', label: 'Longer' },
-  { key: 'individual', label: 'Custom' },
-];
+type TFunction = ReturnType<typeof useTranslation>['t'];
+
 const INTERMITTENT = FASTING_METHODS.filter((m) => m.category === 'intermittent');
 // The API stores at most 48 planned hours (POST /fasting rejects more), so
 // longer methods are only offered in the offline mock prototype.
 const LONGER = FASTING_METHODS.filter((m) => m.category === 'longer' && (env.useMockApi || m.fastingHours <= MAX_PLANNED_HOURS));
-const FASTING_GRADIENT = ['#5C7A94', '#3D5266'] as const;
-const ACCENT = '#5C7A94';
+const FASTING_GRADIENT = ['#9C7A3E', '#8A6A33'] as const;
+const ACCENT = '#9C7A3E';
 
-const BLOCK_REASON: Record<ScheduleEditBlock, string> = {
-  no_fast_in_progress: '',
-  would_start_in_future: "That start time hasn't happened yet, so it can only apply from your next cycle.",
-  would_already_be_over: 'With this model your current fast would already be over, so it applies from your next cycle.',
-  extended: 'You extended this fast, so it keeps its window. The change applies from your next cycle.',
-};
+function blockReason(block: ScheduleEditBlock, t: TFunction): string {
+  switch (block) {
+    case 'no_fast_in_progress':
+      return '';
+    case 'would_start_in_future':
+      return t('fasting.selectMethod.blockStartInFuture');
+    case 'would_already_be_over':
+      return t('fasting.selectMethod.blockAlreadyOver');
+    case 'extended':
+      return t('fasting.selectMethod.blockExtended');
+  }
+}
 
 /**
  * Pulls a usable message out of a thunk rejection, whether it's a real `Error`/`ApiError`
@@ -98,6 +103,7 @@ function useNow(intervalMs: number): Date {
  */
 export const SelectFastingMethodScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<FastingStackParamList>>();
   const route = useRoute<RouteProp<FastingStackParamList, 'SelectFastingMethod'>>();
   const dispatch = useAppDispatch();
@@ -107,6 +113,14 @@ export const SelectFastingMethodScreen: React.FC = () => {
   const activeFast = useAppSelector(selectActiveFast);
   const actionStatus = useAppSelector(selectFastingActionStatus);
   const now = useNow(30_000);
+  const categorySegments = useMemo(
+    () => [
+      { key: 'intermittent', label: t('fasting.selectMethod.intermittent') },
+      { key: 'longer', label: t('fasting.selectMethod.longer') },
+      { key: 'individual', label: t('fasting.selectMethod.custom') },
+    ],
+    [t]
+  );
 
   // What the screen opens on: the running fast when editing one, else the saved schedule, else a sensible default.
   const initial = useMemo(() => {
@@ -194,7 +208,7 @@ export const SelectFastingMethodScreen: React.FC = () => {
         // it's currently morning) — FastingService deliberately only saves the schedule in
         // this case rather than starting a fast that hasn't begun. Silently going back here
         // previously left the user with no indication anything happened at all.
-        Alert.alert('Schedule saved', 'Your fast will begin automatically at your scheduled start time.');
+        Alert.alert(t('fasting.selectMethod.scheduleSavedTitle'), t('fasting.selectMethod.scheduleSavedMessage'));
         navigation.goBack();
       }
     } catch (err) {
@@ -208,44 +222,49 @@ export const SelectFastingMethodScreen: React.FC = () => {
       // was therefore always false, silently discarding the real ApiError message (the
       // specific reason — timeout, validation, expired session, ...) in favor of this
       // fallback on every single failure. Read `.message` directly instead.
-      const message = extractErrorMessage(err) ?? 'Something went wrong starting your fast. Please try again.';
-      Alert.alert('Could not start fasting', message, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Retry', onPress: () => confirmRef.current() },
+      const message = extractErrorMessage(err) ?? t('fasting.selectMethod.genericStartError');
+      Alert.alert(t('fasting.selectMethod.couldNotStartTitle'), message, [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.retry'), onPress: () => confirmRef.current() },
       ]);
     } finally {
       isSubmittingRef.current = false;
     }
-  }, [activeFast, dispatch, editBlockedNoFast, effectiveApplyTo, error, methodId, mode, navigation, schedule]);
+  }, [activeFast, dispatch, editBlockedNoFast, effectiveApplyTo, error, methodId, mode, navigation, schedule, t]);
   useEffect(() => {
     confirmRef.current = confirm;
   }, [confirm]);
 
   const startsNow = summary?.inProgress ?? false;
-  const ctaLabel = mode === 'edit' ? 'Save changes' : !daily ? 'Start this fast' : startsNow ? 'Start fasting' : 'Save schedule';
+  const ctaLabel = mode === 'edit' ? t('common.saveChanges') : !daily ? t('fasting.selectMethod.startThisFast') : startsNow ? t('fasting.startFast') : t('fasting.selectMethod.saveSchedule');
 
   const headline = (() => {
     if (!summary) return null;
     if (mode === 'edit') {
-      if (editBlockedNoFast) return 'A longer fast has no repeating schedule. Start one from the Fasting tab.';
-      if (!activeFast) return summary.nextFastingBegins || !daily ? `Applies from your next fast, which begins ${formatDayClock(summary.fastingBegins, now)}.` : null;
+      if (editBlockedNoFast) return t('fasting.selectMethod.editBlockedNoFast');
+      if (!activeFast)
+        return summary.nextFastingBegins || !daily ? t('fasting.selectMethod.appliesFromNextFast', { time: formatDayClock(summary.fastingBegins, now, t) }) : null;
       if (effectiveApplyTo === 'current' && editPlan?.currentIfApplied) {
-        return `Your current fast will begin ${formatDayClock(editPlan.currentIfApplied.start, now)} and end ${formatDayClock(editPlan.currentIfApplied.fastEnd, now)}. Fasts already in your history are not changed.`;
+        return t('fasting.selectMethod.currentFastWillBeginEnd', {
+          start: formatDayClock(editPlan.currentIfApplied.start, now, t),
+          end: formatDayClock(editPlan.currentIfApplied.fastEnd, now, t),
+        });
       }
-      const began = formatDayClock(new Date(activeFast.startTimestamp), now);
+      const began = formatDayClock(new Date(activeFast.startTimestamp), now, t);
       return editPlan?.nextFastStart
-        ? `Your current fast keeps its window (it began ${began}). This applies from your next cycle, which begins ${formatDayClock(editPlan.nextFastStart, now)}.`
-        : `Your current fast keeps its window (it began ${began}).`;
+        ? t('fasting.selectMethod.currentFastKeepsWindowNext', { began, next: formatDayClock(editPlan.nextFastStart, now, t) })
+        : t('fasting.selectMethod.currentFastKeepsWindow', { began });
     }
-    if (startsNow) return `Your fasting window is open - it began ${formatSpan(now.getTime() - summary.fastingBegins.getTime())} ago at ${formatClock(summary.fastingBegins)}.`;
-    return `Your next fast begins ${formatDayClock(summary.fastingBegins, now)}, in ${formatSpan(summary.fastingBegins.getTime() - now.getTime())}.`;
+    if (startsNow)
+      return t('fasting.selectMethod.fastingWindowOpen', { span: formatSpan(now.getTime() - summary.fastingBegins.getTime(), t), time: formatClock(summary.fastingBegins) });
+    return t('fasting.activeScreen.nextFastBeginsIn', { time: formatDayClock(summary.fastingBegins, now, t), span: formatSpan(summary.fastingBegins.getTime() - now.getTime(), t) });
   })();
 
   return (
-    <FastingHeroLayout title={mode === 'edit' ? 'Edit schedule' : 'Fasting schedule'} onBack={() => navigation.goBack()}>
+    <FastingHeroLayout title={mode === 'edit' ? t('fasting.selectMethod.editScheduleTitle') : t('fasting.selectMethod.fastingScheduleTitle')} onBack={() => navigation.goBack()}>
       <FadeSlideIn delay={0}>
         <View style={{ marginBottom: theme.spacing.md }}>
-          <AppSegmentedControl segments={CATEGORY_SEGMENTS} selectedKey={category} onChange={(key) => setCategory(key as Category)} variant="hero" />
+          <AppSegmentedControl segments={categorySegments} selectedKey={category} onChange={(key) => setCategory(key as Category)} variant="hero" />
         </View>
       </FadeSlideIn>
 
@@ -260,7 +279,7 @@ export const SelectFastingMethodScreen: React.FC = () => {
             {(category === 'intermittent' ? INTERMITTENT : LONGER).map((method) => (
               <View key={method.id} style={{ marginBottom: theme.spacing.xs }}>
                 <HeroChip
-                  label={method.name}
+                  label={fastingMethodName(method.id, t)}
                   selected={(category === 'intermittent' ? intermittentId : longerId) === method.id}
                   onPress={() => (category === 'intermittent' ? setIntermittentId(method.id) : setLongerId(method.id))}
                   activeColor={ACCENT}
@@ -269,7 +288,7 @@ export const SelectFastingMethodScreen: React.FC = () => {
             ))}
           </View>
           <AppText variant="bodySmall" color="rgba(255,255,255,0.65)">
-            {FASTING_METHODS.find((m) => m.id === methodId)?.shortExplanation}
+            {fastingMethodShortExplanation(methodId, t)}
           </AppText>
         </View>
       ) : null}
@@ -277,33 +296,39 @@ export const SelectFastingMethodScreen: React.FC = () => {
       {category === 'individual' ? (
         <View style={{ marginBottom: theme.spacing.sm }}>
           <AppText variant="bodySmall" color="rgba(255,255,255,0.65)" style={{ marginBottom: theme.spacing.sm }}>
-            Set your own split. Fasting and eating always add up to a 24-hour cycle, so changing one adjusts the other.
+            {t('fasting.selectMethod.setYourOwnSplit')}
           </AppText>
-          <Stepper label="Fasting" value={customFasting} min={MIN_CUSTOM_FASTING_HOURS} max={MAX_CUSTOM_FASTING_HOURS} onStep={stepFasting} />
-          <Stepper label="Eating window" value={24 - customFasting} min={1} max={24 - MIN_CUSTOM_FASTING_HOURS} onStep={stepEating} />
+          <Stepper label={t('fasting.selectMethod.fastingStepperLabel')} value={customFasting} min={MIN_CUSTOM_FASTING_HOURS} max={MAX_CUSTOM_FASTING_HOURS} onStep={stepFasting} />
+          <Stepper label={t('fasting.selectMethod.eatingWindowStepperLabel')} value={24 - customFasting} min={1} max={24 - MIN_CUSTOM_FASTING_HOURS} onStep={stepEating} />
           <AppText variant="caption" color="rgba(255,255,255,0.55)" style={{ marginTop: theme.spacing.xxs }}>
-            {customFasting}:{24 - customFasting} cycle
+            {t('fasting.selectMethod.cycleLabel', { fasting: customFasting, eating: 24 - customFasting })}
           </AppText>
         </View>
       ) : null}
 
       <View style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
-        <AppDateField label={daily ? 'Fasting starts at' : 'Fast began at'} mode="time" value={dateForMinutes(startMinutes)} onChange={(date) => {
+        <AppDateField
+          label={daily ? t('fasting.selectMethod.fastingStartsAt') : t('fasting.selectMethod.fastBeganAt')}
+          mode="time"
+          value={dateForMinutes(startMinutes)}
+          onChange={(date) => {
             startTouchedRef.current = true;
             setStartMinutes(minutesSinceMidnight(date));
-          }} variant="hero" />
+          }}
+          variant="hero"
+        />
         <Pressable
           onPress={() => {
             startTouchedRef.current = true;
             setStartMinutes(minutesSinceMidnight(new Date()));
           }}
           accessibilityRole="button"
-          accessibilityLabel="Set the start time to now"
+          accessibilityLabel={t('fasting.selectMethod.useCurrentTimeLabel')}
           hitSlop={8}
           style={{ alignSelf: 'flex-start', paddingVertical: theme.spacing.xs }}
         >
-          <AppText variant="bodySmall" color="#7A97B0">
-            Use current time
+          <AppText variant="bodySmall" color="#CBA05F">
+            {t('fasting.selectMethod.useCurrentTime')}
           </AppText>
         </Pressable>
       </View>
@@ -320,27 +345,31 @@ export const SelectFastingMethodScreen: React.FC = () => {
           }}
         >
           <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
-            Your schedule
+            {t('fasting.selectMethod.yourScheduleCardTitle')}
           </AppText>
           {daily ? (
             <>
-              <SummaryRow label="Fasting begins" value={formatDayClock(summary.fastingBegins, now)} />
-              <SummaryRow label="Fasting duration" value={formatHours(summary.fastingHours)} />
-              <SummaryRow label="Eating window begins" value={formatDayClock(summary.eatingBegins, now)} />
-              <SummaryRow label="Eating window" value={formatHours(summary.eatingHours)} />
-              <SummaryRow label="Next fasting phase" value={summary.nextFastingBegins ? formatDayClock(summary.nextFastingBegins, now) : '-'} last />
+              <SummaryRow label={t('fasting.selectMethod.fastingBegins')} value={formatDayClock(summary.fastingBegins, now, t)} />
+              <SummaryRow label={t('fasting.selectMethod.fastingDuration')} value={formatHours(summary.fastingHours, t)} />
+              <SummaryRow label={t('fasting.selectMethod.eatingWindowBegins')} value={formatDayClock(summary.eatingBegins, now, t)} />
+              <SummaryRow label={t('fasting.selectMethod.eatingWindowRow')} value={formatHours(summary.eatingHours, t)} />
+              <SummaryRow
+                label={t('fasting.selectMethod.nextFastingPhase')}
+                value={summary.nextFastingBegins ? formatDayClock(summary.nextFastingBegins, now, t) : '-'}
+                last
+              />
             </>
           ) : (
             <>
-              <SummaryRow label="Fast begins" value={formatDayClock(summary.fastingBegins, now)} />
-              <SummaryRow label="Fast length" value={formatHours(summary.fastingHours)} />
-              <SummaryRow label="Fast ends" value={formatDayClock(summary.eatingBegins, now)} last />
+              <SummaryRow label={t('fasting.selectMethod.fastBegins')} value={formatDayClock(summary.fastingBegins, now, t)} />
+              <SummaryRow label={t('fasting.selectMethod.fastLength')} value={formatHours(summary.fastingHours, t)} />
+              <SummaryRow label={t('fasting.selectMethod.fastEnds')} value={formatDayClock(summary.eatingBegins, now, t)} last />
             </>
           )}
         </View>
       ) : (
         <AppText variant="bodySmall" color="#E5A093" style={{ marginBottom: theme.spacing.sm }}>
-          That split isn't valid - fasting and eating must add up to 24 hours.
+          {t('fasting.selectMethod.invalidSplit')}
         </AppText>
       )}
 
@@ -353,12 +382,12 @@ export const SelectFastingMethodScreen: React.FC = () => {
       {mode === 'edit' && activeFast && daily && editPlan ? (
         <View style={{ marginBottom: theme.spacing.md }}>
           <AppText variant="label" color="rgba(255,255,255,0.65)" style={{ marginBottom: theme.spacing.xxs }}>
-            Apply this change to
+            {t('fasting.selectMethod.applyChangeTo')}
           </AppText>
           <AppSegmentedControl
             segments={[
-              { key: 'next', label: 'Next cycle' },
-              { key: 'current', label: 'This fast too' },
+              { key: 'next', label: t('fasting.selectMethod.nextCycle') },
+              { key: 'current', label: t('fasting.selectMethod.thisFastToo') },
             ]}
             selectedKey={effectiveApplyTo}
             onChange={(key) => {
@@ -369,7 +398,7 @@ export const SelectFastingMethodScreen: React.FC = () => {
           />
           {editPlan.blockedBecause ? (
             <AppText variant="caption" color="rgba(255,255,255,0.55)" style={{ marginTop: theme.spacing.xxs }}>
-              {BLOCK_REASON[editPlan.blockedBecause]}
+              {blockReason(editPlan.blockedBecause, t)}
             </AppText>
           ) : null}
         </View>
@@ -405,12 +434,13 @@ SummaryRow.displayName = 'SummaryRow';
 
 const Stepper: React.FC<{ label: string; value: number; min: number; max: number; onStep: (delta: number) => void }> = React.memo(({ label, value, min, max, onStep }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const button = (delta: number, icon: 'remove' | 'add', disabled: boolean) => (
     <Pressable
       onPress={() => onStep(delta)}
       disabled={disabled}
       accessibilityRole="button"
-      accessibilityLabel={`${delta < 0 ? 'Decrease' : 'Increase'} ${label.toLowerCase()} hours`}
+      accessibilityLabel={delta < 0 ? t('fasting.selectMethod.decreaseHours', { label: label.toLowerCase() }) : t('fasting.selectMethod.increaseHours', { label: label.toLowerCase() })}
       hitSlop={6}
       style={({ pressed }) => ({
         width: 44,
@@ -430,7 +460,7 @@ const Stepper: React.FC<{ label: string; value: number; min: number; max: number
   return (
     <View
       accessible
-      accessibilityLabel={`${label}: ${value} hours`}
+      accessibilityLabel={t('fasting.selectMethod.stepperValueLabel', { label, value })}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -448,7 +478,7 @@ const Stepper: React.FC<{ label: string; value: number; min: number; max: number
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {button(-1, 'remove', value <= min)}
         <AppText variant="headingMedium" color="#FFFFFF" align="center" style={{ minWidth: 72 }}>
-          {value} h
+          {t('fasting.selectMethod.hoursValue', { value })}
         </AppText>
         {button(1, 'add', value >= max)}
       </View>

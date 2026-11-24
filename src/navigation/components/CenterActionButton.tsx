@@ -16,13 +16,19 @@ interface CenterActionButtonProps {
   active?: boolean;
 }
 
-// Deliberately not a clean multiple of the button's 1800ms float cycle, so
-// the halo's expand-and-fade never falls into a repeating lock-step with
-// the float — the two motions should read as two independent, ambient
-// rhythms rather than one bigger pulse.
-const HALO_DURATION = 2600;
-const HALO_PEAK_OPACITY_IDLE = 0.4;
-const HALO_PEAK_OPACITY_ACTIVE = 0.18;
+// A gentle breathing halo rather than an expanding/resetting pulse ring:
+// opacity and scale ease smoothly up and back down again (ping-pong, via
+// `withRepeat(..., true)`) so there's no jump-cut at the end of a cycle.
+// HALO_HALF_DURATION is deliberately not a clean fraction of the button's
+// 1800ms float cycle, so the breathing never falls into a repeating
+// lock-step with the float — the two motions should read as two
+// independent, ambient rhythms. Full breathe cycle (in + out) is
+// 2 * HALO_HALF_DURATION ≈ 3.4s.
+const HALO_HALF_DURATION = 1700;
+const HALO_PEAK_OPACITY_IDLE = 0.32;
+const HALO_PEAK_OPACITY_ACTIVE = 0.14;
+const HALO_BASE_OPACITY = 0.06;
+const HALO_PEAK_SCALE = 1.12;
 
 /**
  * The raised primary action at the center of the floating tab bar — brand
@@ -53,7 +59,7 @@ export const CenterActionButton: React.FC<CenterActionButtonProps> = React.memo(
   }, [float]);
 
   useEffect(() => {
-    haloProgress.value = withRepeat(withTiming(1, { duration: HALO_DURATION, easing: Easing.out(Easing.cubic) }), -1, false);
+    haloProgress.value = withRepeat(withTiming(1, { duration: HALO_HALF_DURATION, easing: Easing.inOut(Easing.sin) }), -1, true);
   }, [haloProgress]);
 
   const style = useAnimatedStyle(() => ({
@@ -63,8 +69,8 @@ export const CenterActionButton: React.FC<CenterActionButtonProps> = React.memo(
   const haloStyle = useAnimatedStyle(() => {
     const peakOpacity = active ? HALO_PEAK_OPACITY_ACTIVE : HALO_PEAK_OPACITY_IDLE;
     return {
-      opacity: interpolate(haloProgress.value, [0, 1], [peakOpacity, 0]),
-      transform: [{ scale: interpolate(haloProgress.value, [0, 1], [1, 1.3]) }],
+      opacity: interpolate(haloProgress.value, [0, 1], [HALO_BASE_OPACITY, peakOpacity]),
+      transform: [{ scale: interpolate(haloProgress.value, [0, 1], [1, HALO_PEAK_SCALE]) }],
     };
   }, [active]);
 

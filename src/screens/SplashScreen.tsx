@@ -1,18 +1,18 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, View } from 'react-native';
+import { Animated, Image, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/hooks/useTheme';
 import { useTranslation } from '@/localization';
 import { AppText } from '@/components/common/AppText';
-import { onboardingGradient, onboardingCtaGradient, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
+import { onboardingGradient, onboardingGlass } from '@/features/onboarding/theme/onboardingTheme';
 
 /**
  * Fully static — no network/API dependency. Fades in the wordmark then
  * hands off to whichever route RootNavigator decides on (onboarding, auth,
  * or main app) once auth/session bootstrap resolves.
  *
- * Uses the same dark blue-black atmosphere + cyan accent as onboarding/the
- * main app (rather than a flat theme.colors.primary fill) so the very
+ * Uses the same dark atmosphere as onboarding/the main app (rather than a
+ * flat theme.colors.primary fill) so the very
  * first frame the user sees already reads as "this app", not a plain
  * brand-color splash screen.
  */
@@ -37,14 +37,11 @@ export const SplashScreen: React.FC = () => {
             overflow: 'hidden',
             alignItems: 'center',
             justifyContent: 'center',
+            backgroundColor: '#000000',
             marginBottom: theme.spacing.md,
           }}
         >
-          <LinearGradient colors={onboardingCtaGradient} style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-            <AppText variant="displayMedium" color="#FFFFFF" weight="800">
-              L
-            </AppText>
-          </LinearGradient>
+          <Image source={require('../../assets/images/logo-mark-gold.png')} style={{ width: '68%', height: '68%' }} resizeMode="contain" />
         </View>
         <AppText variant="displayMedium" color={onboardingGlass.textPrimary}>
           Longlivy

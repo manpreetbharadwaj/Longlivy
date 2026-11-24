@@ -12,6 +12,7 @@ import { AppBadge } from '@/components/common/AppBadge';
 import { AppLoader } from '@/components/common/AppLoader';
 import { AppIconTile } from '@/components/common/AppIconTile';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { fastingRepository } from '@/features/fasting/repository/MockFastingRepository';
 import { FastingSession } from '@/features/fasting/models';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
@@ -19,6 +20,7 @@ import { sessionModelLabel } from '@/features/fasting/services/fastingPlanSchedu
 
 export const FastSummaryScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<FastingStackParamList>>();
   const route = useRoute<RouteProp<FastingStackParamList, 'FastSummary'>>();
   const [session, setSession] = useState<FastingSession | null>(null);
@@ -42,21 +44,21 @@ export const FastSummaryScreen: React.FC = () => {
           iconSize={34}
         />
         <AppText variant="displayMedium" align="center" style={{ marginTop: theme.spacing.xs }}>
-          {goalMet ? 'Fast completed' : 'Fast ended'}
+          {goalMet ? t('fasting.summary.fastCompleted') : t('fasting.summary.fastEnded')}
         </AppText>
-        <AppBadge label={fastingStatusLabel(session.status)} tone={goalMet ? 'success' : 'warning'} />
+        <AppBadge label={fastingStatusLabel(session.status, t)} tone={goalMet ? 'success' : 'warning'} />
       </View>
 
       <AppCard>
-        <Row label="Method" value={sessionModelLabel(session)} />
-        <Row label="Category" value={session.category} />
-        <Row label="Planned duration" value={formatDurationHM(session.plannedDuration)} />
-        <Row label="Actual duration" value={formatDurationHM(session.actualDuration ?? 0)} />
-        <Row label="Started" value={new Date(session.startTimestamp).toLocaleString()} />
-        <Row label="Ended" value={session.actualEndTimestamp ? new Date(session.actualEndTimestamp).toLocaleString() : '—'} last />
+        <Row label={t('fasting.summary.method')} value={sessionModelLabel(session, t)} />
+        <Row label={t('fasting.summary.category')} value={session.category} />
+        <Row label={t('fasting.summary.plannedDuration')} value={formatDurationHM(session.plannedDuration)} />
+        <Row label={t('fasting.summary.actualDuration')} value={formatDurationHM(session.actualDuration ?? 0)} />
+        <Row label={t('fasting.summary.started')} value={new Date(session.startTimestamp).toLocaleString()} />
+        <Row label={t('fasting.summary.ended')} value={session.actualEndTimestamp ? new Date(session.actualEndTimestamp).toLocaleString() : '—'} last />
       </AppCard>
 
-      <AppButton label="Back to Fasting" onPress={() => navigation.popToTop()} style={{ marginTop: theme.spacing.lg }} />
+      <AppButton label={t('fasting.summary.backToFasting')} onPress={() => navigation.popToTop()} style={{ marginTop: theme.spacing.lg }} />
     </AppScreen>
   );
 };

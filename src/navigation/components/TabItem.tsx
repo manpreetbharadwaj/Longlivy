@@ -19,7 +19,7 @@ interface TabItemProps {
 /**
  * A single tab — icon plus a small label underneath, with a soft rounded
  * "bubble" behind the icon on the selected tab (the icon rising slightly
- * and tinting the app's muted steel accent) so the selected state stays
+ * and tinting the app's muted gold accent) so the selected state stays
  * unmistakable even with a label now doing double duty on identification.
  * Every press gets a small scale-down regardless of whether it changes the
  * selection.
@@ -58,7 +58,7 @@ export const TabItem: React.FC<TabItemProps> = React.memo(({ icon, activeIcon, i
     >
       <Animated.View
         style={[
-          { position: 'absolute', top: 4, width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(92,122,148,0.16)' },
+          { position: 'absolute', top: 4, width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(156,122,62,0.16)' },
           bubbleStyle,
         ]}
       />

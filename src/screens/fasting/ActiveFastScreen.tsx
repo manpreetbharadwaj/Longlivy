@@ -10,6 +10,8 @@ import { AppProgressRing } from '@/components/common/AppProgressRing';
 import { HeroTextField } from '@/components/common/HeroTextField';
 import { AppIcon } from '@/components/common/AppIcon';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
+import { ctaGradient } from '@/theme/gradients';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectFastingPlan } from '@/features/fasting/selectors';
 import { useFastingCycle } from '@/features/fasting/hooks/useFastingCycle';
@@ -36,14 +38,9 @@ function currentPhaseColor(elapsedHours: number): string {
   return TIMELINE_PHASES[0].color;
 }
 
-const TRANSITION_LABEL = {
-  eating_begins: 'Eating window begins',
-  fasting_begins: 'Fasting begins',
-  goal_reached: 'Goal reached',
-} as const;
-
 export const ActiveFastScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<FastingStackParamList>>();
   const dispatch = useAppDispatch();
   const plan = useAppSelector(selectFastingPlan);
@@ -80,8 +77,8 @@ export const ActiveFastScreen: React.FC = () => {
     setConfirmEnd(false);
     if (endFastThunk.fulfilled.match(result)) {
       // The backend has confirmed the session is saved — only now is it safe to say so.
-      Alert.alert('Saved', 'Your fasting session has been saved successfully.', [
-        { text: 'OK', onPress: () => navigation.replace('FastSummary', { sessionId: result.payload.id }) },
+      Alert.alert(t('fasting.activeScreen.savedTitle'), t('fasting.activeScreen.savedMessage'), [
+        { text: t('common.ok'), onPress: () => navigation.replace('FastSummary', { sessionId: result.payload.id }) },
       ]);
     } else {
       // Rejected via the `.fulfilled.match()` pattern, not `.unwrap()` — `result.error` is
@@ -90,9 +87,9 @@ export const ActiveFastScreen: React.FC = () => {
       // fixed in SelectFastingMethodScreen's catch block for the same class of error).
       // The active session itself was never touched locally, so it's still exactly as it
       // was before the attempt — nothing to roll back.
-      Alert.alert('Fast not ended', result.error.message ?? 'Please try again.');
+      Alert.alert(t('fasting.activeScreen.notEndedTitle'), result.error.message ?? t('fasting.activeScreen.tryAgain'));
     }
-  }, [activeFast, dispatch, ending, navigation]);
+  }, [activeFast, dispatch, ending, navigation, t]);
 
   const handleExtend = useCallback(async () => {
     if (!activeFast) return;
@@ -107,7 +104,7 @@ export const ActiveFastScreen: React.FC = () => {
 
   if (state.phase === 'idle') {
     return (
-      <FastingHeroLayout title={schedule ? 'Your schedule' : 'Active fast'} onBack={() => navigation.goBack()} scroll={false}>
+      <FastingHeroLayout title={schedule ? t('fasting.activeScreen.yourSchedule') : t('fasting.activeScreen.title')} onBack={() => navigation.goBack()} scroll={false}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: theme.spacing.lg }}>
           <View
             style={{
@@ -123,16 +120,16 @@ export const ActiveFastScreen: React.FC = () => {
             <AppIcon name="timer-outline" size={30} color="rgba(255,255,255,0.5)" />
           </View>
           <AppText variant="headingSmall" color="#FFFFFF" align="center">
-            {state.nextFastStart ? 'No fast running' : 'No active fast'}
+            {state.nextFastStart ? t('fasting.activeScreen.noFastRunning') : t('fasting.noActiveFast')}
           </AppText>
           <AppText variant="bodyMedium" color="rgba(255,255,255,0.6)" align="center" style={{ marginTop: theme.spacing.xxs, marginBottom: theme.spacing.lg }}>
             {state.nextFastStart
-              ? `Your next fast begins ${formatDayClock(state.nextFastStart, now)}, in ${formatSpan(state.nextFastStart.getTime() - now.getTime())}.`
-              : 'Start a fast from the Fasting home screen.'}
+              ? t('fasting.activeScreen.nextFastBeginsIn', { time: formatDayClock(state.nextFastStart, now, t), span: formatSpan(state.nextFastStart.getTime() - now.getTime(), t) })
+              : t('fasting.activeScreen.startFromHome')}
           </AppText>
           <View style={{ alignSelf: 'stretch' }}>
-            <AppGradientButton label="Start a fast" onPress={startFast} colors={['#5C7A94', '#3D5266']} />
-            {schedule ? <GhostButton label="Edit schedule" onPress={editSchedule} /> : null}
+            <AppGradientButton label={t('fasting.activeScreen.startAFast')} onPress={startFast} colors={ctaGradient} />
+            {schedule ? <GhostButton label={t('fasting.activeScreen.editSchedule')} onPress={editSchedule} /> : null}
           </View>
         </View>
       </FastingHeroLayout>
@@ -143,19 +140,35 @@ export const ActiveFastScreen: React.FC = () => {
   const fastingElapsedHours = isFasting ? state.elapsedMs / HOUR : fastingHours;
   const daily = state.eatingStart != null;
   const modelLabel = activeFast
-    ? sessionModelLabel(activeFast)
+    ? sessionModelLabel(activeFast, t)
     : schedule && plan
-      ? formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours })
-      : formatModelLabel({ method: 'individual', fastingHours: Math.round(fastingHours), eatingHours: 8 });
+      ? formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours }, t)
+      : formatModelLabel({ method: 'individual', fastingHours: Math.round(fastingHours), eatingHours: 8 }, t);
 
   const ringColor = isFasting ? currentPhaseColor(fastingElapsedHours) : EATING_COLOR;
-  const phaseLabel = isFasting ? (state.goalReached ? 'GOAL REACHED' : 'FASTING') : 'EATING WINDOW';
+  const phaseLabel = (isFasting ? (state.goalReached ? t('fasting.activeScreen.goalReached') : t('fasting.activeScreen.fasting')) : t('fasting.activeScreen.eatingWindow')).toUpperCase();
   const countdownMs = state.goalReached ? state.elapsedMs : Math.max(state.remainingMs, 0);
-  const countdownCaption = state.goalReached ? 'fasting time' : isFasting ? (daily ? 'until your eating window begins' : 'until your goal') : 'until fasting begins';
+  const countdownCaption = state.goalReached
+    ? t('fasting.activeScreen.fastingTimeCaption')
+    : isFasting
+      ? daily
+        ? t('fasting.activeScreen.untilEatingWindowBegins')
+        : t('fasting.activeScreen.untilYourGoal')
+      : t('fasting.activeScreen.untilFastingBegins');
   const transition = state.nextTransition;
+  const transitionLabel = (kind: 'eating_begins' | 'fasting_begins' | 'goal_reached') => {
+    switch (kind) {
+      case 'eating_begins':
+        return t('fasting.activeScreen.eatingWindowBeginsTransition');
+      case 'fasting_begins':
+        return t('fasting.activeScreen.fastingBeginsTransition');
+      case 'goal_reached':
+        return t('fasting.activeScreen.goalReachedTransition');
+    }
+  };
 
   return (
-    <FastingHeroLayout title={isFasting ? `${modelLabel} Fast` : 'Eating window'} onBack={() => navigation.goBack()}>
+    <FastingHeroLayout title={isFasting ? t('fasting.activeScreen.modelFastTitle', { model: modelLabel }) : t('fasting.activeScreen.eatingWindow')} onBack={() => navigation.goBack()}>
       {activeMilestone ? (
         <LiveMomentCard milestone={activeMilestone} onDismiss={() => setDismissedMilestones((prev) => new Set(prev).add(activeMilestone))} />
       ) : null}
@@ -165,7 +178,7 @@ export const ActiveFastScreen: React.FC = () => {
           <AppText variant="label" color={ringColor} style={{ letterSpacing: 1.2 }}>
             {phaseLabel}
           </AppText>
-          <AppText variant="metricLarge" color="#FFFFFF" style={{ marginTop: 2 }} accessibilityLabel={`${phaseLabel}, ${formatSpan(countdownMs)} ${countdownCaption}`}>
+          <AppText variant="metricLarge" color="#FFFFFF" style={{ marginTop: 2 }} accessibilityLabel={`${phaseLabel}, ${formatSpan(countdownMs, t)} ${countdownCaption}`}>
             {formatDurationHMS(countdownMs)}
           </AppText>
           <AppText variant="bodySmall" color="rgba(255,255,255,0.6)" align="center" style={{ paddingHorizontal: theme.spacing.md }}>
@@ -173,7 +186,7 @@ export const ActiveFastScreen: React.FC = () => {
           </AppText>
           {isFasting && isMultiDayFast(fastingHours) ? (
             <AppText variant="caption" color="rgba(255,255,255,0.5)" style={{ marginTop: 2 }}>
-              Day {Math.max(1, Math.ceil(state.elapsedMs / (24 * HOUR)))}
+              {t('fasting.activeScreen.dayCounter', { day: Math.max(1, Math.ceil(state.elapsedMs / (24 * HOUR))) })}
             </AppText>
           ) : null}
         </AppProgressRing>
@@ -194,7 +207,7 @@ export const ActiveFastScreen: React.FC = () => {
           >
             <AppIcon name="arrow-forward" size={14} color="rgba(255,255,255,0.7)" />
             <AppText variant="bodyMedium" color="#FFFFFF" style={{ marginLeft: 6 }}>
-              {TRANSITION_LABEL[transition.kind]} · {formatDayClock(transition.at, now)}
+              {transitionLabel(transition.kind)} · {formatDayClock(transition.at, now, t)}
             </AppText>
           </View>
         ) : null}
@@ -210,23 +223,27 @@ export const ActiveFastScreen: React.FC = () => {
           marginBottom: theme.spacing.md,
         }}
       >
-        {isFasting ? <Row label="Elapsed" value={formatSpan(state.elapsedMs)} /> : null}
+        {isFasting ? <Row label={t('fasting.activeScreen.elapsed')} value={formatSpan(state.elapsedMs, t)} /> : null}
         {daily && state.fastStart && state.fastEnd && state.eatingStart && state.eatingEnd ? (
           <>
-            <Row label="Fasting begins" value={formatDayClock(state.fastStart, now)} />
-            <Row label="Fasting duration" value={formatSpan(state.fastEnd.getTime() - state.fastStart.getTime())} />
-            <Row label="Eating window begins" value={formatDayClock(state.eatingStart, now)} />
-            <Row label="Eating window" value={formatSpan(state.eatingEnd.getTime() - state.eatingStart.getTime())} />
-            <Row label="Next fasting phase" value={state.nextFastStart ? formatDayClock(state.nextFastStart, now) : '-'} last={!activeFast || activeFast.extensionCount === 0} />
+            <Row label={t('fasting.activeScreen.fastingBeginsRow')} value={formatDayClock(state.fastStart, now, t)} />
+            <Row label={t('fasting.activeScreen.fastingDuration')} value={formatSpan(state.fastEnd.getTime() - state.fastStart.getTime(), t)} />
+            <Row label={t('fasting.activeScreen.eatingWindowBeginsRow')} value={formatDayClock(state.eatingStart, now, t)} />
+            <Row label={t('fasting.activeScreen.eatingWindowDuration')} value={formatSpan(state.eatingEnd.getTime() - state.eatingStart.getTime(), t)} />
+            <Row
+              label={t('fasting.activeScreen.nextFastingPhase')}
+              value={state.nextFastStart ? formatDayClock(state.nextFastStart, now, t) : '-'}
+              last={!activeFast || activeFast.extensionCount === 0}
+            />
           </>
         ) : state.fastStart && state.fastEnd ? (
           <>
-            <Row label="Started" value={formatDayClock(state.fastStart, now)} />
-            <Row label="Fast length" value={formatSpan(state.fastEnd.getTime() - state.fastStart.getTime())} />
-            <Row label="Planned end" value={formatDayClock(state.fastEnd, now)} last={!activeFast || activeFast.extensionCount === 0} />
+            <Row label={t('fasting.summary.started')} value={formatDayClock(state.fastStart, now, t)} />
+            <Row label={t('fasting.activeScreen.fastLength')} value={formatSpan(state.fastEnd.getTime() - state.fastStart.getTime(), t)} />
+            <Row label={t('fasting.activeScreen.plannedEndRow')} value={formatDayClock(state.fastEnd, now, t)} last={!activeFast || activeFast.extensionCount === 0} />
           </>
         ) : null}
-        {activeFast && activeFast.extensionCount > 0 ? <Row label="Extensions" value={`${activeFast.extensionCount}`} last /> : null}
+        {activeFast && activeFast.extensionCount > 0 ? <Row label={t('fasting.activeScreen.extensions')} value={`${activeFast.extensionCount}`} last /> : null}
       </View>
 
       {activeFast && showExtend ? (
@@ -241,25 +258,25 @@ export const ActiveFastScreen: React.FC = () => {
           }}
         >
           <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
-            Extend this fast
+            {t('fasting.activeScreen.extendThisFast')}
           </AppText>
-          <HeroTextField label="Additional hours" value={extendHours} onChangeText={setExtendHours} keyboardType="numeric" style={{ marginBottom: theme.spacing.sm }} />
-          <AppGradientButton label="Confirm extension" onPress={handleExtend} />
-          <GhostButton label="Cancel" onPress={() => setShowExtend(false)} />
+          <HeroTextField label={t('fasting.activeScreen.additionalHours')} value={extendHours} onChangeText={setExtendHours} keyboardType="numeric" style={{ marginBottom: theme.spacing.sm }} />
+          <AppGradientButton label={t('fasting.activeScreen.confirmExtension')} onPress={handleExtend} />
+          <GhostButton label={t('common.cancel')} onPress={() => setShowExtend(false)} />
         </View>
       ) : (
         <View style={{ marginBottom: theme.spacing.md }}>
           {activeFast ? (
             <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
               <View style={{ flex: 1 }}>
-                <OutlineButton label="Extend" onPress={() => setShowExtend(true)} />
+                <OutlineButton label={t('fasting.activeScreen.extend')} onPress={() => setShowExtend(true)} />
               </View>
               <View style={{ flex: 1 }}>
-                <AppGradientButton label="End fast" onPress={() => setConfirmEnd(true)} loading={ending} disabled={ending} colors={['#DD7A68', '#C4463A']} />
+                <AppGradientButton label={t('fasting.activeScreen.endFast')} onPress={() => setConfirmEnd(true)} loading={ending} disabled={ending} colors={['#DD7A68', '#C4463A']} />
               </View>
             </View>
           ) : null}
-          <OutlineButton label="Edit schedule" onPress={editSchedule} style={{ marginTop: activeFast ? theme.spacing.sm : 0 }} />
+          <OutlineButton label={t('fasting.activeScreen.editSchedule')} onPress={editSchedule} style={{ marginTop: activeFast ? theme.spacing.sm : 0 }} />
         </View>
       )}
 
@@ -288,14 +305,10 @@ export const ActiveFastScreen: React.FC = () => {
       ) : null}
       <ConfirmDialog
         visible={confirmEnd}
-        title="End this fast?"
-        message={
-          reachedPlannedEnd
-            ? 'You reached your planned fasting time. It will be saved as completed.'
-            : "You haven't reached your planned fasting time yet. It will be saved as ended early."
-        }
-        confirmLabel="End fast"
-        cancelLabel="Keep fasting"
+        title={t('fasting.activeScreen.endThisFastTitle')}
+        message={reachedPlannedEnd ? t('fasting.activeScreen.endConfirmReached') : t('fasting.activeScreen.endConfirmNotReached')}
+        confirmLabel={t('fasting.activeScreen.endFast')}
+        cancelLabel={t('nutrition.endFastPrompt.keepFasting')}
         accentColor="#C4463A"
         onConfirm={handleEnd}
         onCancel={() => setConfirmEnd(false)}

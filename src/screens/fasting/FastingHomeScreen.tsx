@@ -74,7 +74,7 @@ export const FastingHomeScreen: React.FC = () => {
             <HeroCard onPress={() => navigation.navigate('ActiveFast')} style={[dashboardCardStyle, { alignItems: 'center', marginBottom: theme.spacing.md }]} scaleOnPress>
               <AppProgressRing progress={state.progress} size={180} strokeWidth={12} color={accent} trackColor={dashboardColors.border} glow>
                 <AppText variant="label" color={accent} style={{ letterSpacing: 1.2 }}>
-                  {state.phase === 'eating' ? 'EATING' : state.goalReached ? 'GOAL REACHED' : 'FASTING'}
+                  {(state.phase === 'eating' ? t('fasting.home.eating') : state.goalReached ? t('fasting.activeScreen.goalReached') : t('fasting.activeScreen.fasting')).toUpperCase()}
                 </AppText>
                 <AppText variant="metricLarge" color={dashboardColors.textPrimary}>
                   {Math.round(Math.min(state.progress, 1) * 100)}%
@@ -82,23 +82,29 @@ export const FastingHomeScreen: React.FC = () => {
                 {schedule || activeFast ? (
                   <AppText variant="bodySmall" color={dashboardColors.textMuted}>
                     {activeFast
-                      ? sessionModelLabel(activeFast)
-                      : formatModelLabel({ method: plan?.method ?? 'individual', fastingHours: schedule?.fastingHours ?? 0, eatingHours: schedule?.eatingHours ?? 0 })}
+                      ? sessionModelLabel(activeFast, t)
+                      : formatModelLabel({ method: plan?.method ?? 'individual', fastingHours: schedule?.fastingHours ?? 0, eatingHours: schedule?.eatingHours ?? 0 }, t)}
                   </AppText>
                 ) : null}
               </AppProgressRing>
               <AppText variant="bodyMedium" color={dashboardColors.textPrimary} style={{ marginTop: theme.spacing.sm }} align="center">
                 {state.nextTransition
-                  ? `${state.nextTransition.kind === 'eating_begins' ? 'Eating window begins' : state.nextTransition.kind === 'fasting_begins' ? 'Fasting begins' : 'Goal reached'} ${formatDayClock(state.nextTransition.at, now)}`
+                  ? `${
+                      state.nextTransition.kind === 'eating_begins'
+                        ? t('fasting.activeScreen.eatingWindowBeginsTransition')
+                        : state.nextTransition.kind === 'fasting_begins'
+                          ? t('fasting.activeScreen.fastingBeginsTransition')
+                          : t('fasting.activeScreen.goalReachedTransition')
+                    } ${formatDayClock(state.nextTransition.at, now, t)}`
                   : t('fasting.elapsed', { duration: formatDurationHM(state.elapsedMs) })}
               </AppText>
               <AppText variant="bodySmall" color={dashboardColors.textMuted} align="center" style={{ marginTop: 2 }}>
-                {state.nextTransition ? `in ${formatSpan(state.remainingMs)}` : ''}
+                {state.nextTransition ? t('fasting.home.inSpan', { span: formatSpan(state.remainingMs, t) }) : ''}
               </AppText>
               <Pressable
                 onPress={() => navigation.navigate('ActiveFast')}
                 accessibilityRole="button"
-                accessibilityLabel={state.phase === 'eating' ? 'View eating window' : t('fasting.viewActiveFast')}
+                accessibilityLabel={state.phase === 'eating' ? t('fasting.home.viewEatingWindow') : t('fasting.viewActiveFast')}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -110,19 +116,19 @@ export const FastingHomeScreen: React.FC = () => {
                 }}
               >
                 <AppText variant="bodyMedium" weight="700" color={dashboardColors.background}>
-                  {state.phase === 'eating' ? 'View eating window' : t('fasting.viewActiveFast')}
+                  {state.phase === 'eating' ? t('fasting.home.viewEatingWindow') : t('fasting.viewActiveFast')}
                 </AppText>
               </Pressable>
               {state.phase === 'eating' ? (
                 <Pressable
                   onPress={() => navigation.navigate('SelectFastingMethod', { mode: 'start' })}
                   accessibilityRole="button"
-                  accessibilityLabel="Start your next fast early"
+                  accessibilityLabel={t('fasting.home.startNextFastEarlyLabel')}
                   hitSlop={8}
                   style={{ paddingVertical: theme.spacing.sm }}
                 >
                   <AppText variant="bodySmall" color={dashboardColors.textSecondary}>
-                    Start next fast early
+                    {t('fasting.home.startNextFastEarly')}
                   </AppText>
                 </Pressable>
               ) : null}
@@ -141,22 +147,25 @@ export const FastingHomeScreen: React.FC = () => {
             <Pressable
               onPress={() => navigation.navigate('SelectFastingMethod', { mode: 'edit' })}
               accessibilityRole="button"
-              accessibilityLabel="Edit fasting schedule"
+              accessibilityLabel={t('fasting.home.editScheduleLabel')}
               style={({ pressed }) => [dashboardCardStyle, { flexDirection: 'row', alignItems: 'center', padding: theme.spacing.sm, marginBottom: theme.spacing.md, opacity: pressed ? 0.85 : 1 }]}
             >
               <View style={{ flex: 1 }}>
                 <AppText variant="caption" color={dashboardColors.textMuted}>
-                  Your schedule
+                  {t('fasting.home.yourSchedule')}
                 </AppText>
                 <AppText variant="bodyLarge" weight="600" color={dashboardColors.textPrimary}>
-                  {formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours })} · fasting from {formatClock(new Date(2000, 0, 1, 0, schedule.startMinutes))}
+                  {t('fasting.home.fastingFrom', {
+                    model: formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours }, t),
+                    time: formatClock(new Date(2000, 0, 1, 0, schedule.startMinutes)),
+                  })}
                 </AppText>
                 <AppText variant="bodySmall" color={dashboardColors.textSecondary}>
-                  Eating window opens {formatClock(new Date(2000, 0, 1, 0, schedule.startMinutes + schedule.fastingHours * 60))}
+                  {t('fasting.home.eatingWindowOpens', { time: formatClock(new Date(2000, 0, 1, 0, schedule.startMinutes + schedule.fastingHours * 60)) })}
                 </AppText>
               </View>
               <AppText variant="bodySmall" weight="700" color={FASTING_ACCENT}>
-                Edit
+                {t('common.edit')}
               </AppText>
             </Pressable>
           ) : null}
@@ -194,7 +203,7 @@ const IdleFastHero: React.FC<IdleFastHeroProps> = React.memo(({ nextFastStart, n
   const { t } = useTranslation();
   const hasSchedule = Boolean(schedule && plan);
   const protocolLabel = hasSchedule && schedule && plan
-    ? formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours })
+    ? formatModelLabel({ method: plan.method, fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours }, t)
     : null;
 
   return (
@@ -208,10 +217,10 @@ const IdleFastHero: React.FC<IdleFastHeroProps> = React.memo(({ nextFastStart, n
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
             <AppText variant="caption" color="rgba(255,255,255,0.72)" style={{ letterSpacing: 1.4 }}>
-              {hasSchedule ? 'UP NEXT' : 'FASTING MODE'}
+              {(hasSchedule ? t('fasting.home.upNext') : t('fasting.home.fastingMode')).toUpperCase()}
             </AppText>
             <AppText variant="headingLarge" color="#FFFFFF" style={{ marginTop: 2 }}>
-              {nextFastStart ? 'Next fast' : t('fasting.noActiveFast')}
+              {nextFastStart ? t('fasting.home.nextFast') : t('fasting.noActiveFast')}
             </AppText>
           </View>
           <View style={{ width: 44, height: 44, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }}>
@@ -225,15 +234,15 @@ const IdleFastHero: React.FC<IdleFastHeroProps> = React.memo(({ nextFastStart, n
             {nextFastStart ? (
               <>
                 <AppText variant="label" color="rgba(255,255,255,0.72)">
-                  Scheduled start
+                  {t('fasting.home.scheduledStart')}
                 </AppText>
                 <AppText variant="headingMedium" color="#FFFFFF" style={{ marginTop: 3 }}>
-                  {formatDayClock(nextFastStart, now)}
+                  {formatDayClock(nextFastStart, now, t)}
                 </AppText>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: theme.spacing.xs }}>
                   <AppIcon name="time-outline" size={15} color="#E5DDF4" />
                   <AppText variant="bodySmall" color="rgba(255,255,255,0.82)" style={{ marginLeft: 5 }}>
-                    Starts in {formatSpan(nextFastStart.getTime() - now.getTime())}
+                    {t('fasting.home.startsIn', { span: formatSpan(nextFastStart.getTime() - now.getTime(), t) })}
                   </AppText>
                 </View>
               </>
@@ -248,18 +257,20 @@ const IdleFastHero: React.FC<IdleFastHeroProps> = React.memo(({ nextFastStart, n
         {hasSchedule && schedule && protocolLabel ? (
           <View style={{ marginTop: theme.spacing.lg, padding: theme.spacing.sm, borderRadius: theme.radius.md, backgroundColor: 'rgba(0,0,0,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)' }}>
             <AppText variant="caption" color="rgba(255,255,255,0.68)" style={{ letterSpacing: 1.2 }}>
-              YOUR PROTOCOL
+              {t('fasting.home.yourProtocol').toUpperCase()}
             </AppText>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 3 }}>
               <AppText variant="bodyLarge" weight="700" color="#FFFFFF">
                 {protocolLabel}
               </AppText>
               <AppText variant="bodySmall" color="rgba(255,255,255,0.82)">
-                Starts {formatClock(new Date(2000, 0, 1, 0, schedule.startMinutes))}
+                {t('fasting.home.startsAt', { time: formatClock(new Date(2000, 0, 1, 0, schedule.startMinutes)) })}
               </AppText>
             </View>
             <AppText variant="caption" color="rgba(255,255,255,0.68)" style={{ marginTop: 2 }}>
-              {schedule.eatingHours > 0 ? `${schedule.fastingHours}h fasting · ${schedule.eatingHours}h eating window` : `${schedule.fastingHours}h single fast`}
+              {schedule.eatingHours > 0
+                ? t('fasting.home.fastingEatingHours', { fastingHours: schedule.fastingHours, eatingHours: schedule.eatingHours })
+                : t('fasting.home.singleFastHours', { hours: schedule.fastingHours })}
             </AppText>
           </View>
         ) : null}

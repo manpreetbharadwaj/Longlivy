@@ -25,6 +25,15 @@
  * (a restrained "scientific/biological" accent, distinct from the other
  * three). Same hexes as before, just rotated between pillars — no new
  * colors invented.
+ *
+ * v7 gold rebrand: the app-wide generic/brand accent (`primary` —
+ * buttons, nav highlights, selected states, links — previously the same
+ * muted steel blue `#3D5266`/`#5C7A94`) is now a premium muted gold,
+ * matching the new logo mark. The four *per-pillar* hues from v6
+ * (activity's steel blue included) are deliberately left alone — they're
+ * a separate "which section is this" system, not the brand accent, and
+ * changing activity's hue too would collide with nutrition's existing
+ * amber.
  */
 
 export interface ColorTokens {
@@ -75,8 +84,8 @@ export const lightColors: ColorTokens = {
   textTertiary: '#8C8A86',
   textInverse: '#FFFFFF',
 
-  primary: '#3D5266',
-  primaryMuted: '#E4E9ED',
+  primary: '#8A6A33',
+  primaryMuted: '#F3E9D7',
   onPrimary: '#FFFFFF',
 
   secondary: '#A97A3E',
@@ -110,8 +119,8 @@ export const darkColors: ColorTokens = {
   textTertiary: '#6B6A67',
   textInverse: '#0B0B0D',
 
-  primary: '#5C7A94',
-  primaryMuted: '#1C242C',
+  primary: '#9C7A3E',
+  primaryMuted: '#2A2416',
   onPrimary: '#F2F1EE',
 
   secondary: '#C9974E',

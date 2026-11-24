@@ -104,7 +104,7 @@ const ToggleButton: React.FC<{ connected: boolean; onPress: () => void }> = ({ c
         borderColor: connected ? 'rgba(255,255,255,0.14)' : 'rgba(95,191,174,0.5)',
       }}
     >
-      <AppText variant="label" color={connected ? '#FFFFFF' : '#5C7A94'}>
+      <AppText variant="label" color={connected ? '#FFFFFF' : '#9C7A3E'}>
         {connected ? 'Disconnect' : 'Connect'}
       </AppText>
     </HeroCard>

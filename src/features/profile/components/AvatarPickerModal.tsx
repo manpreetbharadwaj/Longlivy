@@ -117,7 +117,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({ visible, s
                       borderRadius: TILE_WIDTH / 2,
                       borderWidth: 2,
                       borderColor: selected ? dashboardColors.accent : 'transparent',
-                      backgroundColor: selected ? 'rgba(122,151,176,0.16)' : 'transparent',
+                      backgroundColor: selected ? 'rgba(203,160,95,0.16)' : 'transparent',
                     }}
                   >
                     <UserAvatar

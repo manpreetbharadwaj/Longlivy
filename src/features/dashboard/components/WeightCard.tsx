@@ -8,14 +8,17 @@ import { AppBadge } from '@/components/common/AppBadge';
 import { AnimatedNumberText } from '@/components/common/AnimatedNumberText';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppSelector } from '@/store/hooks';
 import { motion } from '@/theme/motion';
 import { selectCurrentWeight, selectWeightTrend } from '@/features/weight/selectors';
+import { weightSourceLabel } from '@/features/weight/models';
 import { homeIconTileStyle } from '../homeIconTileStyle';
 import { dashboardColors, dashboardCardElevated } from '../dashboardTheme';
 
 export const WeightCard: React.FC = React.memo(() => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const current = useAppSelector(selectCurrentWeight);
   const trend = useAppSelector(selectWeightTrend);
 
@@ -49,10 +52,10 @@ export const WeightCard: React.FC = React.memo(() => {
           </Animated.View>
           <View>
             <AppText variant="headingSmall" color={dashboardColors.textPrimary}>
-              Weight
+              {t('home.weightCard.title')}
             </AppText>
             <AppText variant="bodySmall" color={dashboardColors.textMuted}>
-              {current ? `Logged ${new Date(current.timestamp).toLocaleDateString()}` : 'No entries yet'}
+              {current ? t('home.weightCard.logged', { date: new Date(current.timestamp).toLocaleDateString() }) : t('home.weightCard.noEntries')}
             </AppText>
           </View>
         </View>
@@ -65,7 +68,7 @@ export const WeightCard: React.FC = React.memo(() => {
             </AppText>
           )}
           {current ? (
-            <AppBadge label={current.source === 'manual' ? 'Manual' : current.source.replace('_', ' ')} tone={current.source === 'manual' ? 'neutral' : 'info'} />
+            <AppBadge label={weightSourceLabel(current.source, t)} tone={current.source === 'manual' ? 'neutral' : 'info'} />
           ) : null}
           {trend !== 0 ? (
             <FadeSlideIn delay={200} fromY={4}>

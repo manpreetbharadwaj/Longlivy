@@ -7,6 +7,7 @@ import { AppText } from '@/components/common/AppText';
 import { AppBadge } from '@/components/common/AppBadge';
 import { AppEmptyState } from '@/components/common/AppEmptyState';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from '@/localization';
 import { useAppSelector } from '@/store/hooks';
 import { selectFastingHistory } from '@/features/fasting/selectors';
 import { formatDurationHM } from '@/features/fasting/services/FastingCalculator';
@@ -27,6 +28,7 @@ const STATUS_TONE: Record<FastingStatus, 'success' | 'warning' | 'info' | 'neutr
 
 export const FastingHistoryScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const tabBarSpacing = useFloatingTabBarSpacing();
   const navigation = useNavigation();
   const history = useAppSelector(selectFastingHistory);
@@ -36,21 +38,21 @@ export const FastingHistoryScreen: React.FC = () => {
       <AppCard style={{ marginBottom: theme.spacing.sm }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View>
-            <AppText variant="headingSmall">{sessionModelLabel(item)}</AppText>
+            <AppText variant="headingSmall">{sessionModelLabel(item, t)}</AppText>
             <AppText variant="bodySmall" color={theme.colors.textSecondary}>
               {new Date(item.startTimestamp).toLocaleDateString()} · {formatDurationHM(item.actualDuration ?? item.plannedDuration)}
             </AppText>
           </View>
-          <AppBadge label={fastingStatusLabel(item.status)} tone={STATUS_TONE[item.status]} />
+          <AppBadge label={fastingStatusLabel(item.status, t)} tone={STATUS_TONE[item.status]} />
         </View>
       </AppCard>
     ),
-    [theme]
+    [theme, t]
   );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['left', 'right']}>
-      <AppHeader title="Fasting history" onBack={() => navigation.goBack()} />
+      <AppHeader title={t('fasting.history.title')} onBack={() => navigation.goBack()} />
       <FlatList
         data={history}
         keyExtractor={(item) => item.id}
@@ -58,7 +60,7 @@ export const FastingHistoryScreen: React.FC = () => {
         // The floating tab bar overlays the screen; the list's viewport stops above it.
         style={{ marginBottom: tabBarSpacing }}
         contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.md, flexGrow: 1 }}
-        ListEmptyComponent={<AppEmptyState title="No fasting history yet" message="Completed and ended fasts will appear here." />}
+        ListEmptyComponent={<AppEmptyState title={t('fasting.history.emptyTitle')} message={t('fasting.history.emptyMessage')} />}
       />
     </SafeAreaView>
   );

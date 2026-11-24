@@ -40,7 +40,7 @@ export const HistoryScreen: React.FC = () => {
   const dateLocale = useDateLocale();
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
-  const items = useAppSelector(selectUnifiedHistory);
+  const items = useAppSelector(selectUnifiedHistory)(t);
   const activeFilters = useAppSelector(selectHistoryActiveFilters);
 
   const renderItem = useCallback(
