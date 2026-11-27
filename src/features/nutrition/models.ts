@@ -8,6 +8,7 @@ export interface Food {
   brand?: string;
   category: string;
   barcode?: string;
+  imageUrl?: string;
   servingSize: number;
   unit: FoodUnit;
   calories: number; // per servingSize

@@ -78,6 +78,7 @@ export type NutritionStackParamList = {
   NutritionGoalsScreen: undefined;
   NutritionHistory: undefined;
   BarcodeScanner: undefined;
+  BarcodeScanReview: undefined;
   AiPhotoEntry: undefined;
   AiVoiceEntry: undefined;
   AiTextEntry: undefined;

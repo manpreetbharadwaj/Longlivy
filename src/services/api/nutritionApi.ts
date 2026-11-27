@@ -45,6 +45,7 @@ export function mapFood(raw: RecordValue): Food {
     brand: str(raw.brand),
     category: str(raw.category) ?? '',
     barcode: str(raw.barcode),
+    imageUrl: str(raw.image_url) ?? str(raw.image),
     servingSize: num(raw.base_amount) ?? 100,
     unit: unit(raw.base_unit),
     ...n,

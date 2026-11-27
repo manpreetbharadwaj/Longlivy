@@ -95,6 +95,68 @@ export class ApiNutritionRepository implements NutritionRepository {
     return nutritionApi.createMeal(input.userId, { mealType, loggedAt: localIsoWithOffset(day), items: [item] });
   }
 
+  /**
+   * Groups by meal type, then per group: a brand-new meal is created in one
+   * request (createMeal already takes an `items[]` array — a real batch);
+   * an existing meal is appended to sequentially, since the backend has no
+   * bulk-append endpoint yet (a `POST /meals/{id}/items/batch` would remove
+   * that loop — see BACKEND_API_REQUIREMENTS.txt). Either way, a failure on
+   * one item never blocks the rest: it's recorded in `failedIds` and the
+   * loop continues, so the caller can retry just those.
+   */
+  async addMealItems(input: {
+    userId: string;
+    isoDate: string;
+    items: { id: string; food: Food; quantity: number; mealType: MealType }[];
+  }): Promise<{ meals: Meal[]; succeededIds: string[]; failedIds: string[] }> {
+    const day = new Date(input.isoDate);
+    let existingMeals = await nutritionApi.mealsForDate(input.userId, localDateKey(day));
+
+    const groups = new Map<MealType, { id: string; food: Food; quantity: number }[]>();
+    for (const entry of input.items) {
+      const mealType = apiMealType(entry.mealType);
+      const group = groups.get(mealType);
+      if (group) group.push(entry);
+      else groups.set(mealType, [entry]);
+    }
+
+    const meals: Meal[] = [];
+    const succeededIds: string[] = [];
+    const failedIds: string[] = [];
+
+    for (const [mealType, entries] of groups) {
+      const existing = existingMeals.find((m) => m.mealType === mealType);
+      if (!existing) {
+        try {
+          const created = await nutritionApi.createMeal(input.userId, {
+            mealType,
+            loggedAt: localIsoWithOffset(day),
+            items: entries.map((e) => lineItem(e.food, e.quantity)),
+          });
+          entries.forEach((e) => succeededIds.push(e.id));
+          meals.push(created);
+          existingMeals = [...existingMeals, created];
+        } catch {
+          entries.forEach((e) => failedIds.push(e.id));
+        }
+        continue;
+      }
+
+      let current = existing;
+      for (const entry of entries) {
+        try {
+          current = await nutritionApi.addMealItem(input.userId, current.id, lineItem(entry.food, entry.quantity));
+          succeededIds.push(entry.id);
+        } catch {
+          failedIds.push(entry.id);
+        }
+      }
+      meals.push(current);
+    }
+
+    return { meals, succeededIds, failedIds };
+  }
+
   async removeMealItem(mealId: string, itemId: string): Promise<Meal | null> {
     // The token scopes the call server-side; the id only labels the returned meal.
     return nutritionApi.removeMealItem(this.userId, mealId, itemId);

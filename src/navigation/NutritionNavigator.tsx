@@ -12,6 +12,7 @@ import { CreateRecipeScreen } from '@/screens/nutrition/CreateRecipeScreen';
 import { NutritionGoalsScreen } from '@/screens/nutrition/NutritionGoalsScreen';
 import { NutritionHistoryScreen } from '@/screens/nutrition/NutritionHistoryScreen';
 import { BarcodeScannerScreen } from '@/screens/nutrition/BarcodeScannerScreen';
+import { BarcodeScanReviewScreen } from '@/screens/nutrition/BarcodeScanReviewScreen';
 import { AiPhotoEntryScreen } from '@/screens/nutrition/AiPhotoEntryScreen';
 import { AiVoiceEntryScreen, AiTextEntryScreen } from '@/screens/nutrition/AiTextVoiceEntryScreen';
 import { AiMealReviewScreen } from '@/screens/nutrition/AiMealReviewScreen';
@@ -31,6 +32,7 @@ export const NutritionNavigator: React.FC = () => (
     <Stack.Screen name="NutritionGoalsScreen" component={NutritionGoalsScreen} />
     <Stack.Screen name="NutritionHistory" component={NutritionHistoryScreen} />
     <Stack.Screen name="BarcodeScanner" component={BarcodeScannerScreen} />
+    <Stack.Screen name="BarcodeScanReview" component={BarcodeScanReviewScreen} />
     <Stack.Screen name="AiPhotoEntry" component={AiPhotoEntryScreen} />
     <Stack.Screen name="AiVoiceEntry" component={AiVoiceEntryScreen} />
     <Stack.Screen name="AiTextEntry" component={AiTextEntryScreen} />

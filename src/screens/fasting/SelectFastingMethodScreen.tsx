@@ -8,9 +8,10 @@ import { AppSegmentedControl } from '@/components/common/AppSegmentedControl';
 import { AppGradientButton } from '@/components/common/AppGradientButton';
 import { AppDateField } from '@/components/common/AppDateField';
 import { AppIcon } from '@/components/common/AppIcon';
-import { HeroChip } from '@/components/common/HeroChip';
+import { HeroCard } from '@/components/common/HeroCard';
 import { FadeSlideIn } from '@/components/common/FadeSlideIn';
 import { useTheme } from '@/hooks/useTheme';
+import { motion } from '@/theme/motion';
 import { useTranslation } from '@/localization';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { FASTING_METHODS, FastingMethodId } from '@/features/fasting/models';
@@ -18,6 +19,9 @@ import { fastingMethodName, fastingMethodShortExplanation } from '@/features/fas
 import { env } from '@/config/env';
 import { MAX_PLANNED_HOURS } from '@/services/api/fastingApi';
 import { SafetyNotice } from '@/features/fasting/components/SafetyNotice';
+import { FastingArtCard } from '@/features/fasting/components/FastingArtCard';
+import { getFastingArtKind } from '@/features/fasting/components/FastingArt';
+import { FastingScheduleDial } from '@/features/fasting/components/FastingScheduleDial';
 import { saveFastingScheduleThunk, startFastThunk } from '@/features/fasting/fastingSlice';
 import { selectActiveFast, selectActiveSchedule, selectFastingActionStatus, selectFastingPlan } from '@/features/fasting/selectors';
 import {
@@ -44,8 +48,12 @@ const INTERMITTENT = FASTING_METHODS.filter((m) => m.category === 'intermittent'
 // The API stores at most 48 planned hours (POST /fasting rejects more), so
 // longer methods are only offered in the offline mock prototype.
 const LONGER = FASTING_METHODS.filter((m) => m.category === 'longer' && (env.useMockApi || m.fastingHours <= MAX_PLANNED_HOURS));
-const FASTING_GRADIENT = ['#9C7A3E', '#8A6A33'] as const;
-const ACCENT = '#9C7A3E';
+// Fasting's own identity color (sectionEnvironments.fasting, pillarGradients.fasting,
+// FastingHomeScreen's FASTING_ACCENT) is this muted violet — not the onboarding gold
+// this screen used to borrow, which read as a leftover from a different section.
+const FASTING_GRADIENT = ['#564B6E', '#8B7FA8'] as const;
+const ACCENT = '#8B7FA8';
+const EATING_ACCENT = '#7FA88B';
 
 function blockReason(block: ScheduleEditBlock, t: TFunction): string {
   switch (block) {
@@ -269,41 +277,94 @@ export const SelectFastingMethodScreen: React.FC = () => {
       </FadeSlideIn>
 
       {category === 'intermittent' || category === 'longer' ? (
-        <View style={{ marginBottom: theme.spacing.xs }}>
+        <View style={{ marginBottom: theme.spacing.md }}>
           {category === 'longer' ? (
             <View style={{ marginBottom: theme.spacing.sm }}>
               <SafetyNotice />
             </View>
           ) : null}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            {(category === 'intermittent' ? INTERMITTENT : LONGER).map((method) => (
-              <View key={method.id} style={{ marginBottom: theme.spacing.xs }}>
-                <HeroChip
-                  label={fastingMethodName(method.id, t)}
-                  selected={(category === 'intermittent' ? intermittentId : longerId) === method.id}
-                  onPress={() => (category === 'intermittent' ? setIntermittentId(method.id) : setLongerId(method.id))}
-                  activeColor={ACCENT}
-                />
-              </View>
-            ))}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -theme.spacing.xxs }}>
+            {(category === 'intermittent' ? INTERMITTENT : LONGER).map((method, index) => {
+              const selected = (category === 'intermittent' ? intermittentId : longerId) === method.id;
+              const name = fastingMethodName(method.id, t);
+              return (
+                <View key={method.id} style={{ width: '50%', paddingHorizontal: theme.spacing.xxs, marginBottom: theme.spacing.sm }}>
+                  <FadeSlideIn delay={index * motion.staggerStepMs} fromY={8}>
+                    <View>
+                      <FastingArtCard
+                        kind={getFastingArtKind(method.id)}
+                        title={name}
+                        subtitle={category === 'intermittent' ? t('fasting.selectMethod.cardSubtitleDaily', { fasting: method.fastingHours, eating: method.eatingHours }) : undefined}
+                        selected={selected}
+                        height={148}
+                        onPress={() => (category === 'intermittent' ? setIntermittentId(method.id) : setLongerId(method.id))}
+                        accessibilityLabel={method.recommendation ? `${name}. ${t('fasting.selectMethod.recommendedBadge')}. ${fastingMethodShortExplanation(method.id, t)}` : `${name}. ${fastingMethodShortExplanation(method.id, t)}`}
+                        style={{ flex: undefined, width: '100%' }}
+                      />
+                      {method.recommendation ? (
+                        <View
+                          pointerEvents="none"
+                          style={{
+                            position: 'absolute',
+                            top: theme.spacing.xs,
+                            left: theme.spacing.xs,
+                            backgroundColor: ACCENT,
+                            borderRadius: theme.radius.pill,
+                            paddingHorizontal: theme.spacing.xs,
+                            paddingVertical: 2,
+                          }}
+                        >
+                          <AppText variant="caption" weight="700" color="#FFFFFF">
+                            {t('fasting.selectMethod.recommendedBadge')}
+                          </AppText>
+                        </View>
+                      ) : null}
+                    </View>
+                  </FadeSlideIn>
+                </View>
+              );
+            })}
           </View>
-          <AppText variant="bodySmall" color="rgba(255,255,255,0.65)">
+
+          <AppText variant="bodySmall" color="rgba(255,255,255,0.65)" style={{ marginBottom: theme.spacing.sm }}>
             {fastingMethodShortExplanation(methodId, t)}
           </AppText>
+
+          {category === 'intermittent' ? (
+            <HeroCard>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                <FastingScheduleDial fastingHours={schedule.fastingHours} eatingHours={schedule.eatingHours} size={84} strokeWidth={9} fastingColor={ACCENT} eatingColor={EATING_ACCENT} />
+                <View style={{ marginLeft: theme.spacing.md, flex: 1 }}>
+                  <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
+                    {t('fasting.selectMethod.yourSplit')}
+                  </AppText>
+                  <LegendRow color={ACCENT} label={t('fasting.activeScreen.fasting')} value={formatHours(schedule.fastingHours, t)} />
+                  <LegendRow color={EATING_ACCENT} label={t('fasting.activeScreen.eatingWindow')} value={formatHours(schedule.eatingHours, t)} />
+                </View>
+              </View>
+            </HeroCard>
+          ) : null}
         </View>
       ) : null}
 
       {category === 'individual' ? (
-        <View style={{ marginBottom: theme.spacing.sm }}>
+        <HeroCard style={{ marginBottom: theme.spacing.md }}>
           <AppText variant="bodySmall" color="rgba(255,255,255,0.65)" style={{ marginBottom: theme.spacing.sm }}>
             {t('fasting.selectMethod.setYourOwnSplit')}
           </AppText>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <FastingScheduleDial fastingHours={customFasting} eatingHours={24 - customFasting} size={84} strokeWidth={9} fastingColor={ACCENT} eatingColor={EATING_ACCENT} />
+            <View style={{ marginLeft: theme.spacing.md, flex: 1 }}>
+              <LegendRow color={ACCENT} label={t('fasting.activeScreen.fasting')} value={formatHours(customFasting, t)} />
+              <LegendRow color={EATING_ACCENT} label={t('fasting.activeScreen.eatingWindow')} value={formatHours(24 - customFasting, t)} />
+            </View>
+          </View>
           <Stepper label={t('fasting.selectMethod.fastingStepperLabel')} value={customFasting} min={MIN_CUSTOM_FASTING_HOURS} max={MAX_CUSTOM_FASTING_HOURS} onStep={stepFasting} />
           <Stepper label={t('fasting.selectMethod.eatingWindowStepperLabel')} value={24 - customFasting} min={1} max={24 - MIN_CUSTOM_FASTING_HOURS} onStep={stepEating} />
           <AppText variant="caption" color="rgba(255,255,255,0.55)" style={{ marginTop: theme.spacing.xxs }}>
             {t('fasting.selectMethod.cycleLabel', { fasting: customFasting, eating: 24 - customFasting })}
           </AppText>
-        </View>
+        </HeroCard>
       ) : null}
 
       <View style={{ marginTop: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
@@ -334,16 +395,7 @@ export const SelectFastingMethodScreen: React.FC = () => {
       </View>
 
       {summary ? (
-        <View
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.08)',
-            borderWidth: 1.5,
-            borderColor: 'rgba(255,255,255,0.14)',
-            borderRadius: theme.radius.lg,
-            padding: theme.spacing.md,
-            marginBottom: theme.spacing.sm,
-          }}
-        >
+        <HeroCard style={{ marginBottom: theme.spacing.sm }}>
           <AppText variant="headingSmall" color="#FFFFFF" style={{ marginBottom: theme.spacing.xs }}>
             {t('fasting.selectMethod.yourScheduleCardTitle')}
           </AppText>
@@ -366,7 +418,7 @@ export const SelectFastingMethodScreen: React.FC = () => {
               <SummaryRow label={t('fasting.selectMethod.fastEnds')} value={formatDayClock(summary.eatingBegins, now, t)} last />
             </>
           )}
-        </View>
+        </HeroCard>
       ) : (
         <AppText variant="bodySmall" color="#E5A093" style={{ marginBottom: theme.spacing.sm }}>
           {t('fasting.selectMethod.invalidSplit')}
@@ -408,6 +460,24 @@ export const SelectFastingMethodScreen: React.FC = () => {
     </FastingHeroLayout>
   );
 };
+
+/** A color-dot + label + value row beside the schedule dial — the dial itself is marked non-accessible, so this text is the one place the fasting/eating split is exposed to a screen reader. */
+const LegendRow: React.FC<{ color: string; label: string; value: string }> = React.memo(({ color, label, value }) => {
+  const { theme } = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.xxs }}>
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color, marginRight: theme.spacing.xs }} />
+      <AppText variant="bodySmall" color="rgba(255,255,255,0.7)">
+        {label}
+        {': '}
+      </AppText>
+      <AppText variant="bodySmall" weight="600" color="#FFFFFF">
+        {value}
+      </AppText>
+    </View>
+  );
+});
+LegendRow.displayName = 'LegendRow';
 
 const SummaryRow: React.FC<{ label: string; value: string; last?: boolean }> = React.memo(({ label, value, last }) => {
   const { theme } = useTheme();

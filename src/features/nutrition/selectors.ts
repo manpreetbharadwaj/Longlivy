@@ -1,12 +1,28 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '@/store/store';
-import { calculateGoalProgress } from './services/NutritionCalculationService';
+import { calculateGoalProgress, scaleNutrition } from './services/NutritionCalculationService';
 
 export const selectTodayMeals = (state: RootState) => state.nutrition.todayMeals;
 export const selectNutritionGoals = (state: RootState) => state.nutrition.goals;
 export const selectFoodSearchResults = (state: RootState) => state.nutrition.searchResults;
 export const selectFoodSearchStatus = (state: RootState) => state.nutrition.searchStatus;
 export const selectFavoriteFoods = (state: RootState) => state.nutrition.favorites;
+export const selectScanSession = (state: RootState) => state.nutrition.scanSession;
+
+export const selectScanSessionTotals = createSelector(selectScanSession, (session) =>
+  session.items.reduce(
+    (acc, item) => {
+      const scaled = scaleNutrition(item.food, item.quantity);
+      return {
+        calories: acc.calories + scaled.calories,
+        protein: acc.protein + scaled.protein,
+        carbohydrates: acc.carbohydrates + scaled.carbohydrates,
+        fat: acc.fat + scaled.fat,
+      };
+    },
+    { calories: 0, protein: 0, carbohydrates: 0, fat: 0 }
+  )
+);
 
 export const selectDailyNutritionTotals = createSelector(selectTodayMeals, (meals) => {
   return meals.reduce(

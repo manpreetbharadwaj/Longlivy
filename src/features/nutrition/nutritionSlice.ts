@@ -6,7 +6,32 @@ import type { RootState } from '@/store/store';
 import { hydrateCalorieThunk, setCalorieGoal } from '@/features/calories/calorieSlice';
 import { env } from '@/config/env';
 import { ApiError } from '@/utils/apiError';
+import { generateId } from '@/utils/id';
 import { NutritionTargetKey, NutritionTargets, nutritionTargetsApi, TargetDirection } from '@/services/api/nutritionTargetsApi';
+
+/** One confirmed product in an in-progress multi-barcode scanning session — not yet saved to the backend. */
+export interface ScanSessionItem {
+  id: string;
+  food: Food;
+  quantity: number;
+  mealType: MealType;
+}
+
+interface ScanSessionState {
+  items: ScanSessionItem[];
+  /** Default meal type applied to newly scanned items; each item can still override it. */
+  commonMealType: MealType;
+  saving: boolean;
+  /** Set after a save attempt leaves some items unsaved (and still in `items` for retry). */
+  error: string | null;
+}
+
+const initialScanSession: ScanSessionState = {
+  items: [],
+  commonMealType: 'snack',
+  saving: false,
+  error: null,
+};
 
 interface NutritionState {
   todayMeals: Meal[];
@@ -18,6 +43,7 @@ interface NutritionState {
   /** API mode: server state of each target (goal id etc.). Empty in mock mode. */
   serverTargets: NutritionTargets;
   targetsError: string | null;
+  scanSession: ScanSessionState;
 }
 
 const initialState: NutritionState = {
@@ -35,6 +61,7 @@ const initialState: NutritionState = {
   searchStatus: 'idle',
   serverTargets: {},
   targetsError: null,
+  scanSession: initialScanSession,
 };
 
 function directionFor(goal: string | undefined): TargetDirection {
@@ -109,6 +136,30 @@ export const addFoodToMealThunk = createAsyncThunk(
     })
 );
 
+/**
+ * Submits every item still pending in the scan session, in one batch call.
+ * Items the repository reports as succeeded are removed from the session;
+ * failed ones stay so a retry (calling this thunk again) only resends those
+ * — never items already saved.
+ */
+export const saveScanSessionThunk = createAsyncThunk<
+  { meals: Meal[]; succeededIds: string[]; failedIds: string[] },
+  void,
+  { state: RootState; rejectValue: string }
+>('nutrition/saveScanSession', async (_, { getState, rejectWithValue }) => {
+  const { items } = getState().nutrition.scanSession;
+  if (items.length === 0) return { meals: [], succeededIds: [], failedIds: [] };
+  try {
+    return await nutritionRepository.addMealItems({
+      userId: selectCurrentUserId(getState() as RootState),
+      isoDate: new Date().toISOString(),
+      items: items.map((i) => ({ id: i.id, food: i.food, quantity: i.quantity, mealType: i.mealType })),
+    });
+  } catch (e) {
+    return rejectWithValue(e instanceof Error ? e.message : 'Items could not be saved.');
+  }
+});
+
 const nutritionSlice = createSlice({
   name: 'nutrition',
   initialState,
@@ -119,6 +170,31 @@ const nutritionSlice = createSlice({
     },
     toggleNutritionGoal(state, action: { payload: keyof NutritionGoals }) {
       state.goals[action.payload].active = !state.goals[action.payload].active;
+    },
+    setScanSessionMealType(state, action: { payload: MealType }) {
+      state.scanSession.commonMealType = action.payload;
+    },
+    /** Appends a freshly confirmed scan, or — to merge a repeat barcode — pass `mergeIntoId` instead of letting it push a new row. */
+    addScanSessionItem(state, action: { payload: { food: Food; quantity: number; mealType: MealType; mergeIntoId?: string } }) {
+      const { food, quantity, mealType, mergeIntoId } = action.payload;
+      const existing = mergeIntoId ? state.scanSession.items.find((i) => i.id === mergeIntoId) : undefined;
+      if (existing) {
+        existing.quantity += quantity;
+        return;
+      }
+      state.scanSession.items.push({ id: generateId('scanitem'), food, quantity, mealType });
+    },
+    updateScanSessionItem(state, action: { payload: { id: string; quantity?: number; mealType?: MealType } }) {
+      const item = state.scanSession.items.find((i) => i.id === action.payload.id);
+      if (!item) return;
+      if (action.payload.quantity !== undefined) item.quantity = action.payload.quantity;
+      if (action.payload.mealType !== undefined) item.mealType = action.payload.mealType;
+    },
+    removeScanSessionItem(state, action: { payload: string }) {
+      state.scanSession.items = state.scanSession.items.filter((i) => i.id !== action.payload);
+    },
+    clearScanSession(state) {
+      state.scanSession = initialScanSession;
     },
   },
   extraReducers: (builder) => {
@@ -179,9 +255,37 @@ const nutritionSlice = createSlice({
         const idx = state.todayMeals.findIndex((m) => m.id === action.payload.id);
         if (idx === -1) state.todayMeals.push(action.payload);
         else state.todayMeals[idx] = action.payload;
+      })
+      .addCase(saveScanSessionThunk.pending, (state) => {
+        state.scanSession.saving = true;
+        state.scanSession.error = null;
+      })
+      .addCase(saveScanSessionThunk.fulfilled, (state, action) => {
+        state.scanSession.saving = false;
+        for (const meal of action.payload.meals) {
+          const idx = state.todayMeals.findIndex((m) => m.id === meal.id);
+          if (idx === -1) state.todayMeals.push(meal);
+          else state.todayMeals[idx] = meal;
+        }
+        state.scanSession.items = state.scanSession.items.filter((i) => !action.payload.succeededIds.includes(i.id));
+        state.scanSession.error = action.payload.failedIds.length
+          ? `${action.payload.failedIds.length} item(s) could not be saved. Tap Save again to retry.`
+          : null;
+      })
+      .addCase(saveScanSessionThunk.rejected, (state, action) => {
+        state.scanSession.saving = false;
+        state.scanSession.error = action.payload ?? 'Items could not be saved.';
       });
   },
 });
 
-export const { setNutritionGoal, toggleNutritionGoal } = nutritionSlice.actions;
+export const {
+  setNutritionGoal,
+  toggleNutritionGoal,
+  setScanSessionMealType,
+  addScanSessionItem,
+  updateScanSessionItem,
+  removeScanSessionItem,
+  clearScanSession,
+} = nutritionSlice.actions;
 export default nutritionSlice.reducer;

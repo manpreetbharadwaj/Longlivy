@@ -130,6 +130,66 @@ export class MockNutritionRepository implements NutritionRepository {
     return delay(meal);
   }
 
+  async addMealItems(input: {
+    userId: string;
+    isoDate: string;
+    items: { id: string; food: Food; quantity: number; mealType: MealType }[];
+  }): Promise<{ meals: Meal[]; succeededIds: string[]; failedIds: string[] }> {
+    const db = await store.read();
+    const touched = new Map<MealType, Meal>();
+    const succeededIds: string[] = [];
+
+    for (const entry of input.items) {
+      let meal = touched.get(entry.mealType) ?? db.meals.find(
+        (m) => m.userId === input.userId && m.mealType === entry.mealType && isSameDay(m.timestamp, input.isoDate)
+      );
+      if (!meal) {
+        meal = {
+          id: generateId('meal'),
+          userId: input.userId,
+          mealType: entry.mealType,
+          timestamp: input.isoDate,
+          name: entry.mealType.charAt(0).toUpperCase() + entry.mealType.slice(1),
+          totalCalories: 0,
+          protein: 0,
+          carbohydrates: 0,
+          fat: 0,
+          fiber: 0,
+          sodium: 0,
+          items: [],
+          createdAt: new Date().toISOString(),
+        };
+        db.meals.push(meal);
+      }
+      touched.set(entry.mealType, meal);
+
+      const scaled = scaleNutrition(entry.food, entry.quantity);
+      meal.items.push({
+        id: generateId('mealitem'),
+        mealId: meal.id,
+        foodId: entry.food.id,
+        foodName: entry.food.name,
+        quantity: entry.quantity,
+        unit: entry.food.unit,
+        calories: scaled.calories,
+        protein: scaled.protein,
+        carbohydrates: scaled.carbohydrates,
+        fat: scaled.fat,
+      });
+      succeededIds.push(entry.id);
+    }
+
+    for (const meal of touched.values()) {
+      meal.totalCalories = meal.items.reduce((s, i) => s + i.calories, 0);
+      meal.protein = meal.items.reduce((s, i) => s + i.protein, 0);
+      meal.carbohydrates = meal.items.reduce((s, i) => s + i.carbohydrates, 0);
+      meal.fat = meal.items.reduce((s, i) => s + i.fat, 0);
+    }
+
+    await store.write(db);
+    return delay({ meals: [...touched.values()], succeededIds, failedIds: [] });
+  }
+
   async removeMealItem(mealId: string, itemId: string): Promise<Meal | null> {
     const db = await store.read();
     const meal = db.meals.find((m) => m.id === mealId);

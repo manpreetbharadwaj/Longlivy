@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { Provider as ReduxProvider } from 'react-redux';
 import * as Notifications from 'expo-notifications';
-
+import * as SplashScreen from 'expo-splash-screen';
 import { store } from '@/store/store';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AppPreferencesProvider } from '@/contexts/AppPreferencesContext';
@@ -18,6 +18,12 @@ import {
   registerWorkoutNotificationResponseListener,
   ensureBackgroundNotificationTaskRegistered,
 } from '@/features/activity/services/WorkoutNotificationActions';
+
+// Keeps the native boot splash up past its own default auto-hide so it stays
+// visible until the first React frame has actually painted — otherwise the
+// native layer can hide it before `NavigationRoot` mounts, exposing a blank
+// white frame for a beat. Must run at module scope, before anything renders.
+SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 /** True for a response to the active-workout notification (Pause/Resume/Stop) — meditation-reminder notifications carry no `data` at all, so this is the only identifying signal available on either. */
 function isWorkoutNotificationResponse(response: Notifications.NotificationResponse): boolean {
@@ -97,8 +103,17 @@ const NavigationRoot: React.FC = () => {
 };
 
 export default function App() {
+  // The native splash is still covering the screen at this point (see
+  // `preventAutoHideAsync` above) — our own animated Splash screen (see
+  // `RootNavigator`/`SplashScreen`) is already behind it by the time this
+  // first layout fires, in the same near-black tone, so handing off here
+  // never exposes a blank frame.
+  const onFirstLayout = useCallback(() => {
+    SplashScreen.hideAsync().catch(() => undefined);
+  }, []);
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} onLayout={onFirstLayout}>
       <SafeAreaProvider>
         <ReduxProvider store={store}>
           <ThemeProvider>

@@ -145,7 +145,13 @@ export const RootNavigator: React.FC = () => {
   const showSplash = !bootstrapped || !profileHydrated || !prefsHydrated || !minTimeElapsed;
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    // This navigator swaps its single active screen by name rather than pushing
+    // (Splash -> Language/Onboarding/Auth/Main), so without an explicit
+    // `animation` the change would otherwise cut instantly instead of
+    // transitioning — `fade` reads as deliberate on every platform and is the
+    // same downgrade iOS itself applies to its own transitions under reduced
+    // motion, so it stays appropriate without a separate reduced-motion branch.
+    <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
       {showSplash ? (
         <Stack.Screen name="Splash" component={SplashScreen} />
       ) : !preferences.languageSelected ? (

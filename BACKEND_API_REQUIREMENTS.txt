@@ -628,6 +628,16 @@ PRIORITY: P1
   c) POST /foods takes "category_id" (documented) but GET /food-categories
      returns an empty list, so foods cannot be categorised. Seed the categories.
   d) GET /foods?search= is ignored (only ?q= works) — fine, but document "q".
+  e) OPTIONAL — POST /meals/{id}/items/batch (new endpoint), body
+     { "items": [{ food_id|name/quantity/unit/calories/protein/carbohydrates/fat, ... }] },
+     returning the refreshed meal (same shape as POST /meals/{id}/items).
+     Multi-barcode scanning logs several items into one meal in a single
+     session; today the app batches a *new* meal in one POST /meals call
+     (its "items" array) but must call POST /meals/{id}/items once per item
+     when appending to a meal that already exists for the day, so a scan of
+     5 products into an already-started "snack" is 5 requests instead of 1.
+     Not required for the feature to work (the app falls back to the loop),
+     but removes the extra round-trips and makes that append atomic.
 
 
 =====================================================================
